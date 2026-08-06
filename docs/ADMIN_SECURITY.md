@@ -75,7 +75,7 @@ Las tablas `administradores` e `historial_confirmaciones` mantienen RLS habilita
 El historial existente no se elimina ni se reescribe. El script agrega:
 
 - `origen`: `invitado` o `administrador`;
-- `modificado_por`: UUID opcional de `auth.users`;
+- `modificado_por`: UUID histórico del administrador que realizó el cambio;
 - `motivo`: justificación opcional de la modificación.
 
 La restricción de consistencia exige:
@@ -83,6 +83,8 @@ La restricción de consistencia exige:
 - Cuando `origen = 'invitado'`, `modificado_por` y `motivo` deben ser `NULL`.
 - Cuando `origen = 'administrador'`, `modificado_por` y `motivo` son obligatorios.
 - Un motivo administrativo debe contener entre 1 y 1000 caracteres después de aplicar `trim`.
+
+`modificado_por` es deliberadamente nullable y no tiene llave foránea hacia `auth.users`. Cuando el origen es administrativo, la restricción exige que contenga el UUID que identificaba al administrador en el momento del cambio. Al no depender de una FK, ese identificador histórico permanece intacto y el historial continúa siendo válido aunque posteriormente se elimine al usuario de Supabase Auth.
 
 Los registros existentes reciben `origen = 'invitado'`. La regla es compatible con el trigger actual del RSVP público porque ese trigger no informa las columnas nuevas: se aplica el valor predeterminado `invitado` y ambos campos opcionales permanecen en `NULL`.
 
