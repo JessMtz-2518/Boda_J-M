@@ -1,0 +1,250 @@
+/* =========================================================
+   RSVP PERSONALIZADO
+   Integrado sin modificar los estilos globales de la invitación
+   ========================================================= */
+
+.rsvp .rsvp-personalizado {
+  width: min(760px, 100%);
+  margin: 30px auto 0;
+}
+
+.rsvp .rsvp-loading,
+.rsvp .rsvp-access-error {
+  width: min(620px, 100%);
+  margin: 22px auto 0;
+  padding: 18px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 16px;
+  background: rgba(255, 250, 241, 0.13);
+  color: #fff;
+  font-family: "EB Garamond", Georgia, serif;
+  font-size: 1.1rem;
+  line-height: 1.45;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.rsvp .rsvp-invitation-card {
+  width: min(620px, 100%);
+  margin: 0 auto 24px;
+  padding: clamp(24px, 5vw, 34px);
+  border: 1px solid rgba(86, 101, 74, 0.2);
+  border-radius: 26px;
+  background: rgba(255, 250, 241, 0.94);
+  color: var(--ink, #2c3029);
+  box-shadow: 0 18px 46px rgba(38, 46, 33, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.rsvp .rsvp-invitation-icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  margin: 0 auto 16px;
+  border: 1px solid rgba(86, 101, 74, 0.2);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--olive, #56654a);
+}
+
+.rsvp .rsvp-invitation-icon svg {
+  width: 27px;
+  height: 27px;
+  stroke-width: 1.5;
+}
+
+.rsvp .rsvp-small-label {
+  margin: 0;
+  font-family: "Montserrat", Arial, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.rsvp .rsvp-invitation-card h3 {
+  margin: 8px 0 15px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 500;
+  line-height: 1.08;
+  color: var(--olive-dark, #303a2a);
+}
+
+.rsvp .rsvp-reserved-text {
+  margin: 0;
+  font-family: "EB Garamond", Georgia, serif;
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  color: var(--ink-soft, #51564d);
+}
+
+.rsvp .rsvp-assigned-places {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.rsvp .rsvp-assigned-places > div {
+  min-width: 130px;
+  padding: 14px 18px;
+  border: 1px solid rgba(86, 101, 74, 0.18);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--olive-dark, #303a2a);
+}
+
+.rsvp .rsvp-assigned-places strong {
+  display: block;
+  font-family: "EB Garamond", Georgia, serif;
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.rsvp .rsvp-assigned-places span {
+  display: block;
+  margin-top: 5px;
+  font-family: "Montserrat", Arial, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.rsvp #rsvpForm {
+  width: min(620px, 100%);
+  max-width: none;
+  margin: 0 auto;
+}
+
+.rsvp .rsvp-select-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  width: 100%;
+}
+
+.rsvp .rsvp-select-grid.is-single-column {
+  grid-template-columns: 1fr;
+}
+
+.rsvp .rsvp-field {
+  display: grid;
+  width: 100%;
+  gap: 7px;
+  text-align: left;
+}
+
+.rsvp .rsvp-field > span {
+  font-family: "Montserrat", Arial, sans-serif;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #fff;
+}
+
+.rsvp .rsvp-field select,
+.rsvp .rsvp-field textarea {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  border-radius: 12px;
+  background: rgba(255, 250, 241, 0.94);
+  color: var(--ink, #2c3029);
+  outline: none;
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.rsvp .rsvp-field select {
+  min-height: 54px;
+  padding: 0 15px;
+}
+
+.rsvp .rsvp-field textarea {
+  min-height: 115px;
+  padding: 15px 16px;
+}
+
+.rsvp .rsvp-field select:focus,
+.rsvp .rsvp-field textarea:focus {
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
+}
+
+.rsvp .rsvp-message-field {
+  margin-top: 2px;
+}
+
+.rsvp .rsvp-whatsapp-note {
+  margin: 7px 0 2px;
+  font-family: "EB Garamond", Georgia, serif;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.rsvp #rsvpForm .btn {
+  justify-self: center;
+  min-width: 230px;
+}
+
+.rsvp .form-msg {
+  margin: 16px auto 0;
+  color: #fff;
+  font-family: "EB Garamond", Georgia, serif;
+  font-size: 1.05rem;
+}
+
+.rsvp [hidden] {
+  display: none !important;
+}
+
+@media (max-width: 600px) {
+  .rsvp .rsvp-personalizado {
+    margin-top: 24px;
+  }
+
+  .rsvp .rsvp-select-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rsvp .rsvp-assigned-places {
+    flex-direction: column;
+  }
+
+  .rsvp .rsvp-assigned-places > div {
+    width: 100%;
+  }
+
+  .rsvp #rsvpForm .btn {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rsvp .rsvp-field select,
+  .rsvp .rsvp-field textarea {
+    transition: none;
+  }
+}
+
+
+.rsvp .rsvp-field select {
+  color: #74786f;
+}
+
+.rsvp .rsvp-field select.has-selection {
+  color: var(--ink, #2c3029);
+}
+
+.rsvp .rsvp-field select option {
+  color: var(--ink, #2c3029);
+}
+
+.rsvp .rsvp-field select option[value=""] {
+  color: #74786f;
+}

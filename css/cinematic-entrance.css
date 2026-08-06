@@ -1,0 +1,77 @@
+/* =========================================================
+   JESSICA & MARCOS — V3.0.1.1 CINEMATIC ENTRANCE
+   Capa visual independiente para entrada y salida reversible.
+   No modifica Hero, Timeline, Galería, Lightbox, Destellos ni Autoplay.
+   ========================================================= */
+
+html.cinematic-ready .cinematic-section {
+  --cinematic-distance: 44px;
+  --cinematic-scale: .985;
+  --cinematic-blur: 7px;
+  --cinematic-duration-in: 920ms;
+  --cinematic-duration-out: 520ms;
+  --cinematic-ease-in: cubic-bezier(.16, 1, .3, 1);
+  --cinematic-ease-out: cubic-bezier(.4, 0, .7, 1);
+
+  opacity: .06;
+  filter: blur(var(--cinematic-blur));
+  transform: translate3d(0, var(--cinematic-distance), 0)
+    scale(var(--cinematic-scale));
+  transition:
+    opacity var(--cinematic-duration-out) var(--cinematic-ease-out),
+    filter var(--cinematic-duration-out) var(--cinematic-ease-out),
+    transform var(--cinematic-duration-out) var(--cinematic-ease-out);
+  will-change: opacity, filter, transform;
+  backface-visibility: hidden;
+}
+
+html.cinematic-ready .cinematic-section.is-cinematic-visible {
+  opacity: 1;
+  filter: blur(0);
+  transform: translate3d(0, 0, 0) scale(1);
+  transition-duration: var(--cinematic-duration-in);
+  transition-timing-function: var(--cinematic-ease-in);
+}
+
+/* Salida según la dirección para que el efecto sea perceptible al subir o bajar. */
+html.cinematic-ready .cinematic-section.is-cinematic-above:not(.is-cinematic-visible) {
+  transform: translate3d(0, calc(var(--cinematic-distance) * -0.7), 0)
+    scale(var(--cinematic-scale));
+}
+
+html.cinematic-ready .cinematic-section.is-cinematic-below:not(.is-cinematic-visible) {
+  transform: translate3d(0, var(--cinematic-distance), 0)
+    scale(var(--cinematic-scale));
+}
+
+/* Personalidad muy sutil por bloque, sin tocar su contenido interno. */
+#contador.cinematic-section {
+  --cinematic-distance: 34px;
+  --cinematic-scale: .992;
+}
+
+#padres.cinematic-section,
+#detalles.cinematic-section,
+#rsvp.cinematic-section {
+  --cinematic-distance: 48px;
+}
+
+#vestimenta.cinematic-section,
+#regalos.cinematic-section {
+  --cinematic-distance: 42px;
+  --cinematic-scale: .988;
+}
+
+footer.cinematic-section {
+  --cinematic-distance: 28px;
+  --cinematic-scale: .995;
+  --cinematic-blur: 4px;
+}
+
+/* En pantallas pequeñas se reduce el desplazamiento, pero el efecto permanece visible. */
+@media (max-width: 720px) {
+  html.cinematic-ready .cinematic-section {
+    --cinematic-distance: 34px;
+    --cinematic-blur: 5px;
+  }
+}

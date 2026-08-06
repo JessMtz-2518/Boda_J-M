@@ -1,0 +1,91 @@
+/* =========================================================
+   JESSICA & MARCOS · TOKENS DE DISEÑO CENTRALIZADOS
+   Fase 2 · Entrega 2.2
+   ========================================================= */
+
+:root {
+  /* Paleta principal */
+  --color-olive: #56654a;
+  --color-olive-dark: #303a2a;
+  --color-olive-deep: #313728;
+  --color-olive-medium: #59624a;
+  --color-olive-soft: #7b8469;
+  --color-ivory: #f7f2e9;
+  --color-ivory-light: #f7f3ea;
+  --color-paper: #fffaf1;
+  --color-paper-light: #fffdf8;
+  --color-ink: #2c3029;
+  --color-ink-deep: #20231d;
+  --color-silver: #bcc3c0;
+  --color-silver-light: #c5c8c3;
+  --color-muted: #74786f;
+
+  /* Compatibilidad con nombres existentes */
+  --olive: var(--color-olive);
+  --olive-dark: var(--color-olive-dark);
+  --ivory: var(--color-ivory);
+  --paper: var(--color-paper);
+  --ink: var(--color-ink);
+  --silver: var(--color-silver);
+  --line: rgba(86, 101, 74, .28);
+  --white-soft: rgba(255, 250, 241, .62);
+
+  /* Tipografías */
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-script: "Allura", cursive;
+  --font-body: "Montserrat", Arial, sans-serif;
+  --font-numerals: "EB Garamond", Georgia, serif;
+
+  /* Radios y bordes */
+  --radius-sm: .75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.6rem;
+  --radius-pill: 999px;
+  --border-soft: 1px solid rgba(86, 101, 74, .18);
+  --border-light: 1px solid rgba(247, 243, 234, .16);
+
+  /* Sombras */
+  --shadow-soft: 0 12px 30px rgba(48, 58, 42, .12);
+  --shadow-medium: 0 14px 28px rgba(86, 101, 74, .22);
+  --shadow-gallery: 0 1.5rem 4rem rgba(32, 35, 29, .14);
+  --shadow-floating: 0 .8rem 2rem rgba(0, 0, 0, .18);
+
+  /* Transiciones */
+  --transition-fast: 220ms ease;
+  --transition-base: 320ms ease;
+  --transition-slow: 500ms cubic-bezier(.22, 1, .36, 1);
+
+  /* Capas */
+  --z-background: -2;
+  --z-base: 1;
+  --z-nav: 20;
+  --z-floating: 100;
+  --z-modal: 1000;
+  --z-top: 1100;
+
+  /* Galería */
+  --gallery-2027-olive-900: var(--color-olive-deep);
+  --gallery-2027-olive-700: var(--color-olive-medium);
+  --gallery-2027-olive-500: var(--color-olive-soft);
+  --gallery-2027-ivory: var(--color-ivory-light);
+  --gallery-2027-paper: var(--color-paper-light);
+  --gallery-2027-silver: var(--color-silver-light);
+  --gallery-2027-ink: var(--color-ink-deep);
+  --gallery-2027-muted: var(--color-muted);
+  --gallery-2027-radius: var(--radius-lg);
+  --gallery-2027-gap: clamp(.85rem, 1.6vw, 1.4rem);
+  --gallery-2027-max-width: 92rem;
+  --gallery-2027-shadow: var(--shadow-gallery);
+
+  /* Motor de movimiento */
+  --motion-duration-fast: 520ms;
+  --motion-duration: 860ms;
+  --motion-duration-slow: 1180ms;
+  --motion-ease: cubic-bezier(.16, 1, .3, 1);
+  --motion-ease-soft: cubic-bezier(.22, .61, .36, 1);
+  --motion-distance: 42px;
+  --motion-blur: 9px;
+  --section-progress: 0;
+  --hero-parallax-y: 0px;
+  --hero-text-parallax-y: 0px;
+}

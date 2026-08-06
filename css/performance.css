@@ -1,0 +1,36 @@
+/* Rendimiento · Fase 2.3 */
+.hero,
+.hero__media,
+.hero__content,
+[data-motion],
+[data-gallery-2027] .gallery-premium-2027__track,
+[data-gallery-2027] .gallery-premium-2027__card,
+.timeline-premium__line {
+  backface-visibility: hidden;
+}
+
+.is-dragging,
+.is-animating,
+[data-motion].is-visible {
+  will-change: transform, opacity;
+}
+
+section:not(.hero) {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 900px;
+}
+
+[data-gallery-2027] {
+  contain: layout paint style;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

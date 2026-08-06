@@ -1,0 +1,348 @@
+/* =========================================================
+   JESSICA & MARCOS — PREMIUM MOTION ENGINE V4 / FASE 1
+   Motor de animaciones, scroll cinematográfico y parallax
+   ========================================================= */
+
+/* Evita saltos de ancla debajo del botón flotante */
+section[id] {
+  scroll-margin-top: 24px;
+}
+
+/* Aislamiento de pintura para mejorar rendimiento */
+.section,
+.hero,
+.nav-strip,
+footer {
+  contain: layout paint;
+}
+
+/* =========================================================
+   ESTADO GENERAL DE REVELADO
+   ========================================================= */
+
+.motion-section {
+  position: relative;
+}
+
+.motion-item {
+  opacity: 0;
+  filter: blur(var(--motion-blur));
+  transform:
+    translate3d(
+      var(--motion-x, 0),
+      var(--motion-y, var(--motion-distance)),
+      0
+    )
+    scale(var(--motion-scale, 1));
+
+  transition:
+    opacity var(--motion-duration) var(--motion-ease),
+    transform var(--motion-duration) var(--motion-ease),
+    filter var(--motion-duration) var(--motion-ease);
+
+  transition-delay: var(--motion-delay, 0ms);
+  will-change: opacity, transform, filter;
+  backface-visibility: hidden;
+}
+
+.motion-item[data-motion="left"] {
+  --motion-x: calc(var(--motion-distance) * -1);
+  --motion-y: 0px;
+}
+
+.motion-item[data-motion="right"] {
+  --motion-x: var(--motion-distance);
+  --motion-y: 0px;
+}
+
+.motion-item[data-motion="zoom"] {
+  --motion-y: 18px;
+  --motion-scale: .94;
+}
+
+.motion-item[data-motion="fade"] {
+  --motion-y: 0px;
+}
+
+.motion-item[data-motion="up"] {
+  --motion-y: var(--motion-distance);
+}
+
+.motion-section.is-in-view .motion-item,
+.motion-item.is-in-view {
+  opacity: 1;
+  filter: blur(0);
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+/* Reinicio rápido fuera de pantalla para permitir repetición */
+.motion-section:not(.is-in-view) .motion-item,
+.motion-item:not(.is-in-view) {
+  transition-delay: 0ms;
+}
+
+/* =========================================================
+   HERO CINEMATOGRÁFICO
+   ========================================================= */
+
+.hero {
+  overflow: hidden;
+  background-position:
+    center calc(50% + var(--hero-parallax-y));
+  transition: background-position .08s linear;
+}
+
+.hero-text {
+  transform: translate3d(0, var(--hero-text-parallax-y), 0);
+  will-change: transform;
+}
+
+.hero .hero-text > * {
+  opacity: 0;
+  filter: blur(8px);
+  transform: translateY(26px);
+  transition:
+    opacity var(--motion-duration-slow) var(--motion-ease),
+    transform var(--motion-duration-slow) var(--motion-ease),
+    filter var(--motion-duration-slow) var(--motion-ease);
+}
+
+.hero.is-in-view .hero-text > * {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0);
+}
+
+.hero.is-in-view .hero-text > *:nth-child(1) { transition-delay: 100ms; }
+.hero.is-in-view .hero-text > *:nth-child(2) { transition-delay: 210ms; }
+.hero.is-in-view .hero-text > *:nth-child(3) { transition-delay: 320ms; }
+.hero.is-in-view .hero-text > *:nth-child(4) { transition-delay: 440ms; }
+.hero.is-in-view .hero-text > *:nth-child(5) { transition-delay: 560ms; }
+.hero.is-in-view .hero-text > *:nth-child(6) { transition-delay: 680ms; }
+
+/* =========================================================
+   CUENTA REGRESIVA
+   ========================================================= */
+
+#contador .countdown > div {
+  transform-origin: center bottom;
+}
+
+#contador.is-in-view .countdown > div strong {
+  animation: premiumNumberRise .8s var(--motion-ease) both;
+  animation-delay: var(--motion-delay, 0ms);
+}
+
+@keyframes premiumNumberRise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =========================================================
+   TARJETAS Y MICROINTERACCIONES
+   ========================================================= */
+
+.parents-card,
+.details-grid article {
+  transition:
+    transform .45s var(--motion-ease),
+    box-shadow .45s var(--motion-ease),
+    background-color .45s ease;
+}
+
+.parents-card:hover,
+.details-grid article:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 54px rgba(48, 58, 42, .14);
+}
+
+.icon,
+.parents-icon,
+.nav-strip a svg {
+  transition:
+    transform .45s var(--motion-ease),
+    color .3s ease;
+}
+
+.details-grid article:hover .icon,
+.parents-card:hover .parents-icon,
+.nav-strip a:hover svg {
+  transform: translateY(-3px) scale(1.06);
+}
+
+/* =========================================================
+   ITINERARIO CINEMATOGRÁFICO
+   ========================================================= */
+
+.timeline::after {
+  content: "";
+  position: absolute;
+  top: 54px;
+  left: 10%;
+  width: 0;
+  height: 1px;
+  background: var(--olive);
+  transition: width 1.35s var(--motion-ease) 180ms;
+}
+
+.itinerary.is-in-view .timeline::after {
+  width: 80%;
+}
+
+.timeline > div::after {
+  transform: translateX(-50%) scale(.65);
+  transition: transform .55s var(--motion-ease);
+}
+
+.itinerary.is-in-view .timeline > div::after {
+  transform: translateX(-50%) scale(1);
+}
+
+/* =========================================================
+   GALERÍA
+   ========================================================= */
+
+.photos img {
+  will-change: transform;
+}
+
+.gallery.is-in-view .photos img {
+  animation: premiumGalleryIn .8s var(--motion-ease) both;
+  animation-delay: var(--motion-delay, 0ms);
+}
+
+@keyframes premiumGalleryIn {
+  from {
+    opacity: 0;
+    filter: blur(7px);
+    transform: translateY(24px) scale(.94);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =========================================================
+   BOTONES Y NAVEGACIÓN
+   ========================================================= */
+
+.btn,
+.nav-strip a,
+.music-btn {
+  transition:
+    transform .35s var(--motion-ease),
+    box-shadow .35s var(--motion-ease),
+    background-color .3s ease,
+    color .3s ease,
+    opacity .25s ease;
+}
+
+.btn:hover,
+.nav-strip a:hover {
+  transform: translateY(-3px);
+}
+
+.nav-strip a:hover {
+  background: rgba(255, 250, 241, .56);
+}
+
+/* =========================================================
+   FOOTER — CORRECCIÓN DEFINITIVA
+   ========================================================= */
+
+footer {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  min-height: 1px;
+}
+
+footer .footer-motion-item {
+  opacity: 0;
+  filter: blur(7px);
+  transform: translateY(24px);
+  transition:
+    opacity var(--motion-duration) var(--motion-ease),
+    transform var(--motion-duration) var(--motion-ease),
+    filter var(--motion-duration) var(--motion-ease);
+}
+
+footer.is-in-view .footer-motion-item {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0);
+}
+
+/* Garantía adicional si el navegador no soporta IntersectionObserver */
+.no-intersection-observer .motion-item,
+.no-intersection-observer footer .footer-motion-item {
+  opacity: 1 !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 780px) {
+  :root {
+    --motion-distance: 28px;
+    --motion-blur: 6px;
+  }
+
+  .timeline::after {
+    display: none;
+  }
+
+  .hero {
+    background-position:
+      left calc(50% + var(--hero-parallax-y));
+  }
+}
+
+@media (max-width: 430px) {
+  :root {
+    --motion-duration: 720ms;
+    --motion-duration-slow: 920ms;
+  }
+}
+
+/* =========================================================
+   ACCESIBILIDAD
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .motion-item,
+  .hero .hero-text > *,
+  footer .footer-motion-item,
+  .timeline::after,
+  .timeline > div::after,
+  .photos img {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .hero {
+    background-position: center !important;
+  }
+
+  .timeline::after {
+    width: 80%;
+  }
+}

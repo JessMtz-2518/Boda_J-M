@@ -1,0 +1,213 @@
+/* =========================================================
+   INVITACIÓN WEB V5 · ENTREGA 2.5.2
+   Sistema de Iluminación Premium
+   ========================================================= */
+
+:root {
+  --atmosphere-warm: 243, 218, 163;
+  --atmosphere-ivory: 255, 250, 232;
+  --atmosphere-gold: 194, 146, 74;
+  --atmosphere-opacity: 1;
+}
+
+#sparkleLayer.premium-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  isolation: isolate;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+  contain: strict;
+}
+
+#sparkleLayer.premium-atmosphere.is-active {
+  opacity: var(--atmosphere-opacity);
+}
+
+.atmosphere-glow-layer,
+.atmosphere-particle-layer,
+.atmosphere-sparkle-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.atmosphere-glow-layer { z-index: 0; }
+.atmosphere-particle-layer { z-index: 1; }
+.atmosphere-sparkle-layer { z-index: 2; }
+
+.atmosphere-glow {
+  --glow-size: 42vmax;
+  --glow-x: 20%;
+  --glow-y: 20%;
+  --glow-duration: 24s;
+  --glow-delay: 0s;
+
+  position: absolute;
+  left: var(--glow-x);
+  top: var(--glow-y);
+  width: var(--glow-size);
+  height: var(--glow-size);
+  border-radius: 50%;
+  opacity: .23;
+  transform: translate(-50%, -50%) scale(.92);
+  background: radial-gradient(
+    circle,
+    rgba(var(--atmosphere-ivory), .42) 0%,
+    rgba(var(--atmosphere-warm), .27) 28%,
+    rgba(var(--atmosphere-gold), .12) 52%,
+    transparent 74%
+  );
+  filter: blur(18px);
+  animation: atmosphereGlowDrift var(--glow-duration) ease-in-out var(--glow-delay) infinite alternate;
+  will-change: transform, opacity;
+}
+
+.atmosphere-particle {
+  --particle-size: 2px;
+  --particle-duration: 12s;
+  --particle-delay: 0s;
+  --particle-drift-x: 12px;
+  --particle-drift-y: -28px;
+  --particle-opacity: .35;
+
+  position: absolute;
+  width: var(--particle-size);
+  height: var(--particle-size);
+  border-radius: 50%;
+  opacity: 0;
+  background: rgba(var(--atmosphere-ivory), .92);
+  box-shadow:
+    0 0 6px rgba(var(--atmosphere-ivory), .9),
+    0 0 15px rgba(var(--atmosphere-warm), .48);
+  animation: atmosphereParticleFloat var(--particle-duration) ease-in-out var(--particle-delay) infinite;
+  will-change: transform, opacity;
+}
+
+.atmosphere-sparkle {
+  --sparkle-size: 28px;
+  --sparkle-duration: 5.8s;
+  --sparkle-opacity: .56;
+  --sparkle-rotation: 12deg;
+
+  position: absolute;
+  width: var(--sparkle-size);
+  height: var(--sparkle-size);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(.45) rotate(0deg);
+  animation: atmosphereSparkleAppear var(--sparkle-duration) cubic-bezier(.22,.7,.28,1) forwards;
+  will-change: transform, opacity;
+}
+
+.atmosphere-sparkle::before,
+.atmosphere-sparkle::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+}
+
+.atmosphere-sparkle::before {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle,
+    rgba(255,255,255,.98) 0 5%,
+    rgba(var(--atmosphere-ivory), .88) 8%,
+    rgba(var(--atmosphere-warm), .45) 22%,
+    rgba(var(--atmosphere-gold), .13) 46%,
+    transparent 72%
+  );
+  filter: blur(.4px);
+}
+
+.atmosphere-sparkle::after {
+  width: 7%;
+  height: 7%;
+  background: #fff;
+  box-shadow:
+    0 0 5px rgba(255,255,255,.98),
+    0 0 12px rgba(var(--atmosphere-warm), .72),
+    calc(var(--sparkle-size) * .32) 0 0 -1px rgba(var(--atmosphere-ivory), .45),
+    calc(var(--sparkle-size) * -.32) 0 0 -1px rgba(var(--atmosphere-ivory), .45),
+    0 calc(var(--sparkle-size) * .32) 0 -1px rgba(var(--atmosphere-ivory), .38),
+    0 calc(var(--sparkle-size) * -.32) 0 -1px rgba(var(--atmosphere-ivory), .38);
+}
+
+.atmosphere-sparkle-ray {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 160%;
+  height: 1px;
+  transform: translate(-50%, -50%) rotate(var(--sparkle-rotation));
+  background: linear-gradient(90deg, transparent, rgba(var(--atmosphere-gold), .16), rgba(255,255,255,.9), rgba(var(--atmosphere-gold), .16), transparent);
+  opacity: .72;
+}
+
+.atmosphere-sparkle-ray::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 76%;
+  height: 1px;
+  transform: translate(-50%, -50%) rotate(90deg);
+  background: inherit;
+}
+
+@keyframes atmosphereGlowDrift {
+  0% { opacity: .12; transform: translate(-50%, -50%) scale(.90) translate3d(-1.5%, 1%, 0); }
+  50% { opacity: .22; }
+  100% { opacity: .15; transform: translate(-50%, -50%) scale(1.06) translate3d(2%, -2%, 0); }
+}
+
+@keyframes atmosphereParticleFloat {
+  0%, 100% { opacity: 0; transform: translate3d(0, 12px, 0) scale(.72); }
+  18% { opacity: calc(var(--particle-opacity) * .65); }
+  50% { opacity: var(--particle-opacity); transform: translate3d(calc(var(--particle-drift-x) * .45), calc(var(--particle-drift-y) * .45), 0) scale(1); }
+  82% { opacity: calc(var(--particle-opacity) * .52); }
+  100% { opacity: 0; transform: translate3d(var(--particle-drift-x), var(--particle-drift-y), 0) scale(.75); }
+}
+
+@keyframes atmosphereSparkleAppear {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.42) rotate(0deg); }
+  18% { opacity: calc(var(--sparkle-opacity) * .72); }
+  42% { opacity: var(--sparkle-opacity); transform: translate(-50%, -50%) scale(1) rotate(var(--sparkle-rotation)); }
+  72% { opacity: calc(var(--sparkle-opacity) * .70); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(.62) rotate(calc(var(--sparkle-rotation) * 1.65)); }
+}
+
+/* Pausas controladas por el motor JS */
+.premium-atmosphere.is-paused *,
+body.gallery-lightbox-open .premium-atmosphere * {
+  animation-play-state: paused !important;
+}
+
+@media (max-width: 900px) {
+  .atmosphere-glow { filter: blur(22px); opacity: .15; }
+  .atmosphere-sparkle { --sparkle-size: 24px; }
+}
+
+@media (max-width: 700px) {
+  :root { --atmosphere-opacity: .94; }
+  .atmosphere-glow { --glow-size: 58vmax; opacity: .12; }
+  .atmosphere-sparkle { --sparkle-size: 20px; }
+  .atmosphere-sparkle-ray { width: 120%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #sparkleLayer.premium-atmosphere { display: none !important; }
+}
+
+/* Corrección 2.5.2.2: la galería se mantiene por encima de la atmósfera
+   para que los destellos no se dibujen sobre las fotografías. */
+.gallery-2027 {
+  position: relative;
+  z-index: 3;
+}

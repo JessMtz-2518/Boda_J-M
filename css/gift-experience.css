@@ -1,0 +1,436 @@
+/* =========================================================
+   GIFT EXPERIENCE
+   Mesa de regalos · Aportación económica
+   Jessica & Marcos
+   ========================================================= */
+
+.gift-experience {
+  --gift-gap: clamp(1.25rem, 3vw, 2rem);
+  --gift-radius: 1.5rem;
+  --gift-modal-radius: 1.75rem;
+  --gift-card-bg: rgba(255, 253, 248, 0.72);
+  --gift-card-border: rgba(86, 101, 74, 0.18);
+  --gift-card-shadow: 0 1.25rem 3.5rem rgba(48, 58, 42, 0.13);
+  --gift-overlay: rgba(28, 32, 26, 0.72);
+}
+
+/* =========================================================
+   INTRODUCCIÓN · HOMOLOGADA CON “NUESTROS PADRES”
+   ========================================================= */
+
+.gift-experience {
+  text-align: center;
+}
+
+.gift-experience .gift-intro {
+  width: min(46rem, 100%);
+  margin-inline: auto;
+  text-align: center;
+}
+
+.gift-experience .gift-heading {
+  max-width: 720px;
+  margin: 22px auto 0;
+  font-family: "EB Garamond", serif;
+  font-size: clamp(1.35rem, 2.6vw, 1.8rem);
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.gift-experience .gift-description {
+  max-width: 720px;
+  margin-top: 12px;
+  font-family: "EB Garamond", serif;
+  font-size: clamp(1.15rem, 2.2vw, 1.4rem);
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+/* =========================================================
+   OPCIONES
+   ========================================================= */
+
+.gift-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+  width: min(900px, 100%);
+  margin: 42px auto 0;
+}
+
+.gift-option {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 340px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 40px 30px;
+  overflow: hidden;
+  text-align: center;
+  border: 1px solid rgba(86, 101, 74, .16);
+  border-radius: 28px;
+  background: rgba(255, 250, 241, .55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 18px 42px rgba(48, 58, 42, .10);
+  transition:
+    transform .35s ease,
+    box-shadow .35s ease,
+    background-color .35s ease;
+}
+
+.gift-option::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 20% 10%,
+      rgba(255, 255, 255, 0.42),
+      transparent 34%
+    );
+  opacity: 0.7;
+}
+
+.gift-option > * {
+  position: relative;
+  z-index: 1;
+}
+
+.gift-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 18px;
+  border: 1px solid rgba(86, 101, 74, .16);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .38);
+  color: var(--olive);
+  box-shadow: 0 10px 24px rgba(48, 58, 42, .08);
+}
+
+.gift-icon svg {
+  width: 30px;
+  height: 30px;
+  stroke-width: 1.2;
+}
+
+.gift-option:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, .48);
+  box-shadow: 0 24px 54px rgba(48, 58, 42, .14);
+}
+
+.gift-option:focus-within {
+  border-color: rgba(86, 101, 74, 0.42);
+  box-shadow:
+    0 0 0 0.2rem rgba(86, 101, 74, 0.12),
+    0 1.65rem 4.5rem rgba(48, 58, 42, 0.16);
+}
+
+
+
+.gift-option h3 {
+  display: flex;
+  min-height: 2.4em;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0 18px;
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(1.55rem, 3vw, 2rem);
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--olive-dark);
+}
+
+.gift-option p {
+  display: flex;
+  min-height: 4.8em;
+  max-width: 28rem;
+  align-items: flex-start;
+  justify-content: center;
+  margin: 6px 0;
+  text-align: center;
+  font-family: "EB Garamond", serif;
+  font-size: clamp(1.12rem, 2.2vw, 1.35rem);
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.gift-bank-button {
+  align-self: center;
+  width: auto;
+  min-width: 210px;
+  max-width: 100%;
+  margin-top: auto;
+  padding: 0.85rem 1.6rem;
+  font-family: var(--font-body, "Montserrat", Arial, sans-serif);
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+
+.gift-modal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal, 1000);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity var(--transition-base, 320ms ease),
+    visibility 0s linear var(--transition-base, 320ms ease);
+}
+
+.gift-modal.is-open {
+  visibility: visible;
+  pointer-events: auto;
+  opacity: 1;
+  transition-delay: 0s;
+}
+
+.gift-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      circle at 50% 30%,
+      rgba(123, 132, 105, 0.18),
+      transparent 34rem
+    ),
+    var(--gift-overlay);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.gift-modal__dialog {
+  position: relative;
+  z-index: 1;
+  width: min(31rem, 100%);
+  max-height: min(88vh, 48rem);
+  padding: clamp(1.7rem, 5vw, 2.5rem);
+  overflow-y: auto;
+  text-align: center;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 253, 248, 0.94),
+      rgba(247, 242, 233, 0.9)
+    );
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  border-radius: var(--gift-modal-radius);
+  box-shadow:
+    0 2rem 6rem rgba(0, 0, 0, 0.28),
+    inset 0 1px rgba(255, 255, 255, 0.72);
+  transform: translateY(1.25rem) scale(0.97);
+  opacity: 0;
+  transition:
+    transform var(--transition-slow, 500ms cubic-bezier(.22, 1, .36, 1)),
+    opacity var(--transition-base, 320ms ease);
+}
+
+.gift-modal.is-open .gift-modal__dialog {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.gift-modal__dialog > svg {
+  width: 3.25rem;
+  height: 3.25rem;
+  margin-bottom: 1rem;
+  color: var(--color-olive, #56654a);
+  stroke-width: 1.45;
+}
+
+.gift-modal__dialog h2 {
+  margin: 0 0 0.7rem;
+  font-family: var(--font-display, "Cormorant Garamond", Georgia, serif);
+  font-size: clamp(1.8rem, 5vw, 2.4rem);
+  font-weight: 500;
+  color: var(--color-olive-dark, #303a2a);
+}
+
+.gift-modal__dialog > p {
+  margin-inline: auto;
+  color: var(--color-muted, #74786f);
+}
+
+.gift-modal__close {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  display: grid;
+  width: 2.65rem;
+  height: 2.65rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(86, 101, 74, 0.17);
+  border-radius: 50%;
+  background: rgba(255, 253, 248, 0.72);
+  color: var(--color-olive-dark, #303a2a);
+  font: inherit;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform var(--transition-fast, 220ms ease),
+    background-color var(--transition-fast, 220ms ease),
+    border-color var(--transition-fast, 220ms ease);
+}
+
+.gift-modal__close:hover {
+  transform: rotate(6deg) scale(1.04);
+  border-color: rgba(86, 101, 74, 0.3);
+  background: rgba(255, 253, 248, 0.94);
+}
+
+.gift-modal__close:focus-visible,
+.gift-bank-button:focus-visible,
+#copyBankClabe:focus-visible {
+  outline: 0.18rem solid rgba(86, 101, 74, 0.34);
+  outline-offset: 0.2rem;
+}
+
+/* =========================================================
+   DATOS BANCARIOS
+   ========================================================= */
+
+.gift-bank-data {
+  display: grid;
+  gap: 0.8rem;
+  margin: 1.65rem 0;
+  text-align: left;
+}
+
+.gift-bank-data > div {
+  padding: 0.95rem 1rem;
+  border: 1px solid rgba(86, 101, 74, 0.14);
+  border-radius: var(--radius-md, 1rem);
+  background: rgba(255, 255, 255, 0.46);
+}
+
+.gift-bank-data dt {
+  margin-bottom: 0.25rem;
+  font-family: var(--font-body, "Montserrat", Arial, sans-serif);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--color-muted, #74786f);
+  text-transform: uppercase;
+}
+
+.gift-bank-data dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--font-body, "Montserrat", Arial, sans-serif);
+  font-size: 0.98rem;
+  color: var(--color-ink, #2c3029);
+}
+
+#bankClabe {
+  font-family: var(--font-numerals, "EB Garamond", Georgia, serif);
+  font-size: 1.15rem;
+  letter-spacing: 0.06em;
+}
+
+#copyBankClabe {
+  width: 100%;
+}
+
+.gift-copy-message {
+  min-height: 1.5rem;
+  margin: 0.9rem 0 0;
+  font-size: 0.85rem;
+  color: var(--color-olive, #56654a);
+}
+
+/* =========================================================
+   BLOQUEO DE SCROLL
+   ========================================================= */
+
+body.gift-modal-open {
+  overflow: hidden;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 46rem) {
+  .gift-options {
+    grid-template-columns: 1fr;
+  }
+
+  .gift-option:hover {
+    transform: none;
+  }
+
+  .gift-bank-button {
+    min-width: 10.5rem;
+    padding: 0.72rem 1.15rem;
+    font-size: 0.74rem;
+  }
+
+  .gift-modal {
+    padding: 0.65rem;
+  }
+
+  .gift-modal__dialog {
+    max-height: 92vh;
+    border-radius: 1.25rem;
+  }
+}
+
+@media (max-width: 30rem) {
+  .gift-option {
+    min-height: 0;
+    padding: 34px 24px;
+  }
+
+  .gift-bank-button {
+    min-width: 0;
+    width: 100%;
+    padding-inline: 1rem;
+  }
+
+  .gift-modal__dialog {
+    padding: 1.6rem 1.1rem 1.3rem;
+  }
+
+  .gift-modal__close {
+    top: 0.65rem;
+    right: 0.65rem;
+  }
+}
+
+/* =========================================================
+   MOVIMIENTO REDUCIDO
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .gift-option,
+  .gift-modal,
+  .gift-modal__dialog,
+  .gift-modal__close {
+    transition: none !important;
+  }
+
+  .gift-option:hover,
+  .gift-modal__close:hover {
+    transform: none;
+  }
+}
