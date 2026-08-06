@@ -1,0 +1,1 @@
+(() => { "use strict"; window.AdminViews=window.AdminViews||{}; window.AdminViews.confirmaciones=()=>window.AdminPlaceholderView("Confirmaciones","Las respuestas e historial administrativo se incorporarán posteriormente."); })();

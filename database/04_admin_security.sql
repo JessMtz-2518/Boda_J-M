@@ -13,8 +13,7 @@ begin;
 -- =========================================================
 
 create table if not exists public.administradores (
-    usuario_id uuid primary key
-        references auth.users(id),
+    usuario_id uuid primary key,
 
     nombre text not null,
 
@@ -23,8 +22,43 @@ create table if not exists public.administradores (
     activo boolean not null default true,
 
     fecha_creacion timestamptz not null default now(),
-    fecha_actualizacion timestamptz not null default now()
+    fecha_actualizacion timestamptz not null default now(),
+
+    constraint administradores_usuario_id_fkey
+        foreign key (usuario_id)
+        references auth.users(id)
+        on delete cascade
 );
+
+-- Garantiza ON DELETE CASCADE incluso si la tabla hubiera sido
+-- creada previamente con otra accion referencial.
+do $$
+begin
+    if exists (
+        select 1
+        from pg_constraint
+        where conname = 'administradores_usuario_id_fkey'
+          and conrelid = 'public.administradores'::regclass
+          and confdeltype <> 'c'
+    ) then
+        alter table public.administradores
+        drop constraint administradores_usuario_id_fkey;
+    end if;
+
+    if not exists (
+        select 1
+        from pg_constraint
+        where conname = 'administradores_usuario_id_fkey'
+          and conrelid = 'public.administradores'::regclass
+    ) then
+        alter table public.administradores
+        add constraint administradores_usuario_id_fkey
+        foreign key (usuario_id)
+        references auth.users(id)
+        on delete cascade;
+    end if;
+end;
+$$;
 
 do $$
 begin
@@ -214,34 +248,32 @@ begin
 end;
 $$;
 
+-- Compatible con el trigger actual del RSVP: las inserciones publicas
+-- conservan el default origen = 'invitado' y dejan usuario/motivo en null.
 do $$
 begin
     if not exists (
         select 1
         from pg_constraint
-        where conname = 'historial_confirmaciones_modificado_por_fkey'
+        where conname = 'historial_confirmaciones_consistencia_origen_check'
           and conrelid = 'public.historial_confirmaciones'::regclass
     ) then
         alter table public.historial_confirmaciones
-        add constraint historial_confirmaciones_modificado_por_fkey
-        foreign key (modificado_por)
-        references auth.users(id)
-        on delete set null;
-    end if;
-end;
-$$;
-
-do $$
-begin
-    if not exists (
-        select 1
-        from pg_constraint
-        where conname = 'historial_confirmaciones_motivo_longitud_check'
-          and conrelid = 'public.historial_confirmaciones'::regclass
-    ) then
-        alter table public.historial_confirmaciones
-        add constraint historial_confirmaciones_motivo_longitud_check
-        check (motivo is null or char_length(trim(motivo)) between 1 and 1000);
+        add constraint historial_confirmaciones_consistencia_origen_check
+        check (
+            (
+                origen = 'invitado'
+                and modificado_por is null
+                and motivo is null
+            )
+            or
+            (
+                origen = 'administrador'
+                and modificado_por is not null
+                and motivo is not null
+                and char_length(trim(motivo)) between 1 and 1000
+            )
+        );
     end if;
 end;
 $$;

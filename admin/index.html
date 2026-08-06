@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Administración | Jessica &amp; Marcos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-loading">
+  <main class="admin-page">
+    <section class="admin-login" id="adminLogin" hidden>
+      <article class="admin-login-card" aria-labelledby="adminLoginTitle">
+        <p class="admin-eyebrow">Jessica &amp; Marcos</p>
+        <h1 id="adminLoginTitle">Panel administrativo</h1>
+        <p class="admin-intro">Acceso exclusivo para administradores autorizados.</p>
+        <form id="adminLoginForm">
+          <label class="admin-field" for="adminEmail"><span>Correo electrónico</span><input id="adminEmail" name="email" type="email" autocomplete="username" required></label>
+          <label class="admin-field" for="adminPassword"><span>Contraseña</span><input id="adminPassword" name="password" type="password" autocomplete="current-password" required></label>
+          <button class="admin-button" id="adminLoginButton" type="submit">Iniciar sesión</button>
+          <p class="admin-message" id="adminLoginMessage" role="status" aria-live="polite"></p>
+        </form>
+      </article>
+    </section>
+
+    <section class="admin-shell" id="adminShell" hidden>
+      <aside class="admin-sidebar" id="adminSidebar">
+        <div class="admin-brand"><p class="admin-eyebrow">Jessica &amp; Marcos</p><strong>Administración</strong></div>
+        <nav class="admin-nav" aria-label="Navegación administrativa">
+          <a href="#/dashboard" data-admin-route="dashboard">Dashboard</a>
+          <a href="#/invitados" data-admin-route="invitados">Invitados</a>
+          <a href="#/confirmaciones" data-admin-route="confirmaciones">Confirmaciones</a>
+          <a href="#/estadisticas" data-admin-route="estadisticas">Estadísticas</a>
+          <a href="#/mesas" data-admin-route="mesas">Mesas</a>
+        </nav>
+      </aside>
+
+      <div class="admin-workspace">
+        <header class="admin-header">
+          <button class="admin-menu-button" id="adminMenuButton" type="button" aria-controls="adminSidebar" aria-expanded="false"><span aria-hidden="true">☰</span><span class="sr-only">Abrir menú</span></button>
+          <div class="admin-session"><div><strong id="adminName"></strong><span id="adminRole"></span></div><button class="admin-button admin-button-secondary" id="adminLogoutButton" type="button">Cerrar sesión</button></div>
+        </header>
+        <div class="admin-route-view" id="adminRouteView" tabindex="-1" aria-live="polite"></div>
+      </div>
+      <button class="admin-sidebar-backdrop" id="adminSidebarBackdrop" type="button" aria-label="Cerrar menú" hidden></button>
+    </section>
+
+    <section class="admin-fatal" id="adminFatal" hidden><article class="admin-login-card"><p class="admin-eyebrow">Acceso no disponible</p><h1>No pudimos iniciar el panel</h1><p id="adminFatalMessage">Intenta nuevamente más tarde.</p></article></section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
+  <script src="../js/supabase-config.js" defer></script>
+  <script src="js/config/supabase-admin-client.js" defer></script>
+  <script src="js/auth/auth-service.js" defer></script>
+  <script src="js/auth/auth-guard.js" defer></script>
+  <script src="js/utils/invitation-url.js" defer></script>
+  <script src="js/utils/whatsapp.js" defer></script>
+  <script src="js/utils/qr-code.js" defer></script>
+  <script src="js/components/guest-actions.js" defer></script>
+  <script src="js/views/dashboard-view.js" defer></script>
+  <script src="js/views/invitados-view.js" defer></script>
+  <script src="js/views/confirmaciones-view.js" defer></script>
+  <script src="js/views/estadisticas-view.js" defer></script>
+  <script src="js/views/mesas-view.js" defer></script>
+  <script src="js/router/hash-router.js" defer></script>
+  <script src="js/admin-app.js" defer></script>
+</body>
+</html>
