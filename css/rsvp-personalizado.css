@@ -186,6 +186,104 @@
   color: rgba(255, 255, 255, 0.92);
 }
 
+.rsvp .rsvp-existing-confirmation {
+  margin: 2px 0 16px;
+  padding: 18px 20px;
+  border: 1px solid rgba(86, 101, 74, 0.18);
+  border-radius: 16px;
+  background: rgba(255, 250, 241, 0.94);
+  color: var(--olive-dark, #303a2a);
+  box-shadow: 0 12px 30px rgba(38, 46, 33, 0.1);
+  animation: rsvp-notice-enter 300ms ease-out both;
+}
+
+.rsvp .rsvp-counter {
+  display: grid;
+  grid-template-columns: 58px minmax(90px, 1fr) 58px;
+  align-items: center;
+  min-height: 82px;
+  padding: 8px 10px;
+  border: 1px solid rgba(86, 101, 74, 0.18);
+  border-radius: 16px;
+  background: rgba(255, 250, 241, 0.94);
+  color: var(--olive-dark, #303a2a);
+  box-shadow: 0 12px 30px rgba(38, 46, 33, 0.1);
+}
+
+.rsvp .rsvp-counter-button {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(86, 101, 74, 0.22);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.54);
+  color: var(--olive-dark, #303a2a);
+  font-family: "Montserrat", Arial, sans-serif;
+  font-size: 1.75rem;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    opacity 180ms ease,
+    background-color 180ms ease;
+}
+
+.rsvp .rsvp-counter-button:not(:disabled):active {
+  transform: scale(0.95);
+}
+
+.rsvp .rsvp-counter-button:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+
+.rsvp .rsvp-counter-value {
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.rsvp .rsvp-counter-value strong {
+  font-family: "EB Garamond", Georgia, serif;
+  font-size: 2.2rem;
+  font-weight: 500;
+  line-height: 0.95;
+}
+
+.rsvp .rsvp-counter-value strong.is-changing {
+  animation: rsvp-counter-pop 200ms ease-out;
+}
+
+.rsvp .rsvp-counter-value span {
+  margin-top: 7px;
+  color: var(--ink-soft, #51564d);
+  font-family: "Montserrat", Arial, sans-serif;
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@keyframes rsvp-notice-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rsvp-counter-pop {
+  0% { opacity: 0.7; transform: scale(1); }
+  55% { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 .rsvp #rsvpForm .btn {
   justify-self: center;
   min-width: 230px;
@@ -229,6 +327,11 @@
   .rsvp .rsvp-field select,
   .rsvp .rsvp-field textarea {
     transition: none;
+  }
+
+  .rsvp .rsvp-existing-confirmation,
+  .rsvp .rsvp-counter-value strong.is-changing {
+    animation: none;
   }
 }
 
