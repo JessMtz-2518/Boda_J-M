@@ -46,6 +46,8 @@ do update set
     activo = true;
 ```
 
+La relación usa `ON DELETE CASCADE`: si el usuario se elimina de Supabase Auth, su autorización también se elimina automáticamente de `public.administradores`.
+
 No se deben guardar contraseñas en `public.administradores`, archivos JavaScript, documentación ni GitHub.
 
 ## Funciones y permisos
@@ -76,7 +78,15 @@ El historial existente no se elimina ni se reescribe. El script agrega:
 - `modificado_por`: UUID opcional de `auth.users`;
 - `motivo`: justificación opcional de la modificación.
 
-Los registros existentes reciben `origen = 'invitado'`. En una fase posterior, la RPC de corrección administrativa deberá establecer `origen = 'administrador'`, `modificado_por = auth.uid()` y exigir un motivo. Esta fase solo prepara la estructura; no modifica el trigger público del RSVP.
+La restricción de consistencia exige:
+
+- Cuando `origen = 'invitado'`, `modificado_por` y `motivo` deben ser `NULL`.
+- Cuando `origen = 'administrador'`, `modificado_por` y `motivo` son obligatorios.
+- Un motivo administrativo debe contener entre 1 y 1000 caracteres después de aplicar `trim`.
+
+Los registros existentes reciben `origen = 'invitado'`. La regla es compatible con el trigger actual del RSVP público porque ese trigger no informa las columnas nuevas: se aplica el valor predeterminado `invitado` y ambos campos opcionales permanecen en `NULL`.
+
+En una fase posterior, la RPC de corrección administrativa deberá establecer `origen = 'administrador'`, `modificado_por = auth.uid()` y exigir un motivo. Esta fase solo prepara la estructura; no modifica el trigger público del RSVP.
 
 ## Por qué no se usa `service_role` en el navegador
 
