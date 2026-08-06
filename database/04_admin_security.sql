@@ -248,23 +248,6 @@ begin
 end;
 $$;
 
-do $$
-begin
-    if not exists (
-        select 1
-        from pg_constraint
-        where conname = 'historial_confirmaciones_modificado_por_fkey'
-          and conrelid = 'public.historial_confirmaciones'::regclass
-    ) then
-        alter table public.historial_confirmaciones
-        add constraint historial_confirmaciones_modificado_por_fkey
-        foreign key (modificado_por)
-        references auth.users(id)
-        on delete set null;
-    end if;
-end;
-$$;
-
 -- Compatible con el trigger actual del RSVP: las inserciones publicas
 -- conservan el default origen = 'invitado' y dejan usuario/motivo en null.
 do $$
