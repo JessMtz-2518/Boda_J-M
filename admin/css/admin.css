@@ -4,3 +4,20 @@
 @media(max-width:900px){.admin-shell{grid-template-columns:1fr}.admin-sidebar{position:fixed;left:0;transform:translateX(-105%);width:min(300px,84vw);transition:transform 220ms ease}.admin-shell.menu-open .admin-sidebar{transform:none}.admin-sidebar-backdrop{position:fixed;inset:0;display:block;border:0;background:rgba(30,36,27,.52);z-index:15}.admin-header{justify-content:space-between}.admin-menu-button{display:inline-grid;place-items:center}.admin-placeholder-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.admin-workspace{padding:14px}.admin-header,.admin-session,.guest-demo-head{align-items:stretch;flex-direction:column}.admin-header{gap:12px}.admin-menu-button{align-self:flex-start}.admin-session{text-align:left}.admin-session .admin-button{width:100%}.admin-placeholder-grid{grid-template-columns:1fr}.guest-actions{display:grid}.guest-action,.guest-more{width:100%}.guest-more>.guest-action{width:100%}.guest-more-menu{position:static;width:100%;margin-top:8px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
+/* Contraste propio para las opciones del menú contextual. */
+.guest-more-menu button {
+  width: 100%;
+  min-height: 42px;
+  color: var(--admin-ink);
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-transform: none;
+}
+.guest-more-menu button:not(:disabled):hover { background: rgba(86, 101, 74, .08); }
+.guest-more-menu button:disabled {
+  color: var(--admin-muted);
+  opacity: .58;
+  cursor: not-allowed;
+}

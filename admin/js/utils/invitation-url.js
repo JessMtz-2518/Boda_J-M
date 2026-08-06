@@ -30,8 +30,14 @@
 
   function openInvitationPreview(token, options = {}) {
     const url = buildInvitationUrl(token, options);
-    const previewWindow = window.open(url, "_blank", "noopener,noreferrer");
-    if (!previewWindow) throw new Error("El navegador bloqueó la nueva pestaña.");
+    const link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.hidden = true;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
     return url;
   }
 
