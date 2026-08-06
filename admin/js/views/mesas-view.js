@@ -1,0 +1,1 @@
+(() => { "use strict"; window.AdminViews=window.AdminViews||{}; window.AdminViews.mesas=()=>window.AdminPlaceholderView("Mesas","La asignación de mesas permanece fuera del alcance de esta etapa."); })();

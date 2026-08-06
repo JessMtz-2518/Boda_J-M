@@ -1,0 +1,1 @@
+(() => { "use strict"; window.AdminViews=window.AdminViews||{}; window.AdminViews.estadisticas=()=>window.AdminPlaceholderView("Estadísticas","Esta vista queda preparada para métricas y gráficas futuras."); })();
