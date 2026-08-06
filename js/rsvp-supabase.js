@@ -44,14 +44,23 @@
       ? confirmation
       : {};
 
+    const confirmedAdults = valueFrom(source, ["adultos", "adults"],
+      valueFrom(record, ["adultos_confirmados", "confirmed_adults"]));
+    const confirmedChildren = valueFrom(source, ["ninos", "niños", "children"],
+      valueFrom(record, ["ninos_confirmados", "confirmed_children"]));
+    const hasConfirmation =
+      Object.keys(source).length > 0 ||
+      confirmedAdults !== null ||
+      confirmedChildren !== null ||
+      Boolean(valueFrom(record, ["estado_confirmacion", "confirmation_status"]));
+
     return {
       name: String(valueFrom(record, ["nombre", "name", "invitado_nombre"], "Invitado")),
       adults: toCount(valueFrom(record, ["adultos", "adults", "adultos_asignados"], 0)),
       children: toCount(valueFrom(record, ["ninos", "niños", "children", "ninos_asignados"], 0)),
-      confirmedAdults: valueFrom(source, ["adultos", "adults"],
-        valueFrom(record, ["adultos_confirmados", "confirmed_adults"])),
-      confirmedChildren: valueFrom(source, ["ninos", "niños", "children"],
-        valueFrom(record, ["ninos_confirmados", "confirmed_children"])),
+      confirmedAdults,
+      confirmedChildren,
+      hasConfirmation,
       message: String(valueFrom(source, ["mensaje", "message"],
         valueFrom(record, ["mensaje_confirmacion", "confirmation_message"], "")) || ""),
     };
@@ -83,6 +92,63 @@
     select.classList.toggle("has-selection", select.value !== "");
   }
 
+  function mountCounter(select, maximum, selectedValue = 0) {
+    const initialValue = Math.min(
+      Math.max(Number(selectedValue) || 0, 0),
+      maximum
+    );
+    let counter = select.nextElementSibling;
+
+    if (!counter?.classList.contains("rsvp-counter")) {
+      counter = document.createElement("div");
+      counter.className = "rsvp-counter";
+      counter.innerHTML = `
+        <button class="rsvp-counter-button" type="button" data-counter-action="decrease" aria-label="Restar una persona">−</button>
+        <div class="rsvp-counter-value" aria-live="polite">
+          <strong>0</strong>
+          <span></span>
+        </div>
+        <button class="rsvp-counter-button" type="button" data-counter-action="increase" aria-label="Agregar una persona">+</button>
+      `;
+      select.insertAdjacentElement("afterend", counter);
+    }
+
+    const valueElement = counter.querySelector("strong");
+    const maximumElement = counter.querySelector(".rsvp-counter-value span");
+    const decreaseButton = counter.querySelector('[data-counter-action="decrease"]');
+    const increaseButton = counter.querySelector('[data-counter-action="increase"]');
+
+    function updateValue(nextValue, animate = true) {
+      const value = Math.min(Math.max(nextValue, 0), maximum);
+      select.value = String(value);
+      valueElement.textContent = String(value);
+      maximumElement.textContent = `MÁX. ${maximum}`;
+      decreaseButton.disabled = value <= 0;
+      increaseButton.disabled = value >= maximum;
+
+      if (animate && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        valueElement.classList.remove("is-changing");
+        void valueElement.offsetWidth;
+        valueElement.classList.add("is-changing");
+      }
+    }
+
+    if (!counter.dataset.initialized) {
+      decreaseButton.addEventListener("click", () => {
+        updateValue(Number(select.value) - 1);
+      });
+      increaseButton.addEventListener("click", () => {
+        updateValue(Number(select.value) + 1);
+      });
+      counter.dataset.initialized = "true";
+    }
+
+    select.hidden = true;
+    counter.hidden = false;
+    updateValue(initialValue, false);
+    return counter;
+  }
+
   function setLoading(active, message = "Consultando tu invitacion...") {
     elements.loading.textContent = message;
     elements.loading.hidden = !active;
@@ -108,11 +174,32 @@
     elements.assignedAdultsLabel.textContent = pluralize(record.adults, "Adulto", "Adultos");
     elements.assignedChildrenLabel.textContent = pluralize(record.children, "Nino", "Ninos");
 
-    // Cada visita comienza con un formulario limpio. La confirmacion
-    // existente permanece en Supabase y se actualiza al volver a enviar.
-    populateSelect(elements.adultCount, record.adults);
-    populateSelect(elements.childrenCount, record.children);
+    const selectedAdults = record.hasConfirmation
+      ? toCount(record.confirmedAdults)
+      : 0;
+    const selectedChildren = record.hasConfirmation
+      ? toCount(record.confirmedChildren)
+      : 0;
+
+    populateSelect(elements.adultCount, record.adults, selectedAdults);
+    populateSelect(elements.childrenCount, record.children, selectedChildren);
+    elements.adultCounter = mountCounter(
+      elements.adultCount,
+      record.adults,
+      selectedAdults
+    );
+    elements.childrenCounter = mountCounter(
+      elements.childrenCount,
+      record.children,
+      selectedChildren
+    );
+
     elements.guestMessage.value = "";
+    elements.messageField.hidden = record.hasConfirmation;
+    elements.existingConfirmationNotice.hidden = !record.hasConfirmation;
+    elements.submitButton.textContent = record.hasConfirmation
+      ? "Actualizar asistencia"
+      : "Confirmar asistencia";
 
     const hasChildren = record.children > 0;
     elements.childrenField.hidden = !hasChildren;
@@ -228,10 +315,25 @@
         tokenAcceso,
         adultos: payload.adults,
         ninos: payload.children,
-        mensaje: payload.guestMessage,
+        mensaje: invitation.hasConfirmation
+          ? invitation.message
+          : payload.guestMessage,
       });
 
-      openWhatsApp(payload);
+      openWhatsApp({
+        ...payload,
+        guestMessage: invitation.hasConfirmation ? "" : payload.guestMessage,
+      });
+
+      const normalButtonText = invitation.hasConfirmation
+        ? "Actualizar asistencia"
+        : "Confirmar asistencia";
+      elements.submitButton.textContent = invitation.hasConfirmation
+        ? "¡Listo! Tu asistencia fue actualizada"
+        : "¡Listo! Tu asistencia fue confirmada";
+      window.setTimeout(() => {
+        elements.submitButton.textContent = normalButtonText;
+      }, 1800);
     } catch (error) {
       console.error("RSVP Supabase:", error);
       elements.message.textContent =
@@ -259,9 +361,37 @@
     elements.childrenCount = document.querySelector("#childrenCount");
     elements.childrenField = document.querySelector("#childrenField");
     elements.selectGrid = document.querySelector(".rsvp-select-grid");
+    elements.messageField = document.querySelector(".rsvp-message-field");
     elements.guestMessage = document.querySelector("#guestMessage");
     elements.message = document.querySelector("#formMsg");
     elements.submitButton = elements.form?.querySelector('button[type="submit"]');
+
+    elements.existingConfirmationNotice = document.querySelector(
+      "#rsvpExistingConfirmationNotice"
+    );
+
+    if (!elements.existingConfirmationNotice && elements.messageField) {
+      const notice = document.createElement("p");
+      notice.id = "rsvpExistingConfirmationNotice";
+      notice.className = "rsvp-whatsapp-note rsvp-existing-confirmation";
+      notice.hidden = true;
+      notice.append(
+        "✓ Ya habíamos recibido tu confirmación.",
+        document.createElement("br"),
+        document.createElement("br"),
+        "Si deseas hacer algún cambio,",
+        document.createElement("br"),
+        "puedes actualizarla aquí."
+      );
+      elements.existingConfirmationNotice = notice;
+    }
+
+    if (elements.existingConfirmationNotice && elements.selectGrid) {
+      elements.selectGrid.insertAdjacentElement(
+        "beforebegin",
+        elements.existingConfirmationNotice
+      );
+    }
 
     return Object.values(elements).every(Boolean);
   }
