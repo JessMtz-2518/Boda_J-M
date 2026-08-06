@@ -108,9 +108,11 @@
     elements.assignedAdultsLabel.textContent = pluralize(record.adults, "Adulto", "Adultos");
     elements.assignedChildrenLabel.textContent = pluralize(record.children, "Nino", "Ninos");
 
-    populateSelect(elements.adultCount, record.adults, record.confirmedAdults);
-    populateSelect(elements.childrenCount, record.children, record.confirmedChildren);
-    elements.guestMessage.value = record.message;
+    // Cada visita comienza con un formulario limpio. La confirmacion
+    // existente permanece en Supabase y se actualiza al volver a enviar.
+    populateSelect(elements.adultCount, record.adults);
+    populateSelect(elements.childrenCount, record.children);
+    elements.guestMessage.value = "";
 
     const hasChildren = record.children > 0;
     elements.childrenField.hidden = !hasChildren;
