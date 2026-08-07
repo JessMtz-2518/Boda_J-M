@@ -27,7 +27,127 @@ create index if not exists confirmaciones_admin_invitado_idx
 
 
 -- =========================================================
--- 2. HISTORIAL ADMINISTRATIVO DE INVITADOS
+-- 2. INTEGRIDAD CONCURRENTE ENTRE CUPO Y RSVP
+--
+-- Correccion minima de concurrencia, sin cambiar las reglas
+-- funcionales del RSVP. Tanto el trigger publico como las RPC
+-- administrativas serializan sus decisiones mediante FOR UPDATE
+-- sobre la misma fila de public.invitados.
+--
+-- Orden de bloqueos:
+--   RSVP UPDATE: confirmaciones (por PostgreSQL) -> invitados.
+--   RSVP INSERT: invitados.
+--   Admin:       invitados -> lectura MVCC de confirmaciones.
+--
+-- La ruta administrativa nunca solicita un bloqueo de fila sobre
+-- confirmaciones, por lo que no se forma un ciclo de espera.
+-- =========================================================
+
+create or replace function public.validar_confirmacion()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+    v_adultos_asignados smallint;
+    v_ninos_asignados smallint;
+    v_activo boolean;
+
+    v_rsvp_activo boolean;
+    v_permitir_modificaciones boolean;
+    v_fecha_limite timestamptz;
+begin
+    select
+        i.adultos_asignados,
+        i.ninos_asignados,
+        i.activo
+    into
+        v_adultos_asignados,
+        v_ninos_asignados,
+        v_activo
+    from public.invitados as i
+    where i.id = new.invitado_id
+    for update of i;
+
+    if not found then
+        raise exception 'La invitación indicada no existe.';
+    end if;
+
+    if not v_activo then
+        raise exception 'Esta invitación no se encuentra activa.';
+    end if;
+
+    select coalesce(
+        (
+            select (c.valor #>> '{}')::boolean
+            from public.configuracion as c
+            where c.clave = 'rsvp_activo'
+        ),
+        true
+    )
+    into v_rsvp_activo;
+
+    if not v_rsvp_activo then
+        raise exception 'El periodo de confirmaciones está cerrado.';
+    end if;
+
+    select (
+        select nullif(c.valor #>> '{}', '')::timestamptz
+        from public.configuracion as c
+        where c.clave = 'fecha_limite_rsvp'
+    )
+    into v_fecha_limite;
+
+    if v_fecha_limite is not null and now() > v_fecha_limite then
+        raise exception 'La fecha límite para confirmar ha concluido.';
+    end if;
+
+    if tg_op = 'UPDATE' then
+        select coalesce(
+            (
+                select (c.valor #>> '{}')::boolean
+                from public.configuracion as c
+                where c.clave = 'permitir_modificaciones'
+            ),
+            true
+        )
+        into v_permitir_modificaciones;
+
+        if not v_permitir_modificaciones then
+            raise exception 'La confirmación ya no puede modificarse.';
+        end if;
+    end if;
+
+    if new.adultos_confirmados > v_adultos_asignados then
+        raise exception
+            'El máximo de adultos permitido es %.',
+            v_adultos_asignados;
+    end if;
+
+    if new.ninos_confirmados > v_ninos_asignados then
+        raise exception
+            'El máximo de niños permitido es %.',
+            v_ninos_asignados;
+    end if;
+
+    new.estado :=
+        case
+            when new.adultos_confirmados + new.ninos_confirmados = 0
+                then 'no_asistira'
+            else 'confirmado'
+        end;
+
+    return new;
+end;
+$$;
+
+revoke execute on function public.validar_confirmacion()
+from public, anon, authenticated;
+
+
+-- =========================================================
+-- 3. HISTORIAL ADMINISTRATIVO DE INVITADOS
 -- No contiene token_acceso y conserva la identidad historica
 -- del administrador sin FK hacia auth.users.
 -- =========================================================
@@ -144,7 +264,7 @@ from public, anon, authenticated;
 
 
 -- =========================================================
--- 3. PROYECCION PRIVADA DEL MODULO
+-- 4. PROYECCION PRIVADA DEL MODULO
 -- Centraliza el estado actual sin exponer token_acceso.
 -- Incluye telefono/notas solo para que las RPC autorizadas puedan
 -- entregar el detalle bajo demanda.
@@ -193,7 +313,7 @@ from public, anon, authenticated;
 
 
 -- =========================================================
--- 4. RPC: LISTAR INVITADOS
+-- 5. RPC: LISTAR INVITADOS
 -- Busqueda, filtros, ordenamiento permitido y paginacion en servidor.
 -- Nunca devuelve token, telefono completo, notas completas ni mensaje.
 -- =========================================================
@@ -499,7 +619,7 @@ $$;
 
 
 -- =========================================================
--- 5. RPC: OBTENER DETALLE
+-- 6. RPC: OBTENER DETALLE
 -- Entrega datos sensibles solo bajo demanda y nunca el token.
 -- =========================================================
 
@@ -571,7 +691,7 @@ $$;
 
 
 -- =========================================================
--- 6. RPC: ACTUALIZAR DATOS EDITABLES
+-- 7. RPC: ACTUALIZAR DATOS EDITABLES
 -- La fila se bloquea, se valida la version y la auditoria se
 -- inserta en la misma transaccion.
 -- =========================================================
@@ -733,6 +853,13 @@ begin
     set
         nombre = v_nombre,
         grupo = v_grupo,
+        -- El codigo conserva el grupo historico de creacion. Al mover
+        -- de grupo se invalida un orden relativo previo y queda pendiente
+        -- de una asignacion explicita posterior.
+        orden_grupo = case
+            when v_anterior.grupo is distinct from v_grupo then null
+            else v_anterior.orden_grupo
+        end,
         adultos_asignados = p_adultos_asignados,
         ninos_asignados = p_ninos_asignados,
         telefono = v_telefono,
@@ -755,6 +882,7 @@ begin
         jsonb_build_object(
             'nombre', v_anterior.nombre,
             'grupo', v_anterior.grupo,
+            'orden_grupo', v_anterior.orden_grupo,
             'adultos_asignados', v_anterior.adultos_asignados,
             'ninos_asignados', v_anterior.ninos_asignados,
             'telefono', v_anterior.telefono,
@@ -764,6 +892,7 @@ begin
         jsonb_build_object(
             'nombre', v_nuevo.nombre,
             'grupo', v_nuevo.grupo,
+            'orden_grupo', v_nuevo.orden_grupo,
             'adultos_asignados', v_nuevo.adultos_asignados,
             'ninos_asignados', v_nuevo.ninos_asignados,
             'telefono', v_nuevo.telefono,
@@ -789,7 +918,7 @@ $$;
 
 
 -- =========================================================
--- 7. RPC: ACTIVAR O DESACTIVAR
+-- 8. RPC: ACTIVAR O DESACTIVAR
 -- No modifica ni elimina confirmaciones existentes.
 -- =========================================================
 
@@ -915,7 +1044,7 @@ $$;
 
 
 -- =========================================================
--- 8. RPC: OBTENER TOKEN BAJO DEMANDA
+-- 9. RPC: OBTENER TOKEN BAJO DEMANDA
 -- Es la unica RPC de esta fase que puede devolver token_acceso.
 -- =========================================================
 
@@ -984,7 +1113,7 @@ $$;
 
 
 -- =========================================================
--- 9. RPC: HISTORIAL DEL INVITADO
+-- 10. RPC: HISTORIAL DEL INVITADO
 -- Separa cambios administrativos de eventos del RSVP.
 -- =========================================================
 
@@ -1078,7 +1207,7 @@ $$;
 
 
 -- =========================================================
--- 10. PERMISOS EXPLICITOS DE LAS RPC
+-- 11. PERMISOS EXPLICITOS DE LAS RPC
 -- =========================================================
 
 revoke execute on function public.admin_listar_invitados(

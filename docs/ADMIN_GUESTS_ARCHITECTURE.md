@@ -217,6 +217,35 @@ La versión pública del registro es `invitados.fecha_actualizacion`. Para actua
 
 La validación ocurre dentro de PostgreSQL y no depende de la interfaz.
 
+### Concurrencia entre cupo y RSVP
+
+La versión original de `validar_confirmacion()` consultaba el cupo sin bloquear la fila del invitado. Eso permitía que una reducción administrativa y una confirmación concurrente tomaran decisiones utilizando estados diferentes.
+
+`06_admin_invitados.sql` redefine esa función con una corrección mínima de integridad: la lectura de `public.invitados` usa `SELECT ... FOR UPDATE`. No cambia estados, límites, mensajes ni ninguna otra regla funcional del RSVP.
+
+La fila de `invitados` funciona como punto único de serialización:
+
+```text
+RSVP UPDATE: PostgreSQL bloquea confirmaciones → trigger bloquea invitados
+RSVP INSERT: trigger bloquea invitados
+ADMIN:       RPC bloquea invitados → lee confirmaciones mediante MVCC
+```
+
+La ruta administrativa no solicita después un bloqueo de fila sobre `confirmaciones`; únicamente lee su versión comprometida. Por ello no existe el ciclo `invitados → confirmaciones` que pudiera enfrentarse al orden del RSVP y producir un deadlock.
+
+Comportamiento concurrente esperado:
+
+- Si el RSVP obtiene y libera primero el bloqueo de `invitados`, la RPC administrativa ve la confirmación nueva y no permite reducir el cupo por debajo de ella.
+- Si la RPC administrativa obtiene primero el bloqueo, el RSVP espera. Al continuar, el trigger lee el cupo nuevo y rechaza una confirmación que lo exceda.
+- Si un RSVP ya bloqueó `confirmaciones` pero espera `invitados`, el administrador no espera esa fila de confirmación: termina su validación y libera `invitados`; después el RSVP revalida contra el cupo final.
+
+Así se protegen en todo momento las invariantes:
+
+```text
+adultos_confirmados <= adultos_asignados
+ninos_confirmados <= ninos_asignados
+```
+
 ## Reglas de cupo
 
 Antes de actualizar se consulta la confirmación vigente. Debe cumplirse:
@@ -227,6 +256,17 @@ ninos_asignados_nuevos >= ninos_confirmados
 ```
 
 Reducir por debajo de lo confirmado produce un error funcional. La confirmación deberá corregirse mediante el futuro flujo administrativo correspondiente antes de reducir el cupo.
+
+## Semántica histórica del código y grupo
+
+`codigo` es un identificador histórico e inmutable. Su prefijo (`FM`, `FJ`, `AM` o `AJ`) representa el grupo con el que se creó originalmente la invitación:
+
+- cambiar `grupo` no cambia `codigo`;
+- el código anterior nunca se libera ni se reutiliza;
+- el listado puede mostrar un código cuyo prefijo ya no coincide con el grupo vigente, y eso es correcto;
+- la Fase 3.5B generará códigos según el grupo inicial de creación y resolverá la concurrencia en PostgreSQL.
+
+`orden_grupo` representa una posición relativa dentro del grupo vigente. Si el administrador cambia el grupo, la RPC lo establece en `NULL`: conservar la posición anterior sería semánticamente incorrecto y podría producir empates arbitrarios en el grupo destino. Mientras no exista una herramienta de reordenamiento, los listados mantienen estabilidad mediante `invitado_id`. Si el grupo no cambia, `orden_grupo` se conserva.
 
 ## Invitaciones inactivas
 
@@ -306,6 +346,13 @@ Realizar todas las pruebas dentro de `begin ... rollback`:
 - versión vigente exitosa;
 - versión antigua produce `REGISTRO_DESACTUALIZADO`;
 - dos sesiones concurrentes sobre el mismo invitado;
+- dos administradores editando simultáneamente con la misma versión: solo uno debe completar y el otro debe recibir `REGISTRO_DESACTUALIZADO`;
+- un RSVP actualizando su confirmación mientras el administrador intenta reducir adultos o niños;
+- un RSVP creando la primera confirmación mientras el administrador intenta reducir adultos o niños;
+- ejecutar ambos escenarios anteriores invirtiendo cuál transacción adquiere primero el bloqueo;
+- confirmar que el resultado final siempre cumple ambas invariantes de cupo;
+- ejecutar las carreras repetidamente y comprobar ausencia de deadlocks y errores `40P01`;
+- cambiar de grupo y comprobar que el código se conserva y `orden_grupo` queda en `NULL`;
 - solicitud sin cambios no crea auditoría;
 - cambio exitoso crea exactamente un evento y nunca contiene token.
 
