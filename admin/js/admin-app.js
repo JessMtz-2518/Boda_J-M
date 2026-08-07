@@ -16,6 +16,7 @@
   function showFatal(message) { stopRouter(); hideAll(); elements.adminFatalMessage.textContent=message; elements.adminFatal.hidden=false; document.body.classList.remove("admin-loading"); }
   function setLoginBusy(busy) { elements.adminEmail.disabled=busy; elements.adminPassword.disabled=busy; elements.adminLoginButton.disabled=busy; elements.adminLoginButton.textContent=busy?"Verificando...":"Iniciar sesion"; }
   function toggleMenu(open) { elements.adminShell.classList.toggle("menu-open",open); elements.adminMenuButton.setAttribute("aria-expanded",String(open)); elements.adminSidebarBackdrop.hidden=!open; }
+  function resetRouteToDashboard() { history.replaceState(null,"","#/dashboard"); }
 
   async function resolveCurrentAccess() {
     if(resolving)return; resolving=true;
@@ -25,13 +26,13 @@
   }
   async function handleLogin(event) {
     event.preventDefault(); if(!elements.adminLoginForm.reportValidity())return; setLoginBusy(true); elements.adminLoginMessage.textContent="";
-    try { const session=await window.AdminAuthService.signIn(elements.adminEmail.value.trim(),elements.adminPassword.value); if(!session)throw new Error("Sesion no disponible."); const access=await window.AdminAuthGuard.verifyAccess(); if(!access.authorized){await window.AdminAuthService.signOut();showLogin("Tu cuenta no tiene autorizacion administrativa.");return;} showShell(access); }
+    try { const session=await window.AdminAuthService.signIn(elements.adminEmail.value.trim(),elements.adminPassword.value); if(!session)throw new Error("Sesion no disponible."); const access=await window.AdminAuthGuard.verifyAccess(); if(!access.authorized){await window.AdminAuthService.signOut();showLogin("Tu cuenta no tiene autorizacion administrativa.");return;} resetRouteToDashboard(); showShell(access); }
     catch(error){console.error("Admin login:",error);showLogin("No fue posible iniciar sesion. Verifica tus credenciales.");}
     finally{setLoginBusy(false);}
   }
   async function handleLogout() {
     elements.adminLogoutButton.disabled=true;
-    try { window.AdminDashboardState?.clear?.(); await window.AdminAuthService.signOut(); showLogin("Sesion cerrada correctamente."); }
+    try { window.AdminDashboardState?.clear?.(); resetRouteToDashboard(); await window.AdminAuthService.signOut(); showLogin("Sesion cerrada correctamente."); }
     catch(error){console.error("Admin logout:",error);showFatal("No fue posible cerrar la sesion de forma segura.");}
     finally{elements.adminLogoutButton.disabled=false;}
   }
