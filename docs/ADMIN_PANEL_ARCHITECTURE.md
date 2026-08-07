@@ -116,3 +116,58 @@ La sesión administrativa debe pertenecer al mismo origen de la invitación. Una
 8. Abrir Modo prueba desde una sesión válida: debe aparecer la banda con token abreviado.
 9. Cerrar sesión y volver a cargar la URL de prueba: la banda no debe aparecer.
 10. Confirmar que el RSVP normal continúa consultando y guardando sin cambios.
+# Fase 3.4 — Interfaz del Dashboard
+
+El Dashboard consume exclusivamente la capa RPC aprobada. `admin/js/services/dashboard-service.js` es la frontera de datos y no utiliza consultas directas a tablas o vistas.
+
+## Flujo de datos
+
+```text
+dashboard-view.js
+  -> dashboard-service.js
+     -> admin_dashboard_resumen()
+     -> admin_dashboard_confirmaciones_recientes(10)
+     -> admin_dashboard_estadisticas_grupo()
+     -> admin_estadisticas_evolucion()
+```
+
+Cada solicitud se resuelve de forma independiente con `Promise.allSettled`. Por ello, un error en confirmaciones recientes no impide mostrar KPI, grupos o evolución. Durante una actualización manual los datos anteriores permanecen visibles y cada sección fallida conserva su último resultado válido.
+
+## Componentes
+
+- `dashboard/kpi-card.js`: tarjeta reutilizable para los diez indicadores.
+- `dashboard/recent-confirmations.js`: actividad reciente sin mensajes, notas ni tokens.
+- `dashboard/group-statistics.js`: tabla responsive basada en el contrato por grupo.
+- `dashboard/evolution-chart.js`: SVG local con barras de primeras respuestas, barras de modificaciones y línea de asistentes acumulados.
+- `dashboard/dashboard-feedback.js`: estados accesibles de carga, error, vacío y éxito.
+- `dashboard-formatters.js`: números, porcentajes y fechas en `es-MX` y `America/Mexico_City`.
+
+## Actualización y caché en memoria
+
+El botón **Actualizar** repite las cuatro RPC. El estado válido se conserva únicamente en memoria durante la sesión y nunca se escribe en almacenamiento persistente. Al cerrar o expirar la sesión se limpia antes de regresar al login.
+
+## Sesión expirada
+
+El servicio detecta respuestas de autorización o JWT inválido y emite `admin:session-expired`. `admin-app.js` detiene el router, elimina el estado administrativo, cierra la sesión local y presenta nuevamente el login. Ninguna información del panel permanece visible.
+
+## Responsive y accesibilidad
+
+Las tarjetas cambian de cinco columnas a tres, dos y una según el ancho disponible. Las tablas y la gráfica permiten desplazamiento horizontal controlado en pantallas pequeñas. Los estados usan regiones de estado o alerta y la animación de carga queda deshabilitada con `prefers-reduced-motion`.
+
+## Seguridad
+
+- No se usa `.from()` ni acceso directo a tablas o vistas.
+- No se expone `token_acceso`.
+- Los valores recibidos se insertan con `textContent`.
+- No se incorporan librerías externas para gráficas.
+- El cliente conserva únicamente la publishable key ya aprobada.
+
+## Pruebas de interfaz
+
+1. Entrar como administrador activo y confirmar las cuatro secciones.
+2. Pulsar **Actualizar** y comprobar que los datos siguen visibles durante la carga.
+3. Simular el fallo individual de una RPC y verificar que las otras tres continúan visibles.
+4. Invalidar la sesión y confirmar limpieza completa y retorno al login.
+5. Probar anchos de 375, 768, 1024 y 1440 píxeles.
+6. Activar reducción de movimiento y verificar que no se anima el indicador de carga.
+7. Confirmar desde DevTools que solo se invocan las cuatro RPC administrativas.
