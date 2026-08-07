@@ -15,7 +15,7 @@
 
   function renderKpis(target, data) {
     const f=window.AdminDashboardFormatters, c=window.AdminDashboardComponents;
-    const i=data.invitaciones||{}, a=data.asistencia||{}, p=data.porcentajes||{};
+    const i=data.invitaciones, a=data.asistencia, p=data.porcentajes;
     const definitions=[
       ["Invitaciones activas",i.activas,"Total vigente"], ["Con respuesta",i.con_respuesta,"Confirmaciones recibidas"],
       ["Pendientes",i.pendientes,"Sin respuesta","attention"], ["Asistiran",i.asistiran,"Invitaciones confirmadas","positive"],
@@ -47,28 +47,74 @@
 
     const feedback=window.AdminDashboardComponents.feedback;
     const showLoading=(body)=>{if(!body.childElementCount)body.replaceChildren(feedback("loading","Cargando informacion..."));};
-    const renderStored=()=>{updated.textContent=state.generatedAt?`Ultima actualizacion: ${window.AdminDashboardFormatters.formatDateTime(state.generatedAt)}`:"Aun no se ha actualizado";if(state.summary)renderKpis(kpis.body,state.summary);if(state.recent)recent.body.replaceChildren(window.AdminDashboardComponents.recentConfirmations(state.recent));if(state.groups)groups.body.replaceChildren(window.AdminDashboardComponents.groupStatistics(state.groups));if(state.evolution)evolution.body.replaceChildren(window.AdminDashboardComponents.evolutionChart(state.evolution));};
+    const removeSectionError=(body)=>body.querySelector("[data-dashboard-section-error]")?.remove();
+    const showSectionError=(body,message,hasPreviousData)=>{
+      removeSectionError(body);
+      const notice=feedback("error",hasPreviousData?`${message} Se conservan los datos anteriores.`:message);
+      notice.dataset.dashboardSectionError="true";
+      if(hasPreviousData)body.prepend(notice);else body.replaceChildren(notice);
+    };
+    const safeRender=(key,body,renderer,payload,message)=>{
+      try {
+        removeSectionError(body);
+        renderer(payload);
+        state[key]=key==="summary"?payload.data:payload.data.items;
+        state.generatedAt=payload.generated_at;
+        return true;
+      } catch(error) {
+        console.error(`Dashboard render ${key}:`,error);
+        showSectionError(body,message,Boolean(state[key]));
+        return false;
+      }
+    };
+    const renderStored=()=>{
+      updated.textContent=state.generatedAt?`Ultima actualizacion: ${window.AdminDashboardFormatters.formatDateTime(state.generatedAt)}`:"Aun no se ha actualizado";
+      const stored=[
+        ["summary",kpis.body,()=>renderKpis(kpis.body,state.summary),"No fue posible mostrar los indicadores."],
+        ["recent",recent.body,()=>recent.body.replaceChildren(window.AdminDashboardComponents.recentConfirmations(state.recent)),"No fue posible mostrar las confirmaciones recientes."],
+        ["groups",groups.body,()=>groups.body.replaceChildren(window.AdminDashboardComponents.groupStatistics(state.groups)),"No fue posible mostrar las estadisticas por grupo."],
+        ["evolution",evolution.body,()=>evolution.body.replaceChildren(window.AdminDashboardComponents.evolutionChart(state.evolution)),"No fue posible mostrar la evolucion."],
+      ];
+      stored.forEach(([key,body,renderer,message])=>{
+        if(!state[key])return;
+        try{renderer();}catch(error){console.error(`Dashboard stored render ${key}:`,error);showSectionError(body,message,false);}
+      });
+    };
 
     async function load(manual=false) {
       refresh.disabled=true; refresh.textContent=manual?"Actualizando...":"Cargando...";
       root.classList.toggle("is-refreshing",manual); globalStatus.replaceChildren();
       [kpis.body,recent.body,groups.body,evolution.body].forEach(showLoading);
-      const service=window.AdminDashboardService;
-      const tasks=[service.getSummary(),service.getRecentConfirmations(),service.getGroupStatistics(),service.getEvolution()];
-      const results=await Promise.allSettled(tasks);
-      if(!root.isConnected)return;
-      const configs=[
-        ["summary",kpis.body,(payload)=>renderKpis(kpis.body,payload.data),"No fue posible cargar los indicadores."],
-        ["recent",recent.body,(payload)=>recent.body.replaceChildren(window.AdminDashboardComponents.recentConfirmations(payload.data.items||[])),"No fue posible cargar las confirmaciones recientes."],
-        ["groups",groups.body,(payload)=>groups.body.replaceChildren(window.AdminDashboardComponents.groupStatistics(payload.data.items||[])),"No fue posible cargar las estadisticas por grupo."],
-        ["evolution",evolution.body,(payload)=>evolution.body.replaceChildren(window.AdminDashboardComponents.evolutionChart(payload.data.items||[])),"No fue posible cargar la evolucion."],
-      ];
       let errors=0;
-      results.forEach((result,index)=>{const [key,body,renderer,message]=configs[index];if(result.status==="fulfilled"){state[key]=key==="summary"?result.value.data:result.value.data.items||[];state.generatedAt=result.value.generated_at||state.generatedAt;renderer(result.value);}else{errors+=1;if(!state[key])body.replaceChildren(feedback("error",message));else body.prepend(feedback("error",`${message} Se conservan los datos anteriores.`));}});
-      updated.textContent=state.generatedAt?`Ultima actualizacion: ${window.AdminDashboardFormatters.formatDateTime(state.generatedAt)}`:"Actualizacion incompleta";
-      if(errors)globalStatus.replaceChildren(feedback("error",`${errors} seccion${errors===1?"":"es"} no pudo${errors===1?"":"ieron"} actualizarse.`));else if(manual)globalStatus.replaceChildren(feedback("success","Dashboard actualizado correctamente."));
-      refresh.disabled=false; refresh.textContent="Actualizar"; root.classList.remove("is-refreshing");
+      try {
+        const service=window.AdminDashboardService;
+        const results=await Promise.allSettled([service.getSummary(),service.getRecentConfirmations(),service.getGroupStatistics(),service.getEvolution()]);
+        if(!root.isConnected)return;
+        const configs=[
+          ["summary",kpis.body,(payload)=>renderKpis(kpis.body,payload.data),"No fue posible cargar los indicadores."],
+          ["recent",recent.body,(payload)=>recent.body.replaceChildren(window.AdminDashboardComponents.recentConfirmations(payload.data.items)),"No fue posible cargar las confirmaciones recientes."],
+          ["groups",groups.body,(payload)=>groups.body.replaceChildren(window.AdminDashboardComponents.groupStatistics(payload.data.items)),"No fue posible cargar las estadisticas por grupo."],
+          ["evolution",evolution.body,(payload)=>evolution.body.replaceChildren(window.AdminDashboardComponents.evolutionChart(payload.data.items)),"No fue posible cargar la evolucion."],
+        ];
+        results.forEach((result,index)=>{
+          const [key,body,renderer,message]=configs[index];
+          if(result.status==="fulfilled"){
+            if(!safeRender(key,body,renderer,result.value,message))errors+=1;
+          }else{
+            errors+=1;
+            console.error(`Dashboard request ${key}:`,result.reason);
+            showSectionError(body,message,Boolean(state[key]));
+          }
+        });
+        updated.textContent=state.generatedAt?`Ultima actualizacion: ${window.AdminDashboardFormatters.formatDateTime(state.generatedAt)}`:"Actualizacion incompleta";
+        if(errors)globalStatus.replaceChildren(feedback("error",`${errors} seccion${errors===1?"":"es"} no pudo${errors===1?"":"ieron"} actualizarse.`));else if(manual)globalStatus.replaceChildren(feedback("success","Dashboard actualizado correctamente."));
+      } catch(error) {
+        console.error("Dashboard update:",error);
+        globalStatus.replaceChildren(feedback("error","No fue posible actualizar el Dashboard."));
+      } finally {
+        refresh.disabled=false; refresh.textContent="Actualizar"; root.classList.remove("is-refreshing");
+      }
     }
-    refresh.addEventListener("click",()=>load(true)); renderStored(); queueMicrotask(()=>load(false)); return root;
+    refresh.addEventListener("click",()=>{if(!refresh.disabled)load(true);}); renderStored(); queueMicrotask(()=>load(false)); return root;
   };
 })();
