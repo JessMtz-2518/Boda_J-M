@@ -319,3 +319,28 @@
     }
   }
 }
+
+/* =========================================================
+   Microfase 4B · Alta de nuevos invitados
+   ========================================================= */
+.guest-directory-header{display:flex;align-items:flex-end;justify-content:space-between;gap:20px}
+.guest-directory-header-copy{min-width:0}
+.guest-new-button{flex:0 0 auto;min-height:44px;padding:0 18px;font-size:.72rem}
+.guest-create-dialog{width:min(760px,100%)}
+.guest-create-note{background:rgba(86,101,74,.05)}
+.guest-create-success{display:grid;gap:10px;padding:8px 2px 4px}
+.guest-create-success h3{margin:0;font-family:"Cormorant Garamond",Georgia,serif;font-size:2rem;color:var(--admin-olive-dark)}
+.guest-create-code,.guest-create-pass{margin:0;color:var(--admin-muted);font-size:.82rem;line-height:1.5}
+.guest-create-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:14px}
+.guest-create-actions .guest-directory-action{width:100%;min-height:44px}
+.guest-editor-status-success{padding:11px 13px;border:1px solid rgba(86,101,74,.2);border-radius:10px;background:rgba(86,101,74,.07);color:var(--admin-olive-dark)}
+
+@media(max-width:760px){
+  .guest-directory-header{align-items:stretch;flex-direction:column;gap:14px}
+  .guest-new-button{width:100%;min-height:48px}
+  .guest-create-actions{grid-template-columns:1fr 1fr}
+}
+
+@media(max-width:380px){
+  .guest-create-actions{grid-template-columns:1fr}
+}

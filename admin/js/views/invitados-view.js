@@ -50,6 +50,9 @@
     if (message.includes("MOTIVO_INVALIDO")) return "Escribe un motivo para registrar el cambio.";
     if (message.includes("NOTAS_DEMASIADO_LARGAS")) return "Las notas no pueden exceder 1000 caracteres.";
     if (message.includes("GRUPO_INVALIDO")) return "Selecciona un grupo válido.";
+    if (message.includes("CUPO_CERO_NO_PERMITIDO") || message.includes("CUPO_INVALIDO")) return "Asigna al menos una persona y verifica los cupos.";
+    if (message.includes("CONSECUTIVO_AGOTADO")) return "Este grupo ya no tiene códigos disponibles.";
+    if (message.includes("CODIGO_DUPLICADO")) return "No fue posible generar un código único. Intenta nuevamente.";
     return "No fue posible guardar los cambios. Revisa los datos e intenta nuevamente.";
   }
 
@@ -238,6 +241,223 @@
     window.setTimeout(() => name.focus(), 0);
   }
 
+  function openCreator({ onCreated, setFeedback }) {
+    const previousFocus = document.activeElement;
+    const overlay = element("div", "guest-editor-overlay");
+    const dialog = element("section", "guest-editor-dialog guest-create-dialog");
+    dialog.setAttribute("role", "dialog");
+    dialog.setAttribute("aria-modal", "true");
+    dialog.setAttribute("aria-labelledby", "guest-create-title");
+
+    const head = element("header", "guest-editor-head");
+    const heading = element("div");
+    heading.append(element("p", "admin-eyebrow", "Gestión administrativa"));
+    const title = element("h2", "", "Nuevo invitado");
+    title.id = "guest-create-title";
+    heading.append(title, element("p", "guest-editor-code", "El código y el enlace se generarán automáticamente."));
+    const closeButton = actionButton("Cerrar");
+    closeButton.classList.add("guest-editor-close");
+    head.append(heading, closeButton);
+
+    const form = document.createElement("form");
+    form.className = "guest-editor-form guest-create-form";
+    form.noValidate = true;
+
+    const name = document.createElement("input");
+    name.type = "text";
+    name.maxLength = 150;
+    name.required = true;
+    name.placeholder = "Ej. Tíos Roberto y Laura";
+
+    const group = document.createElement("select");
+    GROUPS.forEach((item) => group.append(option(item, item)));
+
+    const phone = document.createElement("input");
+    phone.type = "tel";
+    phone.maxLength = 25;
+    phone.placeholder = "Ej. 525512345678";
+
+    const notes = document.createElement("textarea");
+    notes.maxLength = 1000;
+    notes.rows = 4;
+    notes.placeholder = "Opcional";
+
+    const reason = document.createElement("textarea");
+    reason.maxLength = 1000;
+    reason.rows = 3;
+    reason.required = true;
+    reason.placeholder = "Ej. Invitación agregada por solicitud familiar";
+
+    const adults = counterField("Adultos", 1, 0);
+    const children = counterField("Niños", 0, 0);
+
+    const fields = element("div", "guest-editor-grid");
+    fields.append(
+      textField("Nombre", name),
+      textField("Grupo", group),
+      adults.field,
+      children.field,
+      textField("Teléfono", phone),
+      textField("Notas administrativas", notes)
+    );
+
+    const note = element("section", "guest-editor-confirmation guest-create-note");
+    note.append(
+      element("h3", "", "Generación automática"),
+      element("p", "", "Al guardar se asignará el siguiente código disponible del grupo y un enlace personalizado único."),
+      element("small", "", "El código y el token no se capturan manualmente y no se reutilizan.")
+    );
+
+    const reasonField = textField("Motivo del alta *", reason);
+    reasonField.classList.add("guest-editor-reason");
+    const status = element("div", "guest-editor-status");
+    status.setAttribute("role", "status");
+    status.setAttribute("aria-live", "polite");
+
+    const footer = element("footer", "guest-editor-footer");
+    const cancel = actionButton("Cancelar");
+    const save = actionButton("Crear invitado", true);
+    save.type = "submit";
+    footer.append(cancel, save);
+
+    form.append(fields, note, reasonField, status, footer);
+    dialog.append(head, form);
+    overlay.append(dialog);
+    document.body.append(overlay);
+    document.body.classList.add("guest-editor-open");
+
+    function close() {
+      document.removeEventListener("keydown", onKeyDown);
+      overlay.remove();
+      document.body.classList.remove("guest-editor-open");
+      if (previousFocus instanceof HTMLElement) previousFocus.focus();
+    }
+
+    function onKeyDown(event) {
+      if (event.key === "Escape") close();
+    }
+
+    closeButton.addEventListener("click", close);
+    cancel.addEventListener("click", close);
+    overlay.addEventListener("click", (event) => { if (event.target === overlay) close(); });
+    document.addEventListener("keydown", onKeyDown);
+
+    function showCreated(created, capturedPhone) {
+      const pass = `${created.adultos_asignados} ${created.adultos_asignados === 1 ? "adulto" : "adultos"}` +
+        (created.ninos_asignados ? ` · ${created.ninos_asignados} ${created.ninos_asignados === 1 ? "niño" : "niños"}` : "");
+      const result = element("section", "guest-create-success");
+      result.append(
+        element("p", "admin-eyebrow", "Invitado creado correctamente"),
+        element("h3", "", created.nombre),
+        element("p", "guest-create-code", `${created.codigo} · ${created.grupo}`),
+        element("p", "guest-create-pass", `Pase: ${pass}`)
+      );
+
+      const actions = element("div", "guest-create-actions");
+      const preview = actionButton("Vista previa", true);
+      const copy = actionButton("Copiar enlace");
+      const whatsapp = actionButton("WhatsApp");
+      const done = actionButton("Cerrar");
+
+      async function withToken(button, purpose, action) {
+        let token = null;
+        button.disabled = true;
+        button.setAttribute("aria-busy", "true");
+        try {
+          token = await window.AdminGuestsService.getInvitationToken(created.id, purpose);
+          await action(token);
+        } catch (error) {
+          status.className = "guest-editor-status guest-editor-status-error";
+          status.textContent = "No fue posible preparar esta acción. Puedes intentarlo nuevamente.";
+        } finally {
+          token = null;
+          button.disabled = false;
+          button.removeAttribute("aria-busy");
+        }
+      }
+
+      preview.addEventListener("click", () => withToken(preview, "vista_previa", (token) => {
+        window.AdminInvitationUrl.openInvitationPreview(token, { preview: "admin" });
+      }));
+      copy.addEventListener("click", () => withToken(copy, "copiar_enlace", async (token) => {
+        await window.AdminInvitationUrl.copyInvitationUrl(token);
+        status.className = "guest-editor-status guest-editor-status-success";
+        status.textContent = "Enlace copiado";
+      }));
+      whatsapp.addEventListener("click", () => withToken(whatsapp, "whatsapp", (token) => {
+        window.AdminWhatsApp.shareInvitation(token, {
+          phone: capturedPhone,
+          name: created.nombre,
+          adults: created.adultos_asignados,
+          children: created.ninos_asignados,
+        });
+      }));
+      done.addEventListener("click", close);
+
+      actions.append(preview, copy, whatsapp, done);
+      result.append(actions);
+      form.replaceChildren(result, status);
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      status.className = "guest-editor-status";
+      status.textContent = "";
+
+      const trimmedName = name.value.trim();
+      const trimmedReason = reason.value.trim();
+      const total = adults.getValue() + children.getValue();
+      if (!trimmedName) {
+        status.className = "guest-editor-status guest-editor-status-error";
+        status.textContent = "El nombre es obligatorio.";
+        name.focus();
+        return;
+      }
+      if (total <= 0) {
+        status.className = "guest-editor-status guest-editor-status-error";
+        status.textContent = "Asigna al menos una persona a la invitación.";
+        return;
+      }
+      if (!trimmedReason) {
+        status.className = "guest-editor-status guest-editor-status-error";
+        status.textContent = "Escribe el motivo del alta para guardar la auditoría.";
+        reason.focus();
+        return;
+      }
+
+      save.disabled = true;
+      cancel.disabled = true;
+      closeButton.disabled = true;
+      save.setAttribute("aria-busy", "true");
+      status.textContent = "Creando invitado…";
+
+      try {
+        const capturedPhone = phone.value.trim();
+        const created = await window.AdminGuestsService.createGuest({
+          nombre: trimmedName,
+          grupo: group.value,
+          adultos: adults.getValue(),
+          ninos: children.getValue(),
+          telefono: capturedPhone,
+          notas: notes.value,
+          motivo: trimmedReason,
+        });
+        await onCreated(created);
+        status.className = "guest-editor-status guest-editor-status-success";
+        status.textContent = "Invitado creado correctamente.";
+        showCreated(created, capturedPhone);
+        setFeedback("success", `${created.nombre} fue agregado con el código ${created.codigo}.`);
+      } catch (error) {
+        status.className = "guest-editor-status guest-editor-status-error";
+        status.textContent = errorText(error);
+        save.disabled = false;
+        cancel.disabled = false;
+        closeButton.disabled = false;
+        save.removeAttribute("aria-busy");
+      }
+    });
+  }
+
   function guestCard(guest, setFeedback, onEdit) {
     const article = element("article", "guest-directory-card");
     const identity = element("div", "guest-directory-identity");
@@ -336,7 +556,11 @@
   function buildView() {
     const root = element("section", "guest-directory-view");
     const header = element("header", "admin-view-header guest-directory-header");
-    header.append(element("p", "admin-eyebrow", "Gestión administrativa"), element("h2", "", "Invitados"), element("p", "admin-view-copy", "Localiza una invitación y administra sus acciones desde un solo lugar."));
+    const headerCopy = element("div", "guest-directory-header-copy");
+    headerCopy.append(element("p", "admin-eyebrow", "Gestión administrativa"), element("h2", "", "Invitados"), element("p", "admin-view-copy", "Localiza una invitación y administra sus acciones desde un solo lugar."));
+    const newGuest = actionButton("+ Nuevo invitado", true);
+    newGuest.classList.add("guest-new-button");
+    header.append(headerCopy, newGuest);
 
     const controls = element("section", "guest-directory-controls");
     controls.setAttribute("aria-label", "Búsqueda y filtros de invitados");
@@ -378,7 +602,7 @@
     sizeField.select.value = "20";
     pagination.append(previous, pageLabel, next, sizeField.field);
     root.append(header, controls, summary, feedback, list, pagination);
-    return { root, search, group: group.select, state: state.select, active: active.select, children: children.select, order: order.select, clear, count, updateState, feedback, list, pagination, previous, next, pageLabel, pageSize: sizeField.select };
+    return { root, newGuest, search, group: group.select, state: state.select, active: active.select, children: children.select, order: order.select, clear, count, updateState, feedback, list, pagination, previous, next, pageLabel, pageSize: sizeField.select };
   }
 
   window.AdminViews = window.AdminViews || {};
@@ -402,6 +626,16 @@
       } catch (error) {
         setFeedback("error", "No fue posible cargar los datos del invitado para editar.");
       }
+    }
+
+    function createGuest() {
+      openCreator({
+        setFeedback,
+        onCreated: async () => {
+          state.page = 1;
+          await load();
+        },
+      });
     }
 
     function render(envelope) {
@@ -452,6 +686,7 @@
     }
 
     function resetPageAndLoad() { state.page = 1; load(); }
+    ui.newGuest.addEventListener("click", createGuest);
     ui.search.addEventListener("input", () => {
       window.clearTimeout(debounceTimer);
       requestId += 1;

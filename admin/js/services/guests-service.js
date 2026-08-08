@@ -5,6 +5,7 @@
   const TOKEN_RPC_NAME = "admin_obtener_token_invitacion";
   const DETAIL_RPC_NAME = "admin_obtener_invitado";
   const UPDATE_RPC_NAME = "admin_actualizar_invitado";
+  const CREATE_RPC_NAME = "admin_crear_invitado";
   const TOKEN_PURPOSES = Object.freeze(["vista_previa", "copiar_enlace", "whatsapp"]);
   const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   const PAGE_SIZES = Object.freeze([10, 20, 50]);
@@ -194,6 +195,44 @@
     return data;
   }
 
+
+  function normalizeCreatePayload(value = {}) {
+    const payload = requireObject(value);
+    const name = String(payload.nombre ?? "").trim();
+    const group = String(payload.grupo ?? "").trim();
+    const adults = Number(payload.adultos);
+    const children = Number(payload.ninos);
+    const phone = String(payload.telefono ?? "").trim();
+    const notes = String(payload.notas ?? "").trim();
+    const reason = String(payload.motivo ?? "").trim();
+
+    if (!name || name.length > 150) invalidContract();
+    if (!GROUPS.includes(group)) invalidContract();
+    if (!isNonNegativeInteger(adults) || !isNonNegativeInteger(children) || adults + children <= 0) invalidContract();
+    if (phone.length > 25 || (phone && !/^[0-9+() -]{7,25}$/.test(phone))) invalidContract();
+    if (notes.length > 1000 || !reason || reason.length > 1000) invalidContract();
+
+    return { name, group, adults, children, phone: phone || null, notes: notes || null, reason };
+  }
+
+  function validateCreateEnvelope(response) {
+    const envelope = requireObject(response);
+    if (envelope.schema_version !== "1.0" || !isValidDate(envelope.generated_at)) invalidContract();
+    const data = requireObject(envelope.data);
+    if (data.created !== true) invalidContract();
+    const guest = requireObject(data.invitado);
+    if (!isInteger(guest.id) || guest.id < 1) invalidContract();
+    ["codigo", "nombre", "grupo"].forEach((field) => requireString(guest[field]));
+    if (!GROUPS.includes(guest.grupo)) invalidContract();
+    ["adultos_asignados", "ninos_asignados", "cupo_total"].forEach((field) => {
+      if (!isNonNegativeInteger(guest[field])) invalidContract();
+    });
+    if (guest.cupo_total !== guest.adultos_asignados + guest.ninos_asignados || guest.cupo_total <= 0) invalidContract();
+    requireBoolean(guest.activo);
+    if (!guest.activo || !isValidDate(guest.version)) invalidContract();
+    return guest;
+  }
+
   function client() {
     const instance = window.AdminSupabaseClient?.getClient?.();
     if (!instance) throw new Error("El cliente administrativo no está disponible.");
@@ -260,6 +299,24 @@
     return validateUpdateEnvelope(data, normalized.id);
   }
 
+  async function createGuest(values) {
+    const normalized = normalizeCreatePayload(values);
+    const { data, error } = await client().rpc(CREATE_RPC_NAME, {
+      p_nombre: normalized.name,
+      p_grupo: normalized.group,
+      p_adultos: normalized.adults,
+      p_ninos: normalized.children,
+      p_telefono: normalized.phone,
+      p_notas: normalized.notes,
+      p_motivo: normalized.reason,
+    });
+    if (error) {
+      if (isSessionError(error)) window.dispatchEvent(new CustomEvent("admin:session-expired"));
+      throw error;
+    }
+    return validateCreateEnvelope(data);
+  }
+
   async function getInvitationToken(invitationId, purpose) {
     const id = normalizeInvitationId(invitationId);
     const normalizedPurpose = normalizeTokenPurpose(purpose);
@@ -274,5 +331,5 @@
     return validateTokenEnvelope(data, normalizedPurpose);
   }
 
-  window.AdminGuestsService = Object.freeze({ listGuests, getGuestDetail, updateGuest, getInvitationToken });
+  window.AdminGuestsService = Object.freeze({ listGuests, getGuestDetail, updateGuest, createGuest, getInvitationToken });
 })();
