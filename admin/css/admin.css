@@ -129,3 +129,71 @@
   .guest-directory-actions{grid-template-columns:1fr}
   .guest-editor-footer{grid-template-columns:1fr}
 }
+
+
+/* Corrección móvil · editor de invitados (iPhone / pantallas estrechas) */
+@media(max-width:760px){
+  .guest-editor-head{
+    position:static;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    align-items:start;
+    gap:12px;
+  }
+
+  .guest-editor-head>div{
+    min-width:0;
+  }
+
+  .guest-editor-head h2{
+    margin-top:4px;
+    max-width:100%;
+    font-size:clamp(1.9rem,8vw,2.25rem);
+    line-height:1;
+    white-space:normal;
+    word-break:normal;
+    overflow-wrap:normal;
+  }
+
+  .guest-editor-code{
+    font-size:.78rem;
+    line-height:1.35;
+  }
+
+  /* Evita que la regla móvil general de botones convierta "Cerrar" en ancho completo. */
+  .guest-editor-close{
+    width:auto !important;
+    min-width:88px;
+    min-height:42px;
+    align-self:start;
+    padding:0 14px;
+    flex:0 0 auto;
+  }
+
+  .guest-editor-form{
+    padding-top:18px;
+  }
+
+  .guest-editor-dialog{
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    -webkit-text-size-adjust:100%;
+  }
+}
+
+@media(max-width:420px){
+  .guest-editor-head{
+    padding-top:18px;
+    padding-bottom:14px;
+  }
+
+  .guest-editor-head h2{
+    font-size:2rem;
+  }
+
+  .guest-editor-close{
+    min-width:78px;
+    padding:0 11px;
+    font-size:.64rem;
+  }
+}
