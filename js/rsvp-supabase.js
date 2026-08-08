@@ -44,10 +44,16 @@
       ? confirmation
       : {};
 
-    const confirmedAdults = valueFrom(source, ["adultos", "adults"],
-      valueFrom(record, ["adultos_confirmados", "confirmed_adults"]));
-    const confirmedChildren = valueFrom(source, ["ninos", "niños", "children"],
-      valueFrom(record, ["ninos_confirmados", "confirmed_children"]));
+    const confirmedAdults = valueFrom(
+      source,
+      ["adultos_confirmados", "adultos", "adults", "confirmed_adults"],
+      valueFrom(record, ["adultos_confirmados", "confirmed_adults"])
+    );
+    const confirmedChildren = valueFrom(
+      source,
+      ["ninos_confirmados", "ninos", "niños", "children", "confirmed_children"],
+      valueFrom(record, ["ninos_confirmados", "confirmed_children"])
+    );
     const hasConfirmation =
       Object.keys(source).length > 0 ||
       confirmedAdults !== null ||

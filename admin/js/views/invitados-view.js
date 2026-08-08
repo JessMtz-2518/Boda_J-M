@@ -28,15 +28,217 @@
     return { field: label, select };
   }
 
-  function disabledAction(label, primary = false) {
+  function actionButton(label, primary = false) {
     const button = element("button", `guest-directory-action${primary ? " guest-directory-action-primary" : ""}`, label);
     button.type = "button";
-    button.disabled = true;
-    button.title = "Disponible en una siguiente etapa";
     return button;
   }
 
-  function guestCard(guest) {
+  function textField(labelText, input) {
+    const label = element("label", "guest-editor-field");
+    label.append(element("span", "", labelText), input);
+    return label;
+  }
+
+  function errorText(error) {
+    const message = String(error?.message || "");
+    if (message.includes("CUPO_ADULTOS_MENOR_A_CONFIRMACION")) return "Los adultos asignados no pueden ser menores que los adultos ya confirmados.";
+    if (message.includes("CUPO_NINOS_MENOR_A_CONFIRMACION")) return "Los niños asignados no pueden ser menores que los niños ya confirmados.";
+    if (message.includes("REGISTRO_DESACTUALIZADO")) return "Este invitado fue modificado en otra sesión. Cierra esta ventana y vuelve a abrir Editar para cargar la versión más reciente.";
+    if (message.includes("TELEFONO_INVALIDO")) return "El teléfono no tiene un formato válido.";
+    if (message.includes("NOMBRE_INVALIDO")) return "Revisa el nombre del invitado.";
+    if (message.includes("MOTIVO_INVALIDO")) return "Escribe un motivo para registrar el cambio.";
+    if (message.includes("NOTAS_DEMASIADO_LARGAS")) return "Las notas no pueden exceder 1000 caracteres.";
+    if (message.includes("GRUPO_INVALIDO")) return "Selecciona un grupo válido.";
+    return "No fue posible guardar los cambios. Revisa los datos e intenta nuevamente.";
+  }
+
+  function counterField(labelText, initialValue, minimum = 0) {
+    const wrapper = element("div", "guest-editor-counter-field");
+    wrapper.append(element("span", "guest-editor-label", labelText));
+    const counter = element("div", "guest-editor-counter");
+    const minus = actionButton("−");
+    const value = element("output", "guest-editor-counter-value", String(initialValue));
+    const plus = actionButton("+");
+    value.setAttribute("aria-live", "polite");
+    let current = Number(initialValue) || 0;
+
+    function refresh() {
+      value.textContent = String(current);
+      minus.disabled = current <= minimum;
+    }
+    minus.setAttribute("aria-label", `Disminuir ${labelText.toLowerCase()}`);
+    plus.setAttribute("aria-label", `Aumentar ${labelText.toLowerCase()}`);
+    minus.addEventListener("click", () => { if (current > minimum) { current -= 1; refresh(); } });
+    plus.addEventListener("click", () => { current += 1; refresh(); });
+    refresh();
+    counter.append(minus, value, plus);
+    wrapper.append(counter);
+    return { field: wrapper, getValue: () => current };
+  }
+
+  function openEditor(detail, { onSaved, setFeedback }) {
+    const previousFocus = document.activeElement;
+    const overlay = element("div", "guest-editor-overlay");
+    const dialog = element("section", "guest-editor-dialog");
+    dialog.setAttribute("role", "dialog");
+    dialog.setAttribute("aria-modal", "true");
+    dialog.setAttribute("aria-labelledby", "guest-editor-title");
+
+    const head = element("header", "guest-editor-head");
+    const heading = element("div");
+    heading.append(element("p", "admin-eyebrow", "Gestión administrativa"));
+    const title = element("h2", "", "Editar invitado");
+    title.id = "guest-editor-title";
+    heading.append(title, element("p", "guest-editor-code", `${detail.codigo} · ${detail.activo ? "Activo" : "Inactivo"}`));
+    const closeButton = actionButton("Cerrar");
+    closeButton.classList.add("guest-editor-close");
+    head.append(heading, closeButton);
+
+    const form = document.createElement("form");
+    form.className = "guest-editor-form";
+    form.noValidate = true;
+
+    const name = document.createElement("input");
+    name.type = "text";
+    name.maxLength = 150;
+    name.required = true;
+    name.value = detail.nombre;
+
+    const group = document.createElement("select");
+    GROUPS.forEach((item) => group.append(option(item, item)));
+    group.value = detail.grupo;
+
+    const phone = document.createElement("input");
+    phone.type = "tel";
+    phone.maxLength = 25;
+    phone.placeholder = "Ej. 525512345678";
+    phone.value = detail.telefono || "";
+
+    const notes = document.createElement("textarea");
+    notes.maxLength = 1000;
+    notes.rows = 4;
+    notes.value = detail.notas || "";
+
+    const reason = document.createElement("textarea");
+    reason.maxLength = 1000;
+    reason.rows = 3;
+    reason.required = true;
+    reason.placeholder = "Ej. Actualización de teléfono o ajuste de cupo";
+
+    const confirmedAdults = detail.confirmacion?.adultos_confirmados || 0;
+    const confirmedChildren = detail.confirmacion?.ninos_confirmados || 0;
+    const adults = counterField("Adultos", detail.adultos_asignados, confirmedAdults);
+    const children = counterField("Niños", detail.ninos_asignados, confirmedChildren);
+
+    const fields = element("div", "guest-editor-grid");
+    fields.append(
+      textField("Nombre", name),
+      textField("Grupo", group),
+      adults.field,
+      children.field,
+      textField("Teléfono", phone),
+      textField("Notas administrativas", notes)
+    );
+
+    const confirmation = element("section", "guest-editor-confirmation");
+    confirmation.append(element("h3", "", "Confirmación vigente"));
+    if (detail.confirmacion) {
+      confirmation.append(element("p", "", `${stateLabels[detail.confirmacion.estado] || detail.confirmacion.estado} · ${confirmedAdults} ${confirmedAdults === 1 ? "adulto" : "adultos"} · ${confirmedChildren} ${confirmedChildren === 1 ? "niño" : "niños"}`));
+      confirmation.append(element("small", "", "El cupo no puede reducirse por debajo de estas cantidades confirmadas."));
+    } else {
+      confirmation.append(element("p", "", "Sin confirmación registrada."));
+    }
+
+    const reasonField = textField("Motivo del cambio *", reason);
+    reasonField.classList.add("guest-editor-reason");
+    const status = element("div", "guest-editor-status");
+    status.setAttribute("role", "status");
+    status.setAttribute("aria-live", "polite");
+
+    const footer = element("footer", "guest-editor-footer");
+    const cancel = actionButton("Cancelar");
+    const save = actionButton("Guardar cambios", true);
+    save.type = "submit";
+    footer.append(cancel, save);
+
+    form.append(fields, confirmation, reasonField, status, footer);
+    dialog.append(head, form);
+    overlay.append(dialog);
+    document.body.append(overlay);
+    document.body.classList.add("guest-editor-open");
+
+    function close() {
+      document.removeEventListener("keydown", onKeyDown);
+      overlay.remove();
+      document.body.classList.remove("guest-editor-open");
+      if (previousFocus instanceof HTMLElement) previousFocus.focus();
+    }
+
+    function onKeyDown(event) {
+      if (event.key === "Escape") close();
+    }
+
+    closeButton.addEventListener("click", close);
+    cancel.addEventListener("click", close);
+    overlay.addEventListener("click", (event) => { if (event.target === overlay) close(); });
+    document.addEventListener("keydown", onKeyDown);
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      status.className = "guest-editor-status";
+      status.textContent = "";
+
+      const trimmedName = name.value.trim();
+      const trimmedReason = reason.value.trim();
+      if (!trimmedName) {
+        status.className = "guest-editor-status guest-editor-status-error";
+        status.textContent = "El nombre es obligatorio.";
+        name.focus();
+        return;
+      }
+      if (!trimmedReason) {
+        status.className = "guest-editor-status guest-editor-status-error";
+        status.textContent = "Escribe el motivo del cambio para guardar la auditoría.";
+        reason.focus();
+        return;
+      }
+
+      save.disabled = true;
+      cancel.disabled = true;
+      closeButton.disabled = true;
+      save.setAttribute("aria-busy", "true");
+      status.textContent = "Guardando cambios…";
+
+      try {
+        const result = await window.AdminGuestsService.updateGuest({
+          invitadoId: detail.invitado_id,
+          nombre: trimmedName,
+          grupo: group.value,
+          adultosAsignados: adults.getValue(),
+          ninosAsignados: children.getValue(),
+          telefono: phone.value,
+          notas: notes.value,
+          motivo: trimmedReason,
+          version: detail.version,
+        });
+        close();
+        setFeedback("success", result.actualizado ? "Invitado actualizado correctamente." : "No se detectaron cambios en el invitado.");
+        await onSaved();
+      } catch (error) {
+        status.className = "guest-editor-status guest-editor-status-error";
+        status.textContent = errorText(error);
+        save.disabled = false;
+        cancel.disabled = false;
+        closeButton.disabled = false;
+        save.removeAttribute("aria-busy");
+      }
+    });
+
+    window.setTimeout(() => name.focus(), 0);
+  }
+
+  function guestCard(guest, setFeedback, onEdit) {
     const article = element("article", "guest-directory-card");
     const identity = element("div", "guest-directory-identity");
     identity.append(element("h3", "", guest.nombre));
@@ -53,54 +255,80 @@
     status.append(badge, element("small", "", confirmed));
 
     const actions = element("div", "guest-directory-actions");
-    actions.setAttribute("aria-label", `Acciones pendientes para ${guest.nombre}`);
-      const previewButton = disabledAction("Vista previa", true);
-      previewButton.disabled = false;
-      previewButton.addEventListener("click", async () => {
-        let token = null;
-        previewButton.disabled = true;
-        previewButton.setAttribute("aria-busy", "true");
+    actions.setAttribute("aria-label", `Acciones para ${guest.nombre}`);
 
-        try {
-          token = await window.AdminGuestsService.getInvitationToken(guest.invitado_id, "vista_previa");
-          window.AdminInvitationUrl.openInvitationPreview(token, { preview: "admin" });
-        } catch (error) {
-          const message = error?.message === "INVITACION_INACTIVA"
-            ? "Esta invitación está inactiva."
-            : "No fue posible abrir la vista previa.";
-          setFeedback("error", message);
-        } finally {
-          token = null;
-          previewButton.disabled = false;
-          previewButton.removeAttribute("aria-busy");
-        }
-      });
+    const previewButton = actionButton("Vista previa", true);
+    previewButton.addEventListener("click", async () => {
+      let token = null;
+      previewButton.disabled = true;
+      previewButton.setAttribute("aria-busy", "true");
+      try {
+        token = await window.AdminGuestsService.getInvitationToken(guest.invitado_id, "vista_previa");
+        window.AdminInvitationUrl.openInvitationPreview(token, { preview: "admin" });
+      } catch (error) {
+        setFeedback("error", error?.message === "INVITACION_INACTIVA" ? "Esta invitación está inactiva." : "No fue posible abrir la vista previa.");
+      } finally {
+        token = null;
+        previewButton.disabled = false;
+        previewButton.removeAttribute("aria-busy");
+      }
+    });
 
-      const copyButton = disabledAction("Copiar enlace");
-      copyButton.disabled = false;
-      copyButton.addEventListener("click", async () => {
-        let token = null;
-        copyButton.disabled = true;
-        copyButton.setAttribute("aria-busy", "true");
+    const copyButton = actionButton("Copiar enlace");
+    copyButton.addEventListener("click", async () => {
+      let token = null;
+      copyButton.disabled = true;
+      copyButton.setAttribute("aria-busy", "true");
+      try {
+        token = await window.AdminGuestsService.getInvitationToken(guest.invitado_id, "copiar_enlace");
+        await window.AdminInvitationUrl.copyInvitationUrl(token);
+        setFeedback("success", "Enlace copiado");
+      } catch (error) {
+        setFeedback("error", error?.message === "INVITACION_INACTIVA" ? "Esta invitación está inactiva." : "No fue posible copiar el enlace.");
+      } finally {
+        token = null;
+        copyButton.disabled = false;
+        copyButton.removeAttribute("aria-busy");
+      }
+    });
 
-        try {
-          token = await window.AdminGuestsService.getInvitationToken(guest.invitado_id, "copiar_enlace");
-          await window.AdminInvitationUrl.copyInvitationUrl(token);
-          setFeedback("success", "Enlace copiado");
-        } catch (error) {
-          const message = error?.message === "INVITACION_INACTIVA"
-            ? "Esta invitación está inactiva."
-            : "No fue posible copiar el enlace.";
-          setFeedback("error", message);
-        } finally {
-          token = null;
-          copyButton.disabled = false;
-          copyButton.removeAttribute("aria-busy");
-        }
-      });
+    const whatsappButton = actionButton("WhatsApp");
+    whatsappButton.addEventListener("click", async () => {
+      let token = null;
+      whatsappButton.disabled = true;
+      whatsappButton.setAttribute("aria-busy", "true");
+      try {
+        const detail = await window.AdminGuestsService.getGuestDetail(guest.invitado_id);
+        token = await window.AdminGuestsService.getInvitationToken(guest.invitado_id, "whatsapp");
+        window.AdminWhatsApp.shareInvitation(token, {
+          phone: detail.telefono,
+          name: detail.nombre,
+          adults: detail.adultos_asignados,
+          children: detail.ninos_asignados,
+        });
+        setFeedback("success", detail.telefono ? `WhatsApp abierto para ${detail.nombre}.` : "WhatsApp abierto. Selecciona el destinatario para compartir la invitación.");
+      } catch (error) {
+        setFeedback("error", error?.message === "INVITACION_INACTIVA" ? "Esta invitación está inactiva." : "No fue posible preparar el mensaje de WhatsApp.");
+      } finally {
+        token = null;
+        whatsappButton.disabled = false;
+        whatsappButton.removeAttribute("aria-busy");
+      }
+    });
 
-      actions.append(previewButton, copyButton);
-      ["QR", "WhatsApp", "Editar", "Más"].forEach((label) => actions.append(disabledAction(label)));
+    const editButton = actionButton("Editar");
+    editButton.addEventListener("click", async () => {
+      editButton.disabled = true;
+      editButton.setAttribute("aria-busy", "true");
+      try {
+        await onEdit(guest.invitado_id);
+      } finally {
+        editButton.disabled = false;
+        editButton.removeAttribute("aria-busy");
+      }
+    });
+
+    actions.append(previewButton, copyButton, whatsappButton, editButton);
     article.append(identity, status, actions);
     return article;
   }
@@ -128,8 +356,8 @@
     const order = selectField("Ordenar por", [["grupo", "Grupo"], ["nombre", "Nombre"], ["codigo", "Código"], ["cupo_total", "Cupo total"], ["estado", "Estado"], ["fecha_actualizacion", "Última actualización"]]);
     const filterGrid = element("div", "guest-filter-grid");
     [group, state, active, children, order].forEach(({ field }) => filterGrid.append(field));
-    const clear = element("button", "guest-directory-action guest-clear-filters", "Limpiar filtros");
-    clear.type = "button";
+    const clear = actionButton("Limpiar filtros");
+    clear.classList.add("guest-clear-filters");
     controls.append(searchField, filterGrid, clear);
 
     const summary = element("div", "guest-directory-summary");
@@ -143,9 +371,9 @@
 
     const pagination = element("nav", "guest-directory-pagination");
     pagination.setAttribute("aria-label", "Paginación de invitados");
-    const previous = element("button", "guest-directory-action", "Anterior"); previous.type = "button";
+    const previous = actionButton("Anterior");
     const pageLabel = element("span");
-    const next = element("button", "guest-directory-action", "Siguiente"); next.type = "button";
+    const next = actionButton("Siguiente");
     const sizeField = selectField("Por página", [["10", "10"], ["20", "20"], ["50", "50"]], "guest-page-size");
     sizeField.select.value = "20";
     pagination.append(previous, pageLabel, next, sizeField.field);
@@ -167,9 +395,18 @@
       ui.feedback.hidden = !message;
     }
 
+    async function editGuest(invitadoId) {
+      try {
+        const detail = await window.AdminGuestsService.getGuestDetail(invitadoId);
+        openEditor(detail, { onSaved: () => load(), setFeedback });
+      } catch (error) {
+        setFeedback("error", "No fue posible cargar los datos del invitado para editar.");
+      }
+    }
+
     function render(envelope) {
       const { items, paginacion } = envelope.data;
-      ui.list.replaceChildren(...items.map(guestCard));
+      ui.list.replaceChildren(...items.map((guest) => guestCard(guest, setFeedback, editGuest)));
       ui.count.replaceChildren(document.createTextNode("Resultados: "), element("strong", "", `${paginacion.total_registros} ${paginacion.total_registros === 1 ? "invitado" : "invitados"}`));
       ui.pageLabel.textContent = paginacion.total_paginas ? `Página ${paginacion.pagina} de ${paginacion.total_paginas}` : "Página 0 de 0";
       ui.previous.disabled = paginacion.pagina <= 1;
