@@ -197,3 +197,53 @@
     font-size:.64rem;
   }
 }
+
+
+/* Corrección iOS · evitar auto-zoom al enfocar campos del editor */
+@media(max-width:760px){
+  .guest-editor-field input,
+  .guest-editor-field select,
+  .guest-editor-field textarea{
+    font-size:16px !important;
+    line-height:1.45;
+  }
+
+  .guest-editor-reason textarea{
+    min-height:110px;
+  }
+
+  .guest-editor-dialog{
+    width:100%;
+    max-width:100%;
+    max-height:calc(100dvh - env(safe-area-inset-top));
+    overscroll-behavior:contain;
+  }
+
+  .guest-editor-overlay{
+    overflow:hidden;
+  }
+
+  .guest-editor-footer{
+    padding-bottom:max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+/* iPhone muy estrecho: mantener el modal dentro del viewport aun con teclado visible */
+@media(max-width:420px){
+  .guest-editor-form{
+    min-width:0;
+  }
+
+  .guest-editor-field,
+  .guest-editor-counter-field,
+  .guest-editor-confirmation,
+  .guest-editor-reason{
+    min-width:0;
+  }
+
+  .guest-editor-field textarea,
+  .guest-editor-field input,
+  .guest-editor-field select{
+    max-width:100%;
+  }
+}
