@@ -6,6 +6,7 @@
   const DETAIL_RPC_NAME = "admin_obtener_invitado";
   const UPDATE_RPC_NAME = "admin_actualizar_invitado";
   const CREATE_RPC_NAME = "admin_crear_invitado";
+  const STATUS_RPC_NAME = "admin_cambiar_estado_invitado";
   const TOKEN_PURPOSES = Object.freeze(["vista_previa", "copiar_enlace", "whatsapp"]);
   const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   const PAGE_SIZES = Object.freeze([10, 20, 50]);
@@ -196,6 +197,34 @@
   }
 
 
+  function normalizeStatusPayload(value = {}) {
+    const payload = requireObject(value);
+    const id = normalizeInvitationId(payload.invitadoId);
+    if (typeof payload.activo !== "boolean") invalidContract();
+
+    const reason = String(payload.motivo ?? "").trim();
+    const version = String(payload.version ?? "").trim();
+
+    if (!reason || reason.length > 1000 || !isValidDate(version)) invalidContract();
+
+    return { id, active: payload.activo, reason, version };
+  }
+
+  function validateStatusEnvelope(response, expectedId, expectedActive) {
+    const envelope = requireObject(response);
+    if (envelope.schema_version !== "1.0" || !isValidDate(envelope.generated_at)) invalidContract();
+
+    const data = requireObject(envelope.data);
+    if (!isInteger(data.invitado_id) || data.invitado_id !== expectedId) invalidContract();
+    requireBoolean(data.cambio_aplicado);
+    requireBoolean(data.activo);
+    if (data.activo !== expectedActive) invalidContract();
+    if (!isValidDate(data.version)) invalidContract();
+
+    return data;
+  }
+
+
   function normalizeCreatePayload(value = {}) {
     const payload = requireObject(value);
     const name = String(payload.nombre ?? "").trim();
@@ -317,6 +346,24 @@
     return validateCreateEnvelope(data);
   }
 
+
+  async function changeGuestStatus(values) {
+    const normalized = normalizeStatusPayload(values);
+    const { data, error } = await client().rpc(STATUS_RPC_NAME, {
+      p_id: normalized.id,
+      p_activo: normalized.active,
+      p_motivo: normalized.reason,
+      p_version: normalized.version,
+    });
+
+    if (error) {
+      if (isSessionError(error)) window.dispatchEvent(new CustomEvent("admin:session-expired"));
+      throw error;
+    }
+
+    return validateStatusEnvelope(data, normalized.id, normalized.active);
+  }
+
   async function getInvitationToken(invitationId, purpose) {
     const id = normalizeInvitationId(invitationId);
     const normalizedPurpose = normalizeTokenPurpose(purpose);
@@ -331,5 +378,5 @@
     return validateTokenEnvelope(data, normalizedPurpose);
   }
 
-  window.AdminGuestsService = Object.freeze({ listGuests, getGuestDetail, updateGuest, createGuest, getInvitationToken });
+  window.AdminGuestsService = Object.freeze({ listGuests, getGuestDetail, updateGuest, createGuest, changeGuestStatus, getInvitationToken });
 })();

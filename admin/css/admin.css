@@ -344,3 +344,138 @@
 @media(max-width:380px){
   .guest-create-actions{grid-template-columns:1fr}
 }
+
+
+/* =========================================================
+   MICROFASE 4C · BAJA LÓGICA / REACTIVACIÓN DE INVITADOS
+   ========================================================= */
+
+.guest-directory-action-danger{
+  border-color:rgba(137,72,62,.34);
+  color:#7b443b;
+}
+
+.guest-directory-action-danger:hover:not(:disabled),
+.guest-directory-action-danger:focus-visible{
+  background:#f7ece8;
+  border-color:rgba(123,68,59,.55);
+}
+
+.guest-directory-action-reactivate{
+  border-color:rgba(83,106,72,.34);
+  color:var(--olive-700,#4f6247);
+}
+
+.guest-status-dialog{
+  max-width:680px;
+}
+
+.guest-status-body{
+  display:grid;
+  gap:18px;
+  padding:24px 28px 28px;
+}
+
+.guest-status-summary{
+  display:grid;
+  gap:7px;
+}
+
+.guest-status-summary h3{
+  margin:0;
+  font-family:"Cormorant Garamond",serif;
+  font-size:1.8rem;
+  font-weight:500;
+  color:var(--olive-900,#2f3f2b);
+}
+
+.guest-status-summary p{
+  margin:0;
+}
+
+.guest-status-warning{
+  display:grid;
+  gap:9px;
+  padding:18px;
+  border:1px solid rgba(83,106,72,.18);
+  border-radius:18px;
+  background:rgba(245,242,232,.72);
+}
+
+.guest-status-warning h3,
+.guest-status-warning p{
+  margin:0;
+}
+
+.guest-status-warning h3{
+  font-family:"Cormorant Garamond",serif;
+  font-size:1.25rem;
+  font-weight:600;
+}
+
+.guest-status-warning-danger{
+  border-color:rgba(137,72,62,.24);
+  background:rgba(250,241,237,.82);
+}
+
+.guest-status-confirmed{
+  margin-top:4px !important;
+  padding-top:10px;
+  border-top:1px solid rgba(137,72,62,.16);
+  font-weight:600;
+}
+
+.guest-status-form{
+  display:grid;
+  gap:16px;
+}
+
+.guest-status-danger-action{
+  background:#70483f !important;
+  border-color:#70483f !important;
+  color:#fff !important;
+}
+
+.guest-status-danger-action:hover:not(:disabled),
+.guest-status-danger-action:focus-visible{
+  background:#613d36 !important;
+}
+
+@media(max-width:760px){
+  .guest-status-dialog{
+    width:100%;
+    max-width:100%;
+  }
+
+  .guest-status-body{
+    padding:20px 18px max(22px,env(safe-area-inset-bottom));
+  }
+
+  .guest-status-footer{
+    grid-template-columns:1fr;
+  }
+
+  .guest-directory-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .guest-directory-action-danger,
+  .guest-directory-action-reactivate{
+    grid-column:1/-1;
+  }
+}
+
+@media(max-width:420px){
+  .guest-status-summary h3{
+    font-size:1.55rem;
+  }
+
+  .guest-directory-actions{
+    grid-template-columns:1fr;
+  }
+
+  .guest-directory-action-danger,
+  .guest-directory-action-reactivate{
+    grid-column:auto;
+  }
+}

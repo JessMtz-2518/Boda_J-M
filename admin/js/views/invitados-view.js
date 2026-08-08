@@ -44,7 +44,7 @@
     const message = String(error?.message || "");
     if (message.includes("CUPO_ADULTOS_MENOR_A_CONFIRMACION")) return "Los adultos asignados no pueden ser menores que los adultos ya confirmados.";
     if (message.includes("CUPO_NINOS_MENOR_A_CONFIRMACION")) return "Los niños asignados no pueden ser menores que los niños ya confirmados.";
-    if (message.includes("REGISTRO_DESACTUALIZADO")) return "Este invitado fue modificado en otra sesión. Cierra esta ventana y vuelve a abrir Editar para cargar la versión más reciente.";
+    if (message.includes("REGISTRO_DESACTUALIZADO")) return "Este invitado fue modificado en otra sesión. Cierra esta ventana y vuelve a cargar sus datos antes de intentar nuevamente.";
     if (message.includes("TELEFONO_INVALIDO")) return "El teléfono no tiene un formato válido.";
     if (message.includes("NOMBRE_INVALIDO")) return "Revisa el nombre del invitado.";
     if (message.includes("MOTIVO_INVALIDO")) return "Escribe un motivo para registrar el cambio.";
@@ -239,6 +239,172 @@
     });
 
     window.setTimeout(() => name.focus(), 0);
+  }
+
+  function openStatusDialog(detail, { onChanged, setFeedback }) {
+    const previousFocus = document.activeElement;
+    const targetActive = !detail.activo;
+    const isDeactivation = !targetActive;
+
+    const overlay = element("div", "guest-editor-overlay guest-status-overlay");
+    const dialog = element("section", "guest-editor-dialog guest-status-dialog");
+    dialog.setAttribute("role", "dialog");
+    dialog.setAttribute("aria-modal", "true");
+    dialog.setAttribute("aria-labelledby", "guest-status-title");
+
+    const head = element("header", "guest-editor-head");
+    const heading = element("div");
+    heading.append(element("p", "admin-eyebrow", "Gestión administrativa"));
+    const title = element("h2", "", isDeactivation ? "Dar de baja invitado" : "Reactivar invitado");
+    title.id = "guest-status-title";
+    heading.append(
+      title,
+      element("p", "guest-editor-code", `${detail.codigo} · ${detail.grupo}`)
+    );
+
+    const closeButton = actionButton("Cerrar");
+    closeButton.classList.add("guest-editor-close");
+    head.append(heading, closeButton);
+
+    const body = element("div", "guest-status-body");
+    const identity = element("section", "guest-status-summary");
+    identity.append(
+      element("p", "admin-eyebrow", isDeactivation ? "Baja lógica" : "Reactivación"),
+      element("h3", "", detail.nombre),
+      element(
+        "p",
+        "",
+        `Pase: ${detail.adultos_asignados} ${detail.adultos_asignados === 1 ? "adulto" : "adultos"}` +
+          (detail.ninos_asignados
+            ? ` · ${detail.ninos_asignados} ${detail.ninos_asignados === 1 ? "niño" : "niños"}`
+            : "")
+      )
+    );
+
+    const warning = element("section", `guest-status-warning${isDeactivation ? " guest-status-warning-danger" : ""}`);
+    if (isDeactivation) {
+      warning.append(
+        element("h3", "", "La invitación quedará inactiva"),
+        element("p", "", "No se eliminará ningún registro. Se conservarán el código, token, confirmaciones e historial y podrás reactivarla posteriormente."),
+        element("p", "", "Mientras esté inactiva, su enlace personalizado dejará de funcionar y quedará fuera de los indicadores de invitados activos.")
+      );
+
+      if (detail.confirmacion) {
+        warning.append(
+          element(
+            "p",
+            "guest-status-confirmed",
+            `Confirmación vigente: ${stateLabels[detail.confirmacion.estado] || detail.confirmacion.estado} · ` +
+              `${detail.confirmacion.adultos_confirmados} ${detail.confirmacion.adultos_confirmados === 1 ? "adulto" : "adultos"} · ` +
+              `${detail.confirmacion.ninos_confirmados} ${detail.confirmacion.ninos_confirmados === 1 ? "niño" : "niños"}.`
+          )
+        );
+      }
+    } else {
+      warning.append(
+        element("h3", "", "La invitación volverá a estar activa"),
+        element("p", "", "Recuperará su mismo código, enlace personalizado, cupo e historial. Si existía una confirmación anterior, se conservará.")
+      );
+    }
+
+    const form = document.createElement("form");
+    form.className = "guest-status-form";
+    form.noValidate = true;
+
+    const reason = document.createElement("textarea");
+    reason.maxLength = 1000;
+    reason.rows = 3;
+    reason.required = true;
+    reason.placeholder = isDeactivation
+      ? "Ej. Ya no asistirá a la boda / invitación cancelada"
+      : "Ej. Invitación reactivada por solicitud de los novios";
+
+    const reasonField = textField(isDeactivation ? "Motivo de la baja *" : "Motivo de la reactivación *", reason);
+    reasonField.classList.add("guest-editor-reason");
+
+    const status = element("div", "guest-editor-status");
+    status.setAttribute("role", "status");
+    status.setAttribute("aria-live", "polite");
+
+    const footer = element("footer", "guest-editor-footer guest-status-footer");
+    const cancel = actionButton("Cancelar");
+    const confirm = actionButton(isDeactivation ? "Dar de baja invitado" : "Reactivar invitado", true);
+    if (isDeactivation) confirm.classList.add("guest-status-danger-action");
+    confirm.type = "submit";
+    footer.append(cancel, confirm);
+
+    form.append(reasonField, status, footer);
+    body.append(identity, warning, form);
+    dialog.append(head, body);
+    overlay.append(dialog);
+    document.body.append(overlay);
+    document.body.classList.add("guest-editor-open");
+
+    function close() {
+      document.removeEventListener("keydown", onKeyDown);
+      overlay.remove();
+      document.body.classList.remove("guest-editor-open");
+      if (previousFocus instanceof HTMLElement) previousFocus.focus();
+    }
+
+    function onKeyDown(event) {
+      if (event.key === "Escape") close();
+    }
+
+    closeButton.addEventListener("click", close);
+    cancel.addEventListener("click", close);
+    overlay.addEventListener("click", (event) => { if (event.target === overlay) close(); });
+    document.addEventListener("keydown", onKeyDown);
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const trimmedReason = reason.value.trim();
+      status.className = "guest-editor-status";
+      status.textContent = "";
+
+      if (!trimmedReason) {
+        status.className = "guest-editor-status guest-editor-status-error";
+        status.textContent = isDeactivation
+          ? "Escribe el motivo de la baja para registrar la auditoría."
+          : "Escribe el motivo de la reactivación para registrar la auditoría.";
+        reason.focus();
+        return;
+      }
+
+      confirm.disabled = true;
+      cancel.disabled = true;
+      closeButton.disabled = true;
+      confirm.setAttribute("aria-busy", "true");
+      status.textContent = isDeactivation ? "Dando de baja invitado…" : "Reactivando invitado…";
+
+      try {
+        const result = await window.AdminGuestsService.changeGuestStatus({
+          invitadoId: detail.invitado_id,
+          activo: targetActive,
+          motivo: trimmedReason,
+          version: detail.version,
+        });
+
+        close();
+        setFeedback(
+          "success",
+          result.cambio_aplicado
+            ? (targetActive ? "Invitado reactivado correctamente." : "Invitado dado de baja correctamente.")
+            : "El invitado ya tenía ese estado."
+        );
+        await onChanged();
+      } catch (error) {
+        status.className = "guest-editor-status guest-editor-status-error";
+        status.textContent = errorText(error);
+        confirm.disabled = false;
+        cancel.disabled = false;
+        closeButton.disabled = false;
+        confirm.removeAttribute("aria-busy");
+      }
+    });
+
+    window.setTimeout(() => reason.focus(), 0);
   }
 
   function openCreator({ onCreated, setFeedback }) {
@@ -458,7 +624,7 @@
     });
   }
 
-  function guestCard(guest, setFeedback, onEdit) {
+  function guestCard(guest, setFeedback, onEdit, onStatus) {
     const article = element("article", "guest-directory-card");
     const identity = element("div", "guest-directory-identity");
     identity.append(element("h3", "", guest.nombre));
@@ -548,7 +714,20 @@
       }
     });
 
-    actions.append(previewButton, copyButton, whatsappButton, editButton);
+    const statusButton = actionButton(guest.activo ? "Dar de baja" : "Reactivar");
+    statusButton.classList.add(guest.activo ? "guest-directory-action-danger" : "guest-directory-action-reactivate");
+    statusButton.addEventListener("click", async () => {
+      statusButton.disabled = true;
+      statusButton.setAttribute("aria-busy", "true");
+      try {
+        await onStatus(guest.invitado_id);
+      } finally {
+        statusButton.disabled = false;
+        statusButton.removeAttribute("aria-busy");
+      }
+    });
+
+    actions.append(previewButton, copyButton, whatsappButton, editButton, statusButton);
     article.append(identity, status, actions);
     return article;
   }
@@ -638,9 +817,26 @@
       });
     }
 
+    async function changeGuestStatus(invitadoId) {
+      try {
+        setFeedback("loading", "Cargando invitado…");
+        const detail = await window.AdminGuestsService.getGuestDetail(invitadoId);
+        setFeedback("", "");
+        openStatusDialog(detail, {
+          setFeedback,
+          onChanged: async () => {
+            state.page = 1;
+            await load();
+          },
+        });
+      } catch (error) {
+        setFeedback("error", "No fue posible cargar los datos del invitado.");
+      }
+    }
+
     function render(envelope) {
       const { items, paginacion } = envelope.data;
-      ui.list.replaceChildren(...items.map((guest) => guestCard(guest, setFeedback, editGuest)));
+      ui.list.replaceChildren(...items.map((guest) => guestCard(guest, setFeedback, editGuest, changeGuestStatus)));
       ui.count.replaceChildren(document.createTextNode("Resultados: "), element("strong", "", `${paginacion.total_registros} ${paginacion.total_registros === 1 ? "invitado" : "invitados"}`));
       ui.pageLabel.textContent = paginacion.total_paginas ? `Página ${paginacion.pagina} de ${paginacion.total_paginas}` : "Página 0 de 0";
       ui.previous.disabled = paginacion.pagina <= 1;
