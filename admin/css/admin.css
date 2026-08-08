@@ -479,3 +479,196 @@
     grid-column:auto;
   }
 }
+
+
+/* =========================================================
+   MÓDULO CONFIRMACIONES · FASE 2
+   ========================================================= */
+.confirmations-view{display:grid;gap:18px}
+.confirmation-toolbar{display:grid;gap:16px;padding:24px;border:1px solid rgba(255,255,255,.72);border-radius:22px;background:rgba(255,250,241,.9);box-shadow:0 16px 38px rgba(38,46,33,.08)}
+.confirmation-filter-grid{display:grid;grid-template-columns:2fr repeat(3,minmax(150px,1fr));gap:12px}
+.confirmation-field{display:grid;gap:7px;min-width:0;color:var(--admin-muted);font-size:.72rem;font-weight:600}
+.confirmation-field input,.confirmation-field select,.confirmation-field textarea{width:100%;min-height:46px;padding:0 14px;border:1px solid var(--admin-line);border-radius:11px;background:rgba(255,255,255,.78);color:var(--admin-ink);font:inherit;font-weight:400;outline:none}
+.confirmation-field textarea{min-height:94px;padding:12px 14px;resize:vertical}
+.confirmation-field input:focus,.confirmation-field select:focus,.confirmation-field textarea:focus{border-color:var(--admin-olive);box-shadow:0 0 0 3px rgba(86,101,74,.12)}
+.confirmation-list-meta{color:var(--admin-muted);font-size:.78rem}
+.confirmation-feedback{padding:12px 14px;border:1px solid var(--admin-line);border-radius:12px;background:rgba(255,250,241,.74);font-size:.78rem}
+.confirmation-feedback[hidden]{display:none}
+.confirmation-feedback-error{color:var(--admin-danger);border-color:rgba(141,63,63,.2);background:rgba(141,63,63,.05)}
+.confirmation-feedback-success{color:var(--admin-olive-dark);background:rgba(86,101,74,.08)}
+.confirmation-list{display:grid;gap:12px}
+.confirmation-card{display:grid;grid-template-columns:minmax(220px,1.25fr) minmax(160px,.7fr) minmax(190px,.75fr) auto;align-items:center;gap:20px;padding:20px 22px;border:1px solid rgba(255,255,255,.74);border-radius:20px;background:rgba(255,250,241,.92);box-shadow:0 12px 30px rgba(38,46,33,.06)}
+.confirmation-card h3{margin:0 0 4px;font-size:1.3rem}
+.confirmation-card p,.confirmation-card small,.confirmation-card time{margin:0;color:var(--admin-muted);font-size:.72rem;line-height:1.45}
+.confirmation-card-identity,.confirmation-card-attendance,.confirmation-card-activity{display:grid;gap:5px}
+.confirmation-card-attendance{justify-items:start}
+.confirmation-chip{display:inline-flex;align-items:center;padding:5px 9px;border-radius:999px;font-size:.65rem;font-weight:600}
+.confirmation-chip-yes{color:var(--admin-olive-dark);background:rgba(86,101,74,.14)}
+.confirmation-chip-no{color:var(--admin-danger);background:rgba(141,63,63,.08)}
+.confirmation-chip-inactive{opacity:.62}
+.confirmation-card-activity span{font-size:.68rem;font-weight:600;color:var(--admin-olive-dark)}
+.confirmation-card-actions{display:flex;justify-content:flex-end}
+.confirmation-pagination{display:flex;align-items:center;justify-content:flex-end;gap:10px;color:var(--admin-muted);font-size:.72rem}
+.confirmation-pagination select{min-height:40px;padding:0 10px;border:1px solid var(--admin-line);border-radius:10px;background:rgba(255,255,255,.78)}
+.confirmation-empty{margin:0;padding:18px;border:1px solid var(--admin-line);border-radius:14px;background:rgba(255,250,241,.74);color:var(--admin-muted)}
+
+.confirmation-modal-open{overflow:hidden}
+.confirmation-modal-overlay{position:fixed;inset:0;display:grid;place-items:center;padding:24px;background:rgba(31,37,28,.58);backdrop-filter:blur(7px);z-index:1000}
+.confirmation-modal{width:min(860px,100%);max-height:calc(100dvh - 48px);overflow:auto;border:1px solid rgba(255,255,255,.7);border-radius:24px;background:var(--admin-ivory);box-shadow:0 32px 80px rgba(22,28,20,.28)}
+.confirmation-modal-head{position:sticky;top:0;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:22px 26px;border-bottom:1px solid var(--admin-line);background:rgba(255,250,241,.97);z-index:2}
+.confirmation-modal-head h2{margin:4px 0;font-size:2rem}
+.confirmation-detail-code{margin:0;color:var(--admin-muted);font-size:.75rem}
+.confirmation-modal-body{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:24px 26px 30px}
+.confirmation-detail-summary,.confirmation-message,.confirmation-correction,.confirmation-history{padding:20px;border:1px solid var(--admin-line);border-radius:18px;background:rgba(255,255,255,.38)}
+.confirmation-detail-summary,.confirmation-message,.confirmation-correction{display:grid;gap:10px}
+.confirmation-detail-status{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.confirmation-inactive-label{color:var(--admin-danger);font-size:.68rem;font-weight:600}
+.confirmation-detail-summary p,.confirmation-message p,.confirmation-help{margin:0;color:var(--admin-muted);font-size:.78rem;line-height:1.55}
+.confirmation-date{font-size:.7rem!important}
+.confirmation-message{grid-column:2}
+.confirmation-correction{grid-column:1/-1}
+.confirmation-history{grid-column:1/-1}
+.confirmation-correction h3,.confirmation-message h3,.confirmation-history h3{margin:0}
+.confirmation-correction-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.confirmation-counter{display:grid;gap:7px}
+.confirmation-counter-label{color:var(--admin-muted);font-size:.72rem;font-weight:600}
+.confirmation-counter-row{display:grid;grid-template-columns:44px minmax(80px,1fr) 44px;gap:8px}
+.confirmation-counter-row .admin-button{min-width:0;padding:0;font-size:1.2rem}
+.confirmation-counter-value{display:grid;place-items:center;min-height:44px;border:1px solid var(--admin-line);border-radius:10px;background:#fff;color:var(--admin-olive-dark);font-family:"Cormorant Garamond",Georgia,serif;font-size:1.65rem}
+.confirmation-counter small{color:var(--admin-muted);font-size:.65rem;text-align:center}
+.confirmation-operation-status{min-height:20px;margin:0;color:var(--admin-muted);font-size:.75rem}
+.confirmation-operation-error{color:var(--admin-danger)}
+.confirmation-timeline{display:grid;gap:0;margin-top:14px}
+.confirmation-history-item{position:relative;display:grid;gap:6px;padding:0 0 20px 22px;border-left:1px solid var(--admin-line)}
+.confirmation-history-item:last-child{padding-bottom:0}
+.confirmation-history-item::before{position:absolute;left:-5px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--admin-olive);content:""}
+.confirmation-history-item strong{font-size:.8rem}
+.confirmation-history-item p,.confirmation-history-item time{margin:0;color:var(--admin-muted);font-size:.72rem;line-height:1.45}
+.confirmation-origin{justify-self:start;padding:4px 7px;border-radius:999px;font-size:.61rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.confirmation-origin-invitado{background:rgba(86,101,74,.1);color:var(--admin-olive-dark)}
+.confirmation-origin-administrador{background:rgba(122,100,71,.12);color:#6b583f}
+.confirmation-history-reason{font-style:italic}
+
+@media(max-width:1050px){
+  .confirmation-filter-grid{grid-template-columns:1fr 1fr}
+  .confirmation-card{grid-template-columns:minmax(0,1fr) minmax(150px,.65fr) auto}
+  .confirmation-card-activity{grid-column:1/3}
+}
+@media(max-width:700px){
+  .confirmation-filter-grid{grid-template-columns:1fr}
+  .confirmation-toolbar{padding:18px}
+  .confirmation-card{grid-template-columns:1fr;gap:12px}
+  .confirmation-card-activity{grid-column:auto}
+  .confirmation-card-actions{justify-content:stretch}
+  .confirmation-card-actions .admin-button{width:100%}
+  .confirmation-pagination{display:grid;grid-template-columns:1fr 1fr;justify-content:stretch}
+  .confirmation-pagination>span{align-self:center;text-align:center}
+  .confirmation-pagination select{width:100%}
+  .confirmation-modal-overlay{align-items:end;padding:0}
+  .confirmation-modal{width:100%;max-height:92dvh;border-radius:24px 24px 0 0}
+  .confirmation-modal-head{position:static;padding:18px}
+  .confirmation-modal-head h2{font-size:1.7rem}
+  .confirmation-modal-body{grid-template-columns:1fr;padding:18px}
+  .confirmation-message,.confirmation-correction,.confirmation-history{grid-column:auto}
+  .confirmation-correction-grid{grid-template-columns:1fr}
+  .confirmation-field input,.confirmation-field select,.confirmation-field textarea{font-size:16px}
+}
+
+
+/* =========================================================
+   CONFIRMACIONES · FASE 2.1
+   Separación de detalle/historial y corrección
+   ========================================================= */
+.confirmation-detail-actions{
+  grid-column:1/-1;
+  display:flex;
+  justify-content:flex-end;
+}
+.confirmation-detail-actions .admin-button{
+  min-width:190px;
+}
+.confirmation-detail-modal .confirmation-history{
+  grid-column:1/-1;
+}
+.confirmation-correction-modal{
+  width:min(760px,100%);
+}
+.confirmation-correction-body .confirmation-correction{
+  grid-column:1/-1;
+}
+.confirmation-correction-body .confirmation-detail-summary,
+.confirmation-correction-body .confirmation-message{
+  min-height:100%;
+}
+@media(max-width:700px){
+  .confirmation-detail-actions{
+    justify-content:stretch;
+  }
+  .confirmation-detail-actions .admin-button{
+    width:100%;
+    min-width:0;
+  }
+}
+
+/* Confirmaciones · Fase 2.2 */
+.confirmation-card-actions{display:grid;grid-template-columns:repeat(2,minmax(112px,1fr));gap:10px;min-width:238px}
+.confirmation-card-actions .admin-button{width:100%;white-space:nowrap}
+.confirmation-detail-modal{width:min(860px,100%)}
+.confirmation-detail-modal .confirmation-modal-body{grid-template-columns:1fr 1fr}
+.confirmation-detail-modal .confirmation-history{grid-column:1/-1}
+.confirmation-correction-modal{width:min(790px,100%)}
+.confirmation-correction-modal .confirmation-modal-body{grid-template-columns:1fr 1fr}
+.confirmation-correction-modal .confirmation-correction{grid-column:1/-1}
+@media(max-width:700px){.confirmation-card-actions{grid-template-columns:1fr 1fr;min-width:0}.confirmation-detail-modal .confirmation-modal-body,.confirmation-correction-modal .confirmation-modal-body{grid-template-columns:1fr}.confirmation-detail-modal .confirmation-history,.confirmation-correction-modal .confirmation-correction{grid-column:auto}}
+@media(max-width:420px){.confirmation-card-actions{grid-template-columns:1fr}}
+
+
+/* =========================================================
+   CONFIRMACIONES · FASE 2.3
+   CONSISTENCIA VISUAL CON MÓDULO INVITADOS
+   ========================================================= */
+
+/* Limpiar filtros: compacto y alineado a la izquierda, como Invitados */
+.confirmation-toolbar > .confirmation-clear-filters{
+  width:max-content;
+  min-width:0;
+  min-height:38px;
+  justify-self:start;
+  padding:0 14px;
+  margin:0;
+}
+
+/* Acciones de tarjeta: Ver detalle principal + Editar secundaria */
+.confirmation-card-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+  min-width:0;
+}
+
+.confirmation-card-actions .admin-button{
+  width:auto;
+  min-width:118px;
+  white-space:nowrap;
+}
+
+/* En móvil conservamos acciones cómodas para touch */
+@media(max-width:700px){
+  .confirmation-card-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    width:100%;
+  }
+
+  .confirmation-card-actions .admin-button{
+    width:100%;
+    min-width:0;
+  }
+}
+
+@media(max-width:420px){
+  .confirmation-card-actions{
+    grid-template-columns:1fr;
+  }
+}
