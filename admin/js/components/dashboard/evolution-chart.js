@@ -91,15 +91,7 @@
     items.forEach((item,index)=>{const center=left+slot*(index+.5);const first=item.actividad.primeras_respuestas;const changes=item.actividad.modificaciones;const firstH=plotHeight*(first/maxActivity);const changeH=plotHeight*(changes/maxActivity);svg.append(svgNode("rect",{x:center-bar-1,y:top+plotHeight-firstH,width:bar,height:firstH,class:"chart-bar-first"}));svg.append(svgNode("rect",{x:center+1,y:top+plotHeight-changeH,width:bar,height:changeH,class:"chart-bar-changes"}));const attendees=item.estado_al_cierre.asistentes_confirmados;points.push(`${center},${top+plotHeight-(plotHeight*attendees/maxAttendees)}`);if(index===0||index===items.length-1||index===Math.floor(items.length/2)){const label=svgNode("text",{x:center,y:height-18,class:"chart-axis-label","text-anchor":"middle"});label.textContent=formatters.formatShortDate(item.fecha);svg.append(label);}});
     svg.append(svgNode("polyline",{points:points.join(" "),class:"chart-line",fill:"none"}));
 
-    const details = document.createElement("details");
-    details.className = "dashboard-chart-data";
-    const detailsTitle = document.createElement("summary");
-    detailsTitle.textContent = "Consultar resumen y datos de los 30 dias";
-    const summary = document.createElement("p");
-    summary.className = "dashboard-chart-summary";
-    summary.textContent = description;
-    details.append(detailsTitle, summary, createDataTable(items));
-    root.append(legend, svg, details);
+    root.append(legend, svg);
     return root;
   }
   window.AdminDashboardComponents.evolutionChart = evolutionChart;
