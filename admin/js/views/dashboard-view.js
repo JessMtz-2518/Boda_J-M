@@ -1,120 +1,247 @@
 (() => {
   "use strict";
+
   window.AdminViews = window.AdminViews || {};
-  const state = { summary: null, recent: null, groups: null, evolution: null, generatedAt: null };
+  const state = { operational: null, recent: null, generatedAt: null };
+
   window.AdminDashboardState = Object.freeze({
-    clear() { Object.keys(state).forEach((key) => { state[key] = null; }); },
+    clear() {
+      state.operational = null;
+      state.recent = null;
+      state.generatedAt = null;
+    },
   });
 
-  function section(title, className) {
-    const card = document.createElement("section"); card.className = `dashboard-panel ${className}`;
-    const heading = document.createElement("h3"); heading.textContent = title;
-    const body = document.createElement("div"); body.className = "dashboard-panel-body";
-    card.append(heading, body); return { card, body };
+  function el(tag, className = "", text = "") {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== "") node.textContent = text;
+    return node;
+  }
+
+  function linkButton(text, hash, primary = false) {
+    const link = el("a", primary ? "admin-button dashboard-action-link" : "admin-button admin-button-secondary dashboard-action-link", text);
+    link.href = hash;
+    return link;
+  }
+
+  function panel(title, className = "") {
+    const card = el("section", `dashboard-panel ${className}`.trim());
+    const heading = el("div", "dashboard-operational-panel-head");
+    heading.append(el("h3", "", title));
+    const body = el("div", "dashboard-panel-body");
+    card.append(heading, body);
+    return { card, heading, body };
   }
 
   function renderKpis(target, data) {
-    const f=window.AdminDashboardFormatters, c=window.AdminDashboardComponents;
-    const i=data.invitaciones, a=data.asistencia, p=data.porcentajes;
-    const definitions=[
-      ["Invitaciones activas",i.activas,"Total vigente"], ["Con respuesta",i.con_respuesta,"Confirmaciones recibidas"],
-      ["Pendientes",i.pendientes,"Sin respuesta","attention"], ["Asistiran",i.asistiran,"Invitaciones confirmadas","positive"],
-      ["No asistiran",i.no_asistiran,"Invitaciones declinadas"], ["Adultos confirmados",a.adultos_confirmados,"Asistencia vigente"],
-      ["Ninos confirmados",a.ninos_confirmados,"Asistencia vigente"], ["Total asistentes",a.total_confirmado,"Adultos y ninos","positive"],
-      ["Porcentaje de respuesta",f.formatPercent(p.respuesta),"Sobre invitaciones activas"], ["Porcentaje de ocupacion",f.formatPercent(p.ocupacion),"Sobre cupo reservado"],
+    const c = window.AdminDashboardComponents;
+    const f = window.AdminDashboardFormatters;
+    const i = data.indicadores;
+    const definitions = [
+      ["Invitados activos", i.invitaciones_activas, "invitaciones vigentes"],
+      ["Personas confirmadas", i.personas_confirmadas, `${f.formatNumber(i.adultos_confirmados)} adultos · ${f.formatNumber(i.ninos_confirmados)} niños`, "positive"],
+      ["Pendientes de confirmar", i.invitaciones_pendientes, "invitaciones sin respuesta", i.invitaciones_pendientes ? "attention" : "positive"],
+      ["Pendientes de mesa", i.pendientes_mesa, "personas confirmadas por ubicar", i.pendientes_mesa ? "attention" : "positive"],
     ];
-    const grid=document.createElement("div"); grid.className="dashboard-kpi-grid";
-    definitions.forEach(([label,value,detail,tone])=>grid.append(c.kpiCard({label,value:typeof value==="string"?value:f.formatNumber(value),detail,tone})));
+    const grid = el("div", "dashboard-kpi-grid dashboard-operational-kpis");
+    definitions.forEach(([label, value, detail, tone]) => {
+      grid.append(c.kpiCard({ label, value: f.formatNumber(value), detail, tone }));
+    });
+    target.replaceChildren(grid);
+  }
+
+  function renderAttention(target, data) {
+    const i = data.indicadores;
+    const m = data.mesas;
+    const items = [];
+
+    if (i.invitaciones_pendientes > 0) {
+      items.push(["invitaciones", `${i.invitaciones_pendientes} invitaciones sin respuesta`, "Revisa a quiénes falta confirmar asistencia.", "Ver pendientes", "#/invitados"]);
+    }
+    if (i.pendientes_mesa > 0) {
+      items.push(["mesas", `${i.pendientes_mesa} personas confirmadas sin mesa`, "Asigna una mesa para completar la distribución.", "Asignar mesas", "#/mesas"]);
+    }
+    if (m.activas === 0 && i.personas_confirmadas > 0) {
+      items.push(["mesas", "Mesas aún no configuradas", "Ya existen asistentes confirmados y todavía no hay configuración de mesas.", "Configurar mesas", "#/mesas"]);
+    }
+
+    if (!items.length) {
+      const ok = el("article", "dashboard-attention-card dashboard-attention-ok");
+      const copy = el("div");
+      copy.append(el("strong", "", "Todo en orden"), el("p", "", "No hay pendientes administrativos críticos por atender."));
+      ok.append(copy);
+      target.replaceChildren(ok);
+      return;
+    }
+
+    const list = el("div", "dashboard-attention-list");
+    items.forEach(([, title, detail, action, hash]) => {
+      const row = el("article", "dashboard-attention-card dashboard-attention-attention");
+      const copy = el("div");
+      copy.append(el("strong", "", title), el("p", "", detail));
+      row.append(copy, linkButton(action, hash));
+      list.append(row);
+    });
+    target.replaceChildren(list);
+  }
+
+  function activityLabel(type, action) {
+    const labels = {
+      "invitado:creado": "Invitado creado",
+      "invitado:actualizado": "Invitado actualizado",
+      "invitado:desactivado": "Invitado dado de baja",
+      "invitado:reactivado": "Invitado reactivado",
+      "confirmacion:creada": "Confirmación recibida",
+      "confirmacion:actualizada": "Confirmación actualizada",
+      "mesa:configuracion_inicial": "Mesas configuradas",
+      "mesa:reconfigurado": "Mesas reconfiguradas",
+      "mesa:mesa_creada": "Mesa creada",
+      "mesa:mesa_actualizada": "Mesa actualizada",
+      "mesa:mesa_desactivada": "Mesa desactivada",
+      "mesa:mesa_reactivada": "Mesa reactivada",
+      "mesa:asignado": "Asignación de mesa",
+      "mesa:reasignado": "Asignación actualizada",
+      "mesa:asignacion_retirada": "Asignación retirada",
+    };
+    return labels[`${type}:${action}`] || "Actividad administrativa";
+  }
+
+  function renderActivity(target, items) {
+    const f = window.AdminDashboardFormatters;
+    if (!items.length) {
+      target.replaceChildren(window.AdminDashboardComponents.feedback("empty", "Todavía no hay actividad registrada."));
+      return;
+    }
+    const list = el("div", "dashboard-activity-list");
+    items.forEach((item) => {
+      const row = el("article", "dashboard-activity-item");
+      const marker = el("span", `dashboard-activity-marker dashboard-activity-marker-${item.tipo}`);
+      const copy = el("div", "dashboard-activity-copy");
+      copy.append(el("span", "dashboard-activity-kind", activityLabel(item.tipo, item.accion)), el("strong", "", item.titulo));
+      if (item.detalle) copy.append(el("span", "dashboard-activity-detail", item.detalle));
+      if (item.motivo) copy.append(el("em", "dashboard-activity-reason", `Motivo: ${item.motivo}`));
+      const meta = el("div", "dashboard-activity-meta");
+      meta.append(el("strong", "", item.actor), el("span", "", f.formatDateTime(item.fecha_evento)));
+      row.append(marker, copy, meta);
+      list.append(row);
+    });
+    target.replaceChildren(list);
+  }
+
+  function renderRecent(target, items) {
+    target.replaceChildren(window.AdminDashboardComponents.recentConfirmations(items.slice(0, 5)));
+  }
+
+  function renderShortcuts(target) {
+    const grid = el("div", "dashboard-shortcuts-grid");
+    [
+      ["Invitados", "Administrar padrón, enlaces y altas.", "#/invitados"],
+      ["Confirmaciones", "Revisar respuestas e historial.", "#/confirmaciones"],
+      ["Mesas", "Distribuir asistentes confirmados.", "#/mesas"],
+      ["Estadísticas", "Consultar métricas y tendencias.", "#/estadisticas"],
+    ].forEach(([title, detail, hash]) => {
+      const card = el("a", "dashboard-shortcut-card");
+      card.href = hash;
+      card.append(el("strong", "", title), el("span", "", detail), el("b", "", "Abrir →"));
+      grid.append(card);
+    });
     target.replaceChildren(grid);
   }
 
   window.AdminViews.dashboard = () => {
-    const root=document.createElement("section"); root.className="dashboard-view";
-    const header=document.createElement("header"); header.className="dashboard-heading";
-    const titleWrap=document.createElement("div"); const eyebrow=document.createElement("p"); eyebrow.className="admin-eyebrow"; eyebrow.textContent="Resumen";
-    const title=document.createElement("h2"); title.textContent="Dashboard";
-    const updated=document.createElement("p"); updated.className="dashboard-updated";
-    titleWrap.append(eyebrow,title,updated);
-    const refresh=document.createElement("button"); refresh.className="admin-button dashboard-refresh"; refresh.type="button"; refresh.textContent="Actualizar";
-    header.append(titleWrap,refresh);
-    const globalStatus=document.createElement("div"); globalStatus.className="dashboard-global-status"; globalStatus.setAttribute("aria-live","polite");
-    const kpis=section("Indicadores principales","dashboard-panel-kpis");
-    const recent=section("Confirmaciones recientes","dashboard-panel-recent");
-    const groups=section("Estadisticas por grupo","dashboard-panel-groups");
-    const evolution=section("Evolucion de los ultimos 30 dias","dashboard-panel-evolution");
-    const layout=document.createElement("div"); layout.className="dashboard-layout"; layout.append(recent.card,groups.card,evolution.card);
-    root.append(header,globalStatus,kpis.card,layout);
+    const root = el("section", "dashboard-view dashboard-operational-view");
+    const header = el("header", "dashboard-heading");
+    const titleWrap = el("div");
+    titleWrap.append(el("p", "admin-eyebrow", "Centro operativo"), el("h2", "", "Dashboard"));
+    const updated = el("p", "dashboard-updated", "Aún no se ha actualizado");
+    titleWrap.append(updated);
+    const refresh = el("button", "admin-button dashboard-refresh", "Actualizar");
+    refresh.type = "button";
+    header.append(titleWrap, refresh);
 
-    const feedback=window.AdminDashboardComponents.feedback;
-    const showLoading=(body)=>{if(!body.childElementCount)body.replaceChildren(feedback("loading","Cargando informacion..."));};
-    const removeSectionError=(body)=>body.querySelector("[data-dashboard-section-error]")?.remove();
-    const showSectionError=(body,message,hasPreviousData)=>{
-      removeSectionError(body);
-      const notice=feedback("error",hasPreviousData?`${message} Se conservan los datos anteriores.`:message);
-      notice.dataset.dashboardSectionError="true";
-      if(hasPreviousData)body.prepend(notice);else body.replaceChildren(notice);
-    };
-    const safeRender=(key,body,renderer,payload,message)=>{
-      try {
-        removeSectionError(body);
-        renderer(payload);
-        state[key]=key==="summary"?payload.data:payload.data.items;
-        state.generatedAt=payload.generated_at;
-        return true;
-      } catch(error) {
-        console.error(`Dashboard render ${key}:`,error);
-        showSectionError(body,message,Boolean(state[key]));
-        return false;
-      }
-    };
-    const renderStored=()=>{
-      updated.textContent=state.generatedAt?`Ultima actualizacion: ${window.AdminDashboardFormatters.formatDateTime(state.generatedAt)}`:"Aun no se ha actualizado";
-      const stored=[
-        ["summary",kpis.body,()=>renderKpis(kpis.body,state.summary),"No fue posible mostrar los indicadores."],
-        ["recent",recent.body,()=>recent.body.replaceChildren(window.AdminDashboardComponents.recentConfirmations(state.recent)),"No fue posible mostrar las confirmaciones recientes."],
-        ["groups",groups.body,()=>groups.body.replaceChildren(window.AdminDashboardComponents.groupStatistics(state.groups)),"No fue posible mostrar las estadisticas por grupo."],
-        ["evolution",evolution.body,()=>evolution.body.replaceChildren(window.AdminDashboardComponents.evolutionChart(state.evolution)),"No fue posible mostrar la evolucion."],
-      ];
-      stored.forEach(([key,body,renderer,message])=>{
-        if(!state[key])return;
-        try{renderer();}catch(error){console.error(`Dashboard stored render ${key}:`,error);showSectionError(body,message,false);}
-      });
-    };
+    const globalStatus = el("div", "dashboard-global-status");
+    globalStatus.setAttribute("aria-live", "polite");
 
-    async function load(manual=false) {
-      refresh.disabled=true; refresh.textContent=manual?"Actualizando...":"Cargando...";
-      root.classList.toggle("is-refreshing",manual); globalStatus.replaceChildren();
-      [kpis.body,recent.body,groups.body,evolution.body].forEach(showLoading);
-      let errors=0;
+    const kpis = panel("Resumen operativo", "dashboard-panel-kpis");
+    const attention = panel("Atención requerida", "dashboard-panel-attention");
+    const recent = panel("Últimas confirmaciones", "dashboard-panel-recent");
+    const activity = panel("Actividad reciente", "dashboard-panel-activity");
+    const shortcuts = panel("Accesos rápidos", "dashboard-panel-shortcuts");
+
+    recent.heading.append(linkButton("Ver confirmaciones", "#/confirmaciones"));
+    activity.heading.append(el("span", "dashboard-panel-note", "Últimos movimientos del panel"));
+
+    const mainGrid = el("div", "dashboard-operational-layout");
+    mainGrid.append(attention.card, recent.card);
+
+    root.append(header, globalStatus, kpis.card, mainGrid, activity.card, shortcuts.card);
+
+    const feedback = window.AdminDashboardComponents.feedback;
+    const loading = (body) => body.replaceChildren(feedback("loading", "Cargando información…"));
+
+    async function load(manual = false) {
+      refresh.disabled = true;
+      refresh.textContent = manual ? "Actualizando…" : "Cargando…";
+      globalStatus.replaceChildren();
+      [kpis.body, attention.body, recent.body, activity.body].forEach(loading);
+      renderShortcuts(shortcuts.body);
+
       try {
-        const service=window.AdminDashboardService;
-        const results=await Promise.allSettled([service.getSummary(),service.getRecentConfirmations(),service.getGroupStatistics(),service.getEvolution()]);
-        if(!root.isConnected)return;
-        const configs=[
-          ["summary",kpis.body,(payload)=>renderKpis(kpis.body,payload.data),"No fue posible cargar los indicadores."],
-          ["recent",recent.body,(payload)=>recent.body.replaceChildren(window.AdminDashboardComponents.recentConfirmations(payload.data.items)),"No fue posible cargar las confirmaciones recientes."],
-          ["groups",groups.body,(payload)=>groups.body.replaceChildren(window.AdminDashboardComponents.groupStatistics(payload.data.items)),"No fue posible cargar las estadisticas por grupo."],
-          ["evolution",evolution.body,(payload)=>evolution.body.replaceChildren(window.AdminDashboardComponents.evolutionChart(payload.data.items)),"No fue posible cargar la evolucion."],
-        ];
-        results.forEach((result,index)=>{
-          const [key,body,renderer,message]=configs[index];
-          if(result.status==="fulfilled"){
-            if(!safeRender(key,body,renderer,result.value,message))errors+=1;
-          }else{
-            errors+=1;
-            console.error(`Dashboard request ${key}:`,result.reason);
-            showSectionError(body,message,Boolean(state[key]));
-          }
-        });
-        updated.textContent=state.generatedAt?`Ultima actualizacion: ${window.AdminDashboardFormatters.formatDateTime(state.generatedAt)}`:"Actualizacion incompleta";
-        if(errors)globalStatus.replaceChildren(feedback("error",`${errors} seccion${errors===1?"":"es"} no pudo${errors===1?"":"ieron"} actualizarse.`));else if(manual)globalStatus.replaceChildren(feedback("success","Dashboard actualizado correctamente."));
-      } catch(error) {
-        console.error("Dashboard update:",error);
-        globalStatus.replaceChildren(feedback("error","No fue posible actualizar el Dashboard."));
+        const service = window.AdminDashboardService;
+        const [opResult, recentResult] = await Promise.allSettled([
+          service.getOperational(),
+          service.getRecentConfirmations(),
+        ]);
+        if (!root.isConnected) return;
+
+        let errors = 0;
+        if (opResult.status === "fulfilled") {
+          state.operational = opResult.value.data;
+          state.generatedAt = opResult.value.generated_at;
+          renderKpis(kpis.body, state.operational);
+          renderAttention(attention.body, state.operational);
+          renderActivity(activity.body, state.operational.actividad || []);
+        } else {
+          errors += 1;
+          console.error("Dashboard operational:", opResult.reason);
+          const msg = feedback("error", "No fue posible cargar el resumen operativo.");
+          kpis.body.replaceChildren(msg.cloneNode(true));
+          attention.body.replaceChildren(msg.cloneNode(true));
+          activity.body.replaceChildren(msg);
+        }
+
+        if (recentResult.status === "fulfilled") {
+          state.recent = recentResult.value.data.items;
+          if (!state.generatedAt) state.generatedAt = recentResult.value.generated_at;
+          renderRecent(recent.body, state.recent);
+        } else {
+          errors += 1;
+          console.error("Dashboard recent:", recentResult.reason);
+          recent.body.replaceChildren(feedback("error", "No fue posible cargar las confirmaciones recientes."));
+        }
+
+        updated.textContent = state.generatedAt
+          ? `Última actualización: ${window.AdminDashboardFormatters.formatDateTime(state.generatedAt)}`
+          : "Actualización incompleta";
+
+        if (manual && errors === 0) {
+          globalStatus.replaceChildren(feedback("success", "Dashboard actualizado correctamente."));
+        } else if (errors) {
+          globalStatus.replaceChildren(feedback("error", "Algunos datos no pudieron actualizarse."));
+        }
+      } catch (error) {
+        console.error("Dashboard:", error);
+        globalStatus.replaceChildren(feedback("error", "No fue posible actualizar el Dashboard."));
       } finally {
-        refresh.disabled=false; refresh.textContent="Actualizar"; root.classList.remove("is-refreshing");
+        refresh.disabled = false;
+        refresh.textContent = "Actualizar";
       }
     }
-    refresh.addEventListener("click",()=>{if(!refresh.disabled)load(true);}); renderStored(); queueMicrotask(()=>load(false)); return root;
+
+    refresh.addEventListener("click", () => !refresh.disabled && load(true));
+    renderShortcuts(shortcuts.body);
+    queueMicrotask(() => load(false));
+    return root;
   };
 })();

@@ -6,6 +6,7 @@
     recent: "admin_dashboard_confirmaciones_recientes",
     groups: "admin_dashboard_estadisticas_grupo",
     evolution: "admin_estadisticas_evolucion",
+    operational: "admin_dashboard_operativo",
   });
 
   const SUMMARY_NUMBERS = Object.freeze({
@@ -142,11 +143,35 @@
     });
   }
 
+
+  function validateOperational(data) {
+    const indicators = requireObject(data.indicadores);
+    requireNumbers(indicators, [
+      "invitaciones_activas",
+      "personas_confirmadas",
+      "adultos_confirmados",
+      "ninos_confirmados",
+      "invitaciones_pendientes",
+      "pendientes_mesa",
+    ]);
+    const tables = requireObject(data.mesas);
+    requireNumbers(tables, ["activas", "capacidad_total", "personas_asignadas"]);
+    if (!Array.isArray(data.actividad)) invalidContract();
+    data.actividad.forEach((item) => {
+      const record = requireObject(item);
+      ["tipo", "accion", "titulo", "actor"].forEach((field) => requireString(record[field]));
+      if (record.detalle !== null) requireString(record.detalle);
+      if (record.motivo !== null) requireString(record.motivo);
+      requireDate(record.fecha_evento);
+    });
+  }
+
   const validators = Object.freeze({
     [RPC.summary]: validateSummary,
     [RPC.recent]: validateRecent,
     [RPC.groups]: validateGroups,
     [RPC.evolution]: validateEvolution,
+    [RPC.operational]: validateOperational,
   });
 
   function validateEnvelope(name, response) {
@@ -189,11 +214,13 @@
   const getRecentConfirmations = () => call(RPC.recent, { p_limite: 10 });
   const getGroupStatistics = () => call(RPC.groups);
   const getEvolution = () => call(RPC.evolution);
+  const getOperational = () => call(RPC.operational, { p_limite_actividad: 8 });
 
   window.AdminDashboardService = Object.freeze({
     getEvolution,
     getGroupStatistics,
     getRecentConfirmations,
     getSummary,
+    getOperational,
   });
 })();
