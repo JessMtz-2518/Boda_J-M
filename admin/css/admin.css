@@ -3013,3 +3013,67 @@ body.tables-modal-open{
 .tables-plan-viewport{
   scroll-padding:24px;
 }
+
+
+/* =========================================================
+   MESAS · FASE 5.2.5
+   Interacción móvil segura
+   ========================================================= */
+
+.tables-plan-viewport{
+  touch-action:none;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+}
+
+.tables-plan-table,
+.tables-plan-landmark{
+  -webkit-touch-callout:none;
+}
+
+.tables-plan-table.is-longpress-pending,
+.tables-plan-landmark.is-longpress-pending{
+  box-shadow:0 0 0 2px rgba(86,101,74,.10);
+}
+
+.tables-plan-table.is-longpress-active,
+.tables-plan-landmark.is-longpress-active{
+  box-shadow:
+    0 0 0 4px rgba(86,101,74,.16),
+    0 12px 24px rgba(38,46,33,.16);
+  cursor:grabbing;
+}
+
+.tables-plan-editor.is-pinching .tables-plan-table,
+.tables-plan-editor.is-pinching .tables-plan-landmark{
+  pointer-events:none;
+}
+
+@media(max-width:900px), (pointer:coarse){
+  .tables-plan-viewport{
+    cursor:grab;
+  }
+
+  .tables-plan-table,
+  .tables-plan-landmark{
+    cursor:default;
+  }
+
+  .tables-plan-table.is-longpress-active,
+  .tables-plan-landmark.is-longpress-active{
+    cursor:grabbing;
+  }
+
+  .tables-plan-hint{
+    font-size:.68rem;
+    line-height:1.45;
+  }
+
+  /* Los manejadores siguen disponibles cuando seleccionas
+     pista/mesa de novios, pero son más grandes para touch. */
+  .tables-plan-resize-handle{
+    width:18px;
+    height:18px;
+  }
+}

@@ -411,8 +411,8 @@
     const BASE_UNIT_PX = 9;
     const EXPAND_BY = 18;
     const EDGE_THRESHOLD = 7;
-    const MIN_ZOOM = 0.55;
-    const MAX_ZOOM = 2.2;
+    const MIN_ZOOM = 0.32;
+    const MAX_ZOOM = 2.4;
 
     const wrapper = el("div", "tables-plan-wrapper tables-plan-editor");
     const viewport = el("div", "tables-plan-viewport");
@@ -1295,6 +1295,132 @@
       return handle;
     }
 
+    // =====================================================
+    // FASE 5.2.5 · INTERACCIÓN MÓVIL SEGURA
+    //
+    // En dispositivos táctiles:
+    //   - 1 dedo = navegar por el plano.
+    //   - 2 dedos = zoom.
+    //   - mantener presionado = desbloquear un objeto para moverlo.
+    //   - tap = acción normal (detalle/selección).
+    //
+    // En desktop se conserva el drag inmediato.
+    // =====================================================
+
+    const SAFE_TOUCH_MODE = window.matchMedia("(pointer: coarse)").matches
+      || window.innerWidth <= 900;
+    const LONG_PRESS_MS = 520;
+    const LONG_PRESS_TOLERANCE = 10;
+
+    let pan = null;
+    let mobilePress = null;
+
+    function clearMobilePress({ keepActivated = false } = {}) {
+      if (!mobilePress) return;
+      if (mobilePress.timer) {
+        clearTimeout(mobilePress.timer);
+      }
+
+      if (!keepActivated && mobilePress.node) {
+        mobilePress.node.classList.remove("is-longpress-pending");
+        mobilePress.node.classList.remove("is-longpress-active");
+      }
+
+      mobilePress = null;
+    }
+
+    function stopPanForEdit(pointerId) {
+      if (!pan || pan.pointerId !== pointerId) return;
+
+      viewport.classList.remove("is-panning");
+      try { viewport.releasePointerCapture(pointerId); } catch {}
+      pan = null;
+    }
+
+    function beginLongPress({
+      event,
+      node,
+      kind,
+      id,
+      onActivate,
+      onTap,
+    }) {
+      clearMobilePress();
+
+      const press = {
+        pointerId: event.pointerId,
+        node,
+        kind,
+        id,
+        startX: event.clientX,
+        startY: event.clientY,
+        moved: false,
+        activated: false,
+        onTap,
+        timer: null,
+      };
+
+      node.classList.add("is-longpress-pending");
+
+      press.timer = window.setTimeout(() => {
+        if (mobilePress !== press || press.moved || pinch) return;
+
+        press.activated = true;
+        node.classList.remove("is-longpress-pending");
+        node.classList.add("is-longpress-active");
+
+        stopPanForEdit(press.pointerId);
+
+        try { node.setPointerCapture(press.pointerId); } catch {}
+
+        if (navigator.vibrate) {
+          try { navigator.vibrate(18); } catch {}
+        }
+
+        onActivate();
+      }, LONG_PRESS_MS);
+
+      mobilePress = press;
+    }
+
+    function trackMobilePressMovement(event) {
+      if (!mobilePress
+          || mobilePress.pointerId !== event.pointerId
+          || mobilePress.activated) {
+        return;
+      }
+
+      const distance = Math.hypot(
+        event.clientX - mobilePress.startX,
+        event.clientY - mobilePress.startY
+      );
+
+      if (distance > LONG_PRESS_TOLERANCE) {
+        mobilePress.moved = true;
+        if (mobilePress.timer) clearTimeout(mobilePress.timer);
+        mobilePress.node?.classList.remove("is-longpress-pending");
+      }
+    }
+
+    function finishMobileTap(pointerId) {
+      if (!mobilePress || mobilePress.pointerId !== pointerId) return false;
+
+      const press = mobilePress;
+
+      if (press.timer) clearTimeout(press.timer);
+      press.node?.classList.remove("is-longpress-pending");
+
+      if (!press.activated && !press.moved && typeof press.onTap === "function") {
+        press.onTap();
+      }
+
+      if (!press.activated) {
+        mobilePress = null;
+      }
+
+      return true;
+    }
+
     // ----- Mesas -----
     items.forEach((item) => {
       const pos = positions.get(item.id);
@@ -1314,8 +1440,7 @@
 
       let drag = null;
 
-      node.addEventListener("pointerdown", (event) => {
-        if (event.button !== undefined && event.button !== 0) return;
+      function activateTableDrag(event) {
         beginDynamicFlow("table", item.id);
 
         drag = {
@@ -1325,14 +1450,39 @@
           moved: false,
           original: { ...positions.get(item.id) },
           collision: false,
+          mobileActivated: SAFE_TOUCH_MODE,
         };
-        node.setPointerCapture(event.pointerId);
+
+        try { node.setPointerCapture(event.pointerId); } catch {}
         node.classList.add("is-dragging");
+      }
+
+      node.addEventListener("pointerdown", (event) => {
+        if (event.button !== undefined && event.button !== 0) return;
+
+        if (SAFE_TOUCH_MODE && event.pointerType !== "mouse") {
+          beginLongPress({
+            event,
+            node,
+            kind: "table",
+            id: item.id,
+            onActivate: () => activateTableDrag(event),
+            onTap: () => onDetail(item.id, node),
+          });
+          // No bloqueamos el evento: el viewport puede usarlo para PAN.
+          return;
+        }
+
+        activateTableDrag(event);
         event.preventDefault();
         event.stopPropagation();
       });
 
       node.addEventListener("pointermove", (event) => {
+        if (SAFE_TOUCH_MODE && event.pointerType !== "mouse") {
+          trackMobilePressMovement(event);
+        }
+
         if (!drag || drag.pointerId !== event.pointerId) return;
 
         if (Math.abs(event.clientX - drag.startX) > 3
@@ -1342,8 +1492,7 @@
 
         let point = clientToWorld(event.clientX, event.clientY);
 
-        // Solo el objeto que el usuario arrastra puede solicitar expansión.
-        // El solver ya no modifica el tamaño/origen del lienzo al buscar huecos.
+        // Solo el objeto arrastrado puede solicitar expansión.
         expandIfNeeded({
           left: point.x - TABLE_RADIUS,
           right: point.x + TABLE_RADIUS,
@@ -1354,13 +1503,10 @@
         point = clientToWorld(event.clientX, event.clientY);
         const next = {
           tableId: item.id,
-          x: Math.max(5, Math.min(worldWidth - 5, point.x)),
-          y: Math.max(5, Math.min(worldHeight - 5, point.y)),
+          x: Math.max(TABLE_RADIUS, Math.min(worldWidth - TABLE_RADIUS, point.x)),
+          y: Math.max(TABLE_RADIUS, Math.min(worldHeight - TABLE_RADIUS, point.y)),
         };
 
-        // Recalculamos el acomodo desde las posiciones hogar.
-        // Las mesas vecinas se apartan solo lo mínimo y, en cuanto
-        // su lugar original vuelve a quedar libre, regresan solas.
         const movedSuccessfully = solveTableLayout({
           sourceTableId: item.id,
           sourcePosition: next,
@@ -1377,26 +1523,42 @@
           positions.set(item.id, { ...drag.original });
           renderAllPositions();
         }
+
+        event.preventDefault();
       });
 
       function finishDrag(event) {
         if (!drag || drag.pointerId !== event.pointerId) return;
-        node.classList.remove("is-dragging");
-        try { node.releasePointerCapture(event.pointerId); } catch {}
+
         const moved = drag.moved;
+        node.classList.remove("is-dragging");
+        node.classList.remove("is-longpress-active");
         showCollision(node, false);
+
+        try { node.releasePointerCapture(event.pointerId); } catch {}
+
         drag = null;
+
+        if (mobilePress?.pointerId === event.pointerId) {
+          clearMobilePress();
+        }
 
         if (moved) {
           settleDynamicFlow();
-        } else {
+        } else if (!SAFE_TOUCH_MODE || event.pointerType === "mouse") {
           endDynamicFlow();
           onDetail(item.id, node);
+        } else {
+          endDynamicFlow();
         }
       }
 
       node.addEventListener("pointerup", finishDrag);
-      node.addEventListener("pointercancel", finishDrag);
+      node.addEventListener("pointercancel", (event) => {
+        if (mobilePress?.pointerId === event.pointerId) clearMobilePress();
+        if (drag?.pointerId === event.pointerId) finishDrag(event);
+      });
+
       stage.append(node);
     });
 
@@ -1418,8 +1580,7 @@
 
       let drag = null;
 
-      node.addEventListener("pointerdown", (event) => {
-        if (event.target.closest(".tables-plan-resize-handle")) return;
+      function activateElementDrag(event) {
         const current = elementPositions.get(item.id);
         beginDynamicFlow("element", item.id);
 
@@ -1431,16 +1592,42 @@
           },
           lastValid: { ...current },
           collision: false,
+          moved: false,
         };
+
         selectElement(item.id);
-        node.setPointerCapture(event.pointerId);
+        try { node.setPointerCapture(event.pointerId); } catch {}
         node.classList.add("is-dragging");
+      }
+
+      node.addEventListener("pointerdown", (event) => {
+        if (event.target.closest(".tables-plan-resize-handle")) return;
+
+        if (SAFE_TOUCH_MODE && event.pointerType !== "mouse") {
+          beginLongPress({
+            event,
+            node,
+            kind: "element",
+            id: item.id,
+            onActivate: () => activateElementDrag(event),
+            onTap: () => selectElement(item.id),
+          });
+          return;
+        }
+
+        activateElementDrag(event);
         event.preventDefault();
         event.stopPropagation();
       });
 
       node.addEventListener("pointermove", (event) => {
+        if (SAFE_TOUCH_MODE && event.pointerType !== "mouse") {
+          trackMobilePressMovement(event);
+        }
+
         if (!drag || drag.pointerId !== event.pointerId) return;
+
+        drag.moved = true;
 
         const current = elementPositions.get(item.id);
         let point = clientToWorld(event.clientX, event.clientY);
@@ -1463,8 +1650,7 @@
         next.x = Math.max(next.width / 2, Math.min(worldWidth - next.width / 2, next.x));
         next.y = Math.max(next.height / 2, Math.min(worldHeight - next.height / 2, next.y));
 
-        // Durante resize, un elemento reservado no puede invadir otro
-        // elemento reservado. Las mesas sí se reacomodan automáticamente.
+        // Un elemento reservado nunca puede invadir otro.
         let reservedCollision = null;
         for (const [otherId, otherPos] of elementPositions.entries()) {
           if (String(otherId) === String(item.id)) continue;
@@ -1475,56 +1661,75 @@
         }
 
         if (reservedCollision !== null) {
-          resize.collision = true;
+          drag.collision = true;
           showCollision(node, true);
-          elementPositions.set(item.id, { ...resize.lastValid });
+          elementPositions.set(item.id, { ...drag.lastValid });
           renderAllPositions();
           return;
         }
 
         const beforeTables = clonePositionsMap();
-
         elementPositions.set(item.id, next);
+
         const solved = solveLayoutForMovingElement(item.id);
 
         if (!solved) {
           positions.clear();
           beforeTables.forEach((pos, id) => positions.set(id, pos));
-          elementPositions.set(item.id, { ...resize.lastValid });
-          resize.collision = true;
+          elementPositions.set(item.id, { ...drag.lastValid });
+          drag.collision = true;
           showCollision(node, true);
           renderAllPositions();
           return;
         }
 
-        resize.collision = false;
+        drag.collision = false;
         showCollision(node, false);
-        resize.lastValid = { ...next };
+        drag.lastValid = { ...next };
         renderAllPositions();
         setDirty(true);
+        event.preventDefault();
       });
 
       function finishElement(event) {
         if (!drag || drag.pointerId !== event.pointerId) return;
+
         node.classList.remove("is-dragging");
+        node.classList.remove("is-longpress-active");
         showCollision(node, false);
+
         try { node.releasePointerCapture(event.pointerId); } catch {}
+
         drag = null;
+
+        if (mobilePress?.pointerId === event.pointerId) {
+          clearMobilePress();
+        }
+
         settleDynamicFlow();
       }
 
       node.addEventListener("pointerup", finishElement);
-      node.addEventListener("pointercancel", finishElement);
-      node.addEventListener("click", () => selectElement(item.id));
+      node.addEventListener("pointercancel", (event) => {
+        if (mobilePress?.pointerId === event.pointerId) clearMobilePress();
+        if (drag?.pointerId === event.pointerId) finishElement(event);
+      });
+
       stage.append(node);
     });
 
     // ----- Pan del lienzo -----
-    let pan = null;
-
     viewport.addEventListener("pointerdown", (event) => {
-      if (event.target.closest(".tables-plan-table")
-          || event.target.closest(".tables-plan-landmark")) {
+      const overResize = event.target.closest(".tables-plan-resize-handle");
+      const overObject = event.target.closest(".tables-plan-table")
+        || event.target.closest(".tables-plan-landmark");
+
+      // En desktop, arrastrar un objeto sigue reservado para editarlo.
+      // En móvil, tocar un objeto NO impide navegar: únicamente un
+      // long-press lo desbloquea para edición.
+      if (overResize
+          || (!SAFE_TOUCH_MODE && overObject)
+          || mobilePress?.activated) {
         return;
       }
 
@@ -1532,31 +1737,68 @@
         pointerId: event.pointerId,
         startX: event.clientX,
         startY: event.clientY,
+        lastX: event.clientX,
+        lastY: event.clientY,
+        moved: false,
         scrollLeft: viewport.scrollLeft,
         scrollTop: viewport.scrollTop,
       };
 
-      viewport.setPointerCapture(event.pointerId);
+      try { viewport.setPointerCapture(event.pointerId); } catch {}
       viewport.classList.add("is-panning");
-      selectElement(null);
+
+      if (!overObject) {
+        selectElement(null);
+      }
+
       event.preventDefault();
     });
 
     viewport.addEventListener("pointermove", (event) => {
-      if (!pan || pan.pointerId !== event.pointerId) return;
-      viewport.scrollLeft = pan.scrollLeft - (event.clientX - pan.startX);
-      viewport.scrollTop = pan.scrollTop - (event.clientY - pan.startY);
+      trackMobilePressMovement(event);
+
+      if (!pan || pan.pointerId !== event.pointerId || pinch) return;
+
+      const dx = event.clientX - pan.startX;
+      const dy = event.clientY - pan.startY;
+
+      if (Math.hypot(dx, dy) > 4) {
+        pan.moved = true;
+      }
+
+      viewport.scrollLeft = pan.scrollLeft - dx;
+      viewport.scrollTop = pan.scrollTop - dy;
+      pan.lastX = event.clientX;
+      pan.lastY = event.clientY;
+
+      event.preventDefault();
     });
 
     function finishPan(event) {
       if (!pan || pan.pointerId !== event.pointerId) return;
+
+      const moved = pan.moved;
+
       viewport.classList.remove("is-panning");
       try { viewport.releasePointerCapture(event.pointerId); } catch {}
       pan = null;
+
+      // Tap corto sobre mesa/elemento: conserva su acción habitual.
+      if (!moved) {
+        finishMobileTap(event.pointerId);
+      } else if (mobilePress?.pointerId === event.pointerId
+                 && !mobilePress.activated) {
+        clearMobilePress();
+      }
     }
 
     viewport.addEventListener("pointerup", finishPan);
-    viewport.addEventListener("pointercancel", finishPan);
+    viewport.addEventListener("pointercancel", (event) => {
+      if (mobilePress?.pointerId === event.pointerId && !mobilePress.activated) {
+        clearMobilePress();
+      }
+      finishPan(event);
+    });
 
     // ----- Zoom -----
     function setZoom(next, anchor = null) {
@@ -1615,8 +1857,11 @@
         rect.height / (contentH * BASE_UNIT_PX)
       );
 
+      const safeTouchMode = window.matchMedia("(pointer: coarse)").matches
+        || window.innerWidth <= 900;
+
       const nextZoom = Math.max(
-        0.72,
+        safeTouchMode ? 0.38 : 0.72,
         Math.min(1.25, naturalFit)
       );
 
@@ -1707,11 +1952,25 @@
 
     viewport.addEventListener("touchstart", (event) => {
       if (event.touches.length !== 2) return;
+
+      clearMobilePress();
+
+      if (pan) {
+        viewport.classList.remove("is-panning");
+        try { viewport.releasePointerCapture(pan.pointerId); } catch {}
+        pan = null;
+      }
+
       const [a, b] = event.touches;
       pinch = {
-        distance: Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY),
+        distance: Math.max(
+          1,
+          Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY)
+        ),
         zoom,
       };
+
+      wrapper.classList.add("is-pinching");
       event.preventDefault();
     }, { passive: false });
 
@@ -1727,8 +1986,17 @@
       event.preventDefault();
     }, { passive: false });
 
-    viewport.addEventListener("touchend", () => {
+    viewport.addEventListener("touchend", (event) => {
+      if (event.touches.length < 2) {
+        pinch = null;
+        wrapper.classList.remove("is-pinching");
+      }
+    });
+
+    viewport.addEventListener("touchcancel", () => {
       pinch = null;
+      wrapper.classList.remove("is-pinching");
+      clearMobilePress();
     });
 
     function autoLayout() {
@@ -3438,7 +3706,9 @@
       const planHint = el(
         "p",
         "tables-plan-hint",
-        "Arrastra mesas y elementos. Al acercarte al borde, el lienzo crecerá automáticamente. Selecciona la pista o la mesa de los novios para redimensionarla."
+        SAFE_TOUCH_MODE
+          ? "Móvil: desliza con un dedo para recorrer el plano, usa dos dedos para zoom y mantén presionada una mesa o elemento para moverlo."
+          : "Arrastra mesas y elementos. Al acercarte al borde, el lienzo crecerá automáticamente. Selecciona la pista o la mesa de los novios para redimensionarla."
       );
 
       const planControls = el("div", "tables-plan-controls");
