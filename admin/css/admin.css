@@ -1938,3 +1938,1078 @@ body.tables-modal-open{
 .dashboard-shortcut-card b{align-self:end;color:var(--admin-olive-dark);font-size:.65rem;font-weight:600}
 @media(max-width:1050px){.dashboard-operational-kpis,.dashboard-shortcuts-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-operational-layout{grid-template-columns:1fr}}
 @media(max-width:700px){.dashboard-operational-kpis,.dashboard-shortcuts-grid{grid-template-columns:1fr}.dashboard-operational-panel-head{align-items:flex-start;flex-direction:column}.dashboard-attention-card{grid-template-columns:1fr}.dashboard-attention-card .dashboard-action-link{width:100%}.dashboard-activity-item{grid-template-columns:10px minmax(0,1fr)}.dashboard-activity-meta{grid-column:2;min-width:0;text-align:left}}
+
+
+/* =========================================================
+   MESAS · FASE 4
+   Reasignación + filtros + historial visual
+   ========================================================= */
+
+.tables-pending-filters{
+  display:grid;
+  grid-template-columns:minmax(0,1.4fr) minmax(170px,.8fr) auto;
+  gap:10px;
+  align-items:end;
+  margin-bottom:12px;
+}
+
+.tables-pending-filters .admin-button{
+  min-height:48px;
+  white-space:nowrap;
+}
+
+.tables-assignment-row-actions{
+  display:flex;
+  gap:8px;
+  justify-content:flex-end;
+}
+
+.tables-history-modal{
+  width:min(920px,100%);
+}
+
+.tables-history-list{
+  display:grid;
+}
+
+.tables-history-item{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:18px;
+  padding:14px 2px;
+  border-bottom:1px solid var(--admin-line);
+}
+
+.tables-history-item:last-child{
+  border-bottom:0;
+}
+
+.tables-history-main{
+  display:grid;
+  gap:4px;
+  min-width:0;
+}
+
+.tables-history-action{
+  justify-self:start;
+  padding:4px 7px;
+  border-radius:999px;
+  background:rgba(86,101,74,.09);
+  color:var(--admin-olive-dark);
+  font-size:.58rem;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+
+.tables-history-main>strong{
+  font-family:"Cormorant Garamond",Georgia,serif;
+  font-size:1.05rem;
+}
+
+.tables-history-main>span:not(.tables-history-action),
+.tables-history-main>em{
+  color:var(--admin-muted);
+  font-size:.68rem;
+  line-height:1.45;
+  overflow-wrap:anywhere;
+}
+
+.tables-history-main>em{
+  font-style:italic;
+}
+
+.tables-history-meta{
+  display:grid;
+  gap:4px;
+  min-width:165px;
+  text-align:right;
+}
+
+.tables-history-meta strong{
+  color:var(--admin-olive-dark);
+  font-size:.65rem;
+}
+
+.tables-history-meta time{
+  color:var(--admin-muted);
+  font-size:.63rem;
+}
+
+@media(max-width:700px){
+  .tables-pending-filters{
+    grid-template-columns:1fr;
+  }
+
+  .tables-pending-filters .admin-button{
+    width:100%;
+  }
+
+  .tables-assignment-row-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    width:100%;
+  }
+
+  .tables-assignment-row-actions .admin-button{
+    width:100%;
+  }
+
+  .tables-history-item{
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+
+  .tables-history-meta{
+    min-width:0;
+    text-align:left;
+  }
+}
+
+@media(max-width:430px){
+  .tables-assignment-row-actions{
+    grid-template-columns:1fr;
+  }
+}
+
+
+/* =========================================================
+   MESAS · FASE 4.1
+   Corrección visual de filtros de pendientes
+   ========================================================= */
+
+/* El panel izquierdo es deliberadamente angosto; los filtros
+   funcionan mejor apilados que comprimidos en tres columnas. */
+.tables-pending-filters{
+  grid-template-columns:1fr!important;
+  gap:10px;
+  align-items:stretch;
+}
+
+.tables-pending-filters .tables-field{
+  min-width:0;
+  width:100%;
+}
+
+.tables-pending-filters input,
+.tables-pending-filters select,
+.tables-pending-filters .admin-button{
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+}
+
+.tables-pending-filters input,
+.tables-pending-filters select{
+  min-height:46px;
+}
+
+.tables-pending-filters .admin-button{
+  min-height:44px;
+  margin-top:0;
+}
+
+.tables-pending-panel{
+  min-width:0;
+}
+
+.tables-pending-row{
+  min-width:0;
+}
+
+
+/* =========================================================
+   MESAS · FASE 4.2
+   Liberar todas las mesas
+   ========================================================= */
+
+.tables-configured-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-left:auto;
+}
+
+/* Se mantiene exactamente el lenguaje visual de los botones
+   secundarios actuales; no se utiliza rojo ni estilo destructivo. */
+.tables-release-all{
+  background:rgba(255,255,255,.35);
+  border-color:var(--admin-line);
+  color:var(--admin-olive-dark);
+}
+
+.tables-release-all:hover:not(:disabled){
+  border-color:rgba(86,101,74,.32);
+  background:rgba(255,255,255,.58);
+}
+
+@media(max-width:850px){
+  .tables-configured-head{
+    align-items:flex-start;
+  }
+
+  .tables-configured-actions{
+    width:100%;
+    margin-left:0;
+    justify-content:flex-start;
+  }
+}
+
+@media(max-width:700px){
+  .tables-configured-actions{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+
+  .tables-configured-actions .admin-button,
+  .tables-configured-actions .tables-config-locked{
+    width:100%;
+    box-sizing:border-box;
+  }
+}
+
+
+/* =========================================================
+   MESAS · FASE 4.3
+   Alta y baja individual de mesas
+   ========================================================= */
+
+.tables-configured-actions{
+  max-width:720px;
+}
+
+/* Los nuevos botones conservan exactamente el estilo secundario
+   del administrador; no se usan colores de riesgo. */
+.tables-configured-actions .admin-button{
+  white-space:nowrap;
+}
+
+@media(max-width:1120px){
+  .tables-configured-head{
+    align-items:flex-start;
+  }
+
+  .tables-configured-actions{
+    max-width:none;
+  }
+}
+
+@media(max-width:700px){
+  .tables-configured-actions{
+    width:100%;
+  }
+}
+
+
+/* =========================================================
+   MESAS · FASE 5
+   Plano visual
+   ========================================================= */
+
+.tables-section-head-plan{
+  align-items:center;
+}
+
+.tables-view-actions{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.tables-view-actions .admin-button.is-selected{
+  background:var(--admin-olive-dark);
+  border-color:var(--admin-olive-dark);
+  color:#fff;
+}
+
+.tables-distribution-body{
+  min-width:0;
+}
+
+.tables-plan-view{
+  display:grid;
+  gap:12px;
+}
+
+.tables-plan-toolbar{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  gap:10px;
+  align-items:center;
+  padding:10px 0 2px;
+}
+
+.tables-plan-hint{
+  margin:0;
+  color:var(--admin-muted);
+  font-size:.67rem;
+  line-height:1.45;
+}
+
+.tables-plan-wrapper{
+  position:relative;
+  overflow:auto;
+  border:1px solid var(--admin-line);
+  border-radius:18px;
+  background:
+    linear-gradient(rgba(86,101,74,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(86,101,74,.035) 1px,transparent 1px),
+    rgba(255,255,255,.34);
+  background-size:32px 32px;
+}
+
+.tables-plan-wrapper.tables-plan-dirty{
+  border-color:rgba(86,101,74,.34);
+  box-shadow:inset 0 0 0 1px rgba(86,101,74,.08);
+}
+
+.tables-plan-canvas{
+  min-width:900px;
+  min-height:620px;
+  padding:18px;
+}
+
+.tables-plan-stage{
+  position:relative;
+  width:100%;
+  height:584px;
+  overflow:hidden;
+  border:1px dashed rgba(86,101,74,.18);
+  border-radius:14px;
+  background:
+    radial-gradient(circle at 50% 50%,rgba(255,255,255,.48),rgba(255,255,255,.16));
+}
+
+.tables-plan-stage::before{
+  content:"PLANO DEL SALÓN / JARDÍN";
+  position:absolute;
+  top:16px;
+  left:50%;
+  transform:translateX(-50%);
+  color:rgba(61,74,52,.27);
+  font-size:.63rem;
+  font-weight:600;
+  letter-spacing:.18em;
+  pointer-events:none;
+}
+
+.tables-plan-table{
+  position:absolute;
+  width:88px;
+  height:88px;
+  transform:translate(-50%,-50%);
+  display:grid;
+  place-items:center;
+  align-content:center;
+  gap:1px;
+  padding:8px;
+  border:1px solid rgba(86,101,74,.24);
+  border-radius:50%;
+  background:rgba(255,250,241,.96);
+  color:var(--admin-olive-dark);
+  box-shadow:0 7px 18px rgba(38,46,33,.11);
+  cursor:grab;
+  user-select:none;
+  touch-action:none;
+  text-align:center;
+  z-index:1;
+}
+
+.tables-plan-table:hover{
+  z-index:3;
+  border-color:rgba(86,101,74,.5);
+  box-shadow:0 10px 24px rgba(38,46,33,.16);
+}
+
+.tables-plan-table.is-dragging{
+  z-index:10;
+  cursor:grabbing;
+  transform:translate(-50%,-50%) scale(1.06);
+  box-shadow:0 14px 30px rgba(38,46,33,.22);
+}
+
+.tables-plan-table strong{
+  display:-webkit-box;
+  width:100%;
+  overflow:hidden;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  font-family:"Cormorant Garamond",Georgia,serif;
+  font-size:.84rem;
+  line-height:1.03;
+}
+
+.tables-plan-table>span{
+  font-family:"EB Garamond","Cormorant Garamond",Georgia,serif;
+  font-size:1.13rem;
+  font-weight:600;
+  line-height:1;
+}
+
+.tables-plan-table small{
+  color:var(--admin-muted);
+  font-size:.53rem;
+}
+
+.tables-plan-table-completa{
+  background:rgba(86,101,74,.12);
+  border-color:rgba(86,101,74,.42);
+}
+
+.tables-plan-table-casi_llena{
+  background:rgba(171,139,84,.10);
+  border-color:rgba(171,139,84,.35);
+}
+
+@media(max-width:900px){
+  .tables-section-head-plan{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .tables-view-actions{
+    width:100%;
+  }
+
+  .tables-view-actions .admin-button{
+    flex:1 1 auto;
+  }
+
+  .tables-plan-toolbar{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .tables-plan-hint{
+    grid-column:1 / -1;
+  }
+}
+
+@media(max-width:700px){
+  .tables-plan-toolbar{
+    grid-template-columns:1fr;
+  }
+
+  .tables-plan-toolbar .admin-button{
+    width:100%;
+  }
+
+  .tables-plan-canvas{
+    min-width:820px;
+  }
+}
+
+
+/* =========================================================
+   MESAS · FASE 5.1
+   Lista tabular + elementos del plano
+   ========================================================= */
+
+.tables-list-table-wrap{
+  width:100%;
+  overflow:auto;
+  border:1px solid var(--admin-line);
+  border-radius:16px;
+  background:rgba(255,255,255,.34);
+}
+
+.tables-list-table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:830px;
+}
+
+.tables-list-table th,
+.tables-list-table td{
+  padding:13px 14px;
+  border-bottom:1px solid var(--admin-line);
+  text-align:left;
+  vertical-align:middle;
+}
+
+.tables-list-table tbody tr:last-child td{
+  border-bottom:0;
+}
+
+.tables-list-table th{
+  color:var(--admin-muted);
+  font-size:.6rem;
+  font-weight:600;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  background:rgba(86,101,74,.035);
+}
+
+.tables-list-table td{
+  color:var(--admin-text);
+  font-size:.68rem;
+}
+
+.tables-table-number{
+  font-family:"Cormorant Garamond",Georgia,serif;
+  font-size:1rem;
+  color:var(--admin-olive-dark);
+}
+
+.tables-table-occupancy-inline{
+  font-family:"EB Garamond","Cormorant Garamond",Georgia,serif;
+  font-size:1.08rem;
+}
+
+.tables-list-status{
+  display:inline-flex;
+  align-items:center;
+  min-height:24px;
+  padding:3px 8px;
+  border-radius:999px;
+  background:rgba(86,101,74,.08);
+  color:var(--admin-olive-dark);
+  font-size:.57rem;
+  font-weight:600;
+  white-space:nowrap;
+}
+
+.tables-list-status-completa{
+  background:rgba(86,101,74,.16);
+}
+
+.tables-list-status-casi_llena{
+  background:rgba(171,139,84,.12);
+}
+
+.tables-plan-landmark{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  display:grid;
+  place-items:center;
+  padding:10px;
+  border:2px dashed rgba(86,101,74,.28);
+  border-radius:18px;
+  background:rgba(242,239,230,.72);
+  color:var(--admin-olive-dark);
+  cursor:grab;
+  user-select:none;
+  touch-action:none;
+  text-align:center;
+  z-index:0;
+  box-sizing:border-box;
+}
+
+.tables-plan-landmark.is-dragging{
+  cursor:grabbing;
+  z-index:8;
+  box-shadow:0 12px 26px rgba(38,46,33,.14);
+}
+
+.tables-plan-landmark strong{
+  font-family:"Cormorant Garamond",Georgia,serif;
+  font-size:1rem;
+  line-height:1.05;
+}
+
+.tables-plan-landmark-mesa_novios{
+  border-style:solid;
+  border-radius:14px;
+  background:rgba(255,250,241,.88);
+}
+
+.tables-plan-landmark-pista_baile{
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(86,101,74,.045),
+      rgba(86,101,74,.045) 12px,
+      rgba(255,255,255,.18) 12px,
+      rgba(255,255,255,.18) 24px
+    );
+  border-style:dashed;
+}
+
+/* Las mesas visuales siempre quedan por encima de los elementos base. */
+.tables-plan-table{
+  z-index:2;
+}
+
+@media(max-width:700px){
+  .tables-list-table-wrap{
+    overflow:visible;
+    border:0;
+    background:transparent;
+  }
+
+  .tables-list-table{
+    min-width:0;
+    display:block;
+  }
+
+  .tables-list-table thead{
+    display:none;
+  }
+
+  .tables-list-table tbody,
+  .tables-list-table tr,
+  .tables-list-table td{
+    display:block;
+    width:100%;
+    box-sizing:border-box;
+  }
+
+  .tables-list-table tr{
+    margin-bottom:10px;
+    padding:10px 12px;
+    border:1px solid var(--admin-line);
+    border-radius:14px;
+    background:rgba(255,255,255,.38);
+  }
+
+  .tables-list-table td{
+    display:grid;
+    grid-template-columns:120px minmax(0,1fr);
+    gap:10px;
+    padding:6px 0;
+    border:0;
+  }
+
+  .tables-list-table td::before{
+    content:attr(data-label);
+    color:var(--admin-muted);
+    font-size:.58rem;
+    font-weight:600;
+    text-transform:uppercase;
+  }
+}
+
+
+/* =========================================================
+   MESAS · FASE 5.2
+   Editor avanzado: expansión, zoom, pan y resize
+   ========================================================= */
+
+.tables-plan-toolbar-advanced{
+  grid-template-columns:minmax(220px,1fr) auto;
+}
+
+.tables-plan-controls{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:7px;
+}
+
+.tables-plan-controls .admin-button{
+  min-width:auto;
+  white-space:nowrap;
+}
+
+.tables-plan-controls .admin-button:first-child,
+.tables-plan-controls .admin-button:nth-child(2){
+  width:42px;
+  padding-inline:0;
+  font-size:1rem;
+}
+
+.tables-plan-editor{
+  position:relative;
+  overflow:hidden;
+  min-height:620px;
+}
+
+.tables-plan-viewport{
+  position:relative;
+  width:100%;
+  height:min(70vh,720px);
+  min-height:560px;
+  overflow:auto;
+  overscroll-behavior:contain;
+  touch-action:none;
+  cursor:grab;
+  scrollbar-gutter:stable;
+}
+
+.tables-plan-viewport.is-panning{
+  cursor:grabbing;
+}
+
+.tables-plan-sizer{
+  position:relative;
+  min-width:100%;
+  min-height:100%;
+}
+
+.tables-plan-editor .tables-plan-stage{
+  position:absolute;
+  inset:0 auto auto 0;
+  overflow:visible;
+  background:
+    linear-gradient(rgba(86,101,74,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(86,101,74,.035) 1px,transparent 1px),
+    radial-gradient(circle at 50% 50%,rgba(255,255,255,.48),rgba(255,255,255,.18));
+  background-size:36px 36px,36px 36px,auto;
+}
+
+.tables-plan-editor .tables-plan-stage::before{
+  content:"PLANO DEL SALÓN / JARDÍN";
+  position:absolute;
+  top:18px;
+  left:50%;
+  transform:translateX(-50%);
+  white-space:nowrap;
+}
+
+.tables-plan-editor .tables-plan-table{
+  width:82px;
+  height:82px;
+  margin:0;
+}
+
+.tables-plan-landmark{
+  z-index:1;
+}
+
+.tables-plan-landmark.is-selected{
+  border-color:rgba(86,101,74,.68);
+  box-shadow:
+    0 0 0 3px rgba(86,101,74,.08),
+    0 12px 28px rgba(38,46,33,.12);
+}
+
+.tables-plan-landmark.is-resizing{
+  z-index:9;
+}
+
+.tables-plan-resize-handle{
+  position:absolute;
+  display:none;
+  width:12px;
+  height:12px;
+  border:2px solid var(--admin-olive-dark);
+  border-radius:50%;
+  background:#fffaf1;
+  box-shadow:0 2px 6px rgba(38,46,33,.14);
+  z-index:12;
+  touch-action:none;
+}
+
+.tables-plan-landmark.is-selected .tables-plan-resize-handle{
+  display:block;
+}
+
+.tables-plan-resize-n{
+  left:50%; top:-7px; transform:translateX(-50%);
+  cursor:ns-resize;
+}
+
+.tables-plan-resize-s{
+  left:50%; bottom:-7px; transform:translateX(-50%);
+  cursor:ns-resize;
+}
+
+.tables-plan-resize-e{
+  right:-7px; top:50%; transform:translateY(-50%);
+  cursor:ew-resize;
+}
+
+.tables-plan-resize-w{
+  left:-7px; top:50%; transform:translateY(-50%);
+  cursor:ew-resize;
+}
+
+.tables-plan-resize-ne{
+  right:-7px; top:-7px;
+  cursor:nesw-resize;
+}
+
+.tables-plan-resize-se{
+  right:-7px; bottom:-7px;
+  cursor:nwse-resize;
+}
+
+.tables-plan-resize-sw{
+  left:-7px; bottom:-7px;
+  cursor:nesw-resize;
+}
+
+.tables-plan-resize-nw{
+  left:-7px; top:-7px;
+  cursor:nwse-resize;
+}
+
+/* La pista se percibe como una superficie real y no como una tarjeta. */
+.tables-plan-landmark-pista_baile{
+  min-width:100px;
+  min-height:80px;
+}
+
+/* Mesa de novios: forma rectangular flexible. */
+.tables-plan-landmark-mesa_novios{
+  min-width:90px;
+  min-height:44px;
+}
+
+@media(max-width:900px){
+  .tables-plan-toolbar-advanced{
+    grid-template-columns:1fr;
+  }
+
+  .tables-plan-controls{
+    justify-content:flex-start;
+  }
+}
+
+@media(max-width:700px){
+  .tables-plan-editor{
+    min-height:520px;
+  }
+
+  .tables-plan-viewport{
+    height:62vh;
+    min-height:470px;
+  }
+
+  .tables-plan-controls{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .tables-plan-controls .admin-button,
+  .tables-plan-controls .admin-button:first-child,
+  .tables-plan-controls .admin-button:nth-child(2){
+    width:100%;
+  }
+
+  .tables-plan-hint{
+    line-height:1.55;
+  }
+
+  .tables-plan-resize-handle{
+    width:15px;
+    height:15px;
+  }
+}
+
+
+/* =========================================================
+   MESAS · FASE 5.2.1
+   Auto-recorte del lienzo
+   ========================================================= */
+
+.tables-plan-sizer{
+  transition:width .18s ease,height .18s ease;
+}
+
+
+/* =========================================================
+   MESAS · FASE 5.2.2 · COLISIONES
+   ========================================================= */
+.tables-plan-table.is-collision,
+.tables-plan-landmark.is-collision{
+  outline:2px solid currentColor;
+  outline-offset:3px;
+  opacity:.72;
+  cursor:not-allowed;
+}
+
+.tables-plan-table.is-collision::after,
+.tables-plan-landmark.is-collision::after{
+  content:"ESPACIO OCUPADO";
+  position:absolute;
+  left:50%;
+  top:-1.7rem;
+  transform:translateX(-50%);
+  white-space:nowrap;
+  padding:.25rem .45rem;
+  border-radius:999px;
+  background:var(--admin-surface, #fbf7ee);
+  border:1px solid currentColor;
+  font-size:.58rem;
+  font-family:Montserrat, sans-serif;
+  font-weight:700;
+  letter-spacing:.05em;
+  z-index:12;
+}
+
+
+/* =========================================================
+   MESAS · FASE 5.2.3
+   Colisiones reales + reacomodo automático
+   ========================================================= */
+
+.tables-plan-landmark{
+  box-sizing:border-box;
+}
+
+.tables-plan-landmark-pista_baile,
+.tables-plan-landmark-mesa_novios{
+  z-index:1;
+}
+
+.tables-plan-table{
+  z-index:3;
+}
+
+/* El estado de colisión es una advertencia temporal; mantiene
+   el lenguaje visual actual sin introducir botones rojos. */
+.tables-plan-table.is-collision,
+.tables-plan-landmark.is-collision{
+  filter:saturate(.72);
+  box-shadow:0 0 0 3px rgba(86,101,74,.16);
+}
+
+
+/* =========================================================
+   MESAS · FASE 5.2.4
+   Reacomodo dinámico de mesas
+   ========================================================= */
+
+.tables-plan-table{
+  transition:
+    left .10s ease,
+    top .10s ease,
+    box-shadow .12s ease,
+    transform .12s ease;
+}
+
+.tables-plan-table.is-dragging{
+  transition:none;
+}
+
+/* Durante el reacomodo automático el movimiento se percibe
+   suave, sin alterar la estética general del editor. */
+.tables-plan-landmark.is-dragging ~ .tables-plan-table,
+.tables-plan-landmark.is-resizing ~ .tables-plan-table{
+  transition:left .08s ease,top .08s ease;
+}
+
+
+/* =========================================================
+   MESAS · FASE 5.2.4.1
+   Ajuste de espaciado + corrección de sidebar
+   ========================================================= */
+
+/* El título del panel lateral vuelve a su proporción original.
+   Se evita que "Administración" sobresalga del ancho del sidebar. */
+.admin-brand strong{
+  display:block;
+  max-width:100%;
+  font-size:1.68rem;
+  font-weight:500;
+  line-height:1.02;
+  letter-spacing:0;
+  white-space:nowrap;
+  overflow:visible;
+}
+
+/* Las mesas pueden quedar visualmente más próximas. La colisión
+   sigue respetando el diámetro real del círculo, pero deja solo
+   un pequeño pasillo entre objetos. */
+.tables-plan-table{
+  box-shadow:0 5px 13px rgba(38,46,33,.09);
+}
+
+
+/* =========================================================
+   MESAS · FASE 5.2.4.2
+   Reacomodo local inteligente
+   ========================================================= */
+
+/* Movimiento automático corto y suave. */
+.tables-plan-table{
+  transition:
+    left .075s ease-out,
+    top .075s ease-out,
+    box-shadow .10s ease,
+    transform .10s ease;
+}
+
+.tables-plan-table.is-dragging{
+  transition:none;
+}
+
+
+/* =========================================================
+   MESAS · FASE 5.2.4.3
+   Autoorganización segura + vista centrada
+   ========================================================= */
+
+.tables-plan-viewport{
+  scroll-behavior:smooth;
+}
+
+.tables-plan-sizer{
+  margin-inline:auto;
+}
+
+
+/* =========================================================
+   MESAS · FASE 5.2.4.4
+   Distribución automática específica para boda
+   ========================================================= */
+
+.tables-plan-editor::after{
+  content:var(--plan-zoom-label, "100%");
+  position:absolute;
+  right:14px;
+  bottom:14px;
+  z-index:20;
+  min-width:48px;
+  padding:6px 9px;
+  border:1px solid var(--admin-line);
+  border-radius:999px;
+  background:rgba(255,250,241,.94);
+  color:var(--admin-olive-dark);
+  font-family:Montserrat,sans-serif;
+  font-size:.58rem;
+  font-weight:700;
+  text-align:center;
+  pointer-events:none;
+  box-shadow:0 4px 12px rgba(38,46,33,.08);
+}
+
+.tables-plan-controls .admin-button:first-child,
+.tables-plan-controls .admin-button:nth-child(2){
+  font-size:1.18rem;
+  font-weight:700;
+}
+
+
+/* =========================================================
+   MESAS · FASE 5.2.4.5
+   Entrada ordenada + elementos centrales estables
+   ========================================================= */
+
+/* El cambio de zoom/centrado al abrir Plano se percibe estable. */
+.tables-plan-viewport{
+  scroll-behavior:auto;
+}
+
+.tables-plan-landmark-mesa_novios,
+.tables-plan-landmark-pista_baile{
+  will-change:left,top,width,height;
+}
+
+
+/* =========================================================
+   MESAS · FASE 5.2.4.6
+   Plano inicial autoorganizado + zoom automático
+   =========================================================
+   Sin cambios visuales adicionales:
+   reutiliza los estilos de la Fase 5.2.4.4/5.
+*/
+
+
+/* =========================================================
+   MESAS · FASE 5.2.4.7
+   Distribución escalonada/orgánica
+   ========================================================= */
+
+
+/* =========================================================
+   MESAS · FASE 5.2.4.8
+   Centrado inicial del contenido del plano
+   ========================================================= */
+
+.tables-plan-viewport{
+  scroll-padding:24px;
+}

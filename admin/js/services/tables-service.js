@@ -12,6 +12,15 @@
     removeAssignment: "admin_retirar_asignacion_mesa",
     history: "admin_historial_mesas",
     updateTable: "admin_actualizar_mesa",
+    moveAssignment: "admin_reasignar_mesa",
+    releaseAll: "admin_liberar_todas_las_mesas",
+    addTable: "admin_agregar_mesa",
+    deleteTable: "admin_eliminar_mesa",
+    savePlan: "admin_guardar_plano_mesas",
+    listPlanElements: "admin_listar_elementos_plano",
+    savePlanElements: "admin_guardar_elementos_plano",
+    planConfig: "admin_obtener_configuracion_plano",
+    saveAdvancedPlan: "admin_guardar_editor_plano",
   });
 
   class TablesContractError extends Error {
@@ -377,11 +386,300 @@
     return validateEnvelope(data);
   }
 
+
+  function validateHistory(response) {
+    const envelope = validateEnvelope(response);
+    const data = requireObject(envelope.data);
+    if (!Array.isArray(data.items)) fail();
+
+    data.items.forEach((item) => {
+      const row = requireObject(item);
+      requireInteger(row.id, { min: 1 });
+      requireString(row.tipo_entidad);
+      requireString(row.accion);
+      requireString(row.titulo);
+      requireString(row.detalle, { nullable: true });
+      if (row.datos_anteriores !== null) requireObject(row.datos_anteriores);
+      if (row.datos_nuevos !== null) requireObject(row.datos_nuevos);
+      requireString(row.administrador_nombre, { nullable: true });
+      requireString(row.motivo, { nullable: true });
+      requireDate(row.fecha_evento);
+    });
+
+    return envelope;
+  }
+
   async function getHistory(limit = 100) {
     const safeLimit = Math.max(1, Math.min(Number(limit) || 100, 500));
     const { data, error } = await getClient().rpc(RPC.history, {
       p_limite: safeLimit,
     });
+    if (error) handleError(error);
+    return validateHistory(data);
+  }
+
+
+
+
+
+
+  async function getPlanConfiguration() {
+    const { data, error } = await getClient().rpc(RPC.planConfig);
+    if (error) handleError(error);
+
+    const envelope = validateEnvelope(data);
+    const config = requireObject(envelope.data);
+    requireNumber(config.ancho);
+    requireNumber(config.alto);
+    requireDate(config.version);
+
+    return envelope;
+  }
+
+  async function saveAdvancedPlan({
+    width,
+    height,
+    positions,
+    elements,
+    reason,
+  }) {
+    const canvasWidth = Number(width);
+    const canvasHeight = Number(height);
+    const motive = String(reason || "").trim();
+
+    if (!Number.isFinite(canvasWidth) || canvasWidth < 60 || canvasWidth > 600
+        || !Number.isFinite(canvasHeight) || canvasHeight < 60 || canvasHeight > 600) {
+      throw new Error("LIENZO_DIMENSION_INVALIDA");
+    }
+
+    if (!Array.isArray(positions) || !Array.isArray(elements)) {
+      throw new Error("EDITOR_PLANO_INVALIDO");
+    }
+
+    const normalizedTables = positions.map((item) => ({
+      mesa_id: Number(item.tableId),
+      x: Number(Number(item.x).toFixed(3)),
+      y: Number(Number(item.y).toFixed(3)),
+    }));
+
+    normalizedTables.forEach((item) => {
+      if (!Number.isInteger(item.mesa_id) || item.mesa_id < 1
+          || !Number.isFinite(item.x) || item.x < 0 || item.x > canvasWidth
+          || !Number.isFinite(item.y) || item.y < 0 || item.y > canvasHeight) {
+        throw new Error("PLANO_POSICION_INVALIDA");
+      }
+    });
+
+    const normalizedElements = elements.map((item) => ({
+      id: Number(item.id),
+      x: Number(Number(item.x).toFixed(3)),
+      y: Number(Number(item.y).toFixed(3)),
+      ancho: Number(Number(item.width).toFixed(3)),
+      alto: Number(Number(item.height).toFixed(3)),
+    }));
+
+    normalizedElements.forEach((item) => {
+      if (!Number.isInteger(item.id) || item.id < 1
+          || !Number.isFinite(item.x)
+          || !Number.isFinite(item.y)
+          || !Number.isFinite(item.ancho) || item.ancho < 3 || item.ancho > 300
+          || !Number.isFinite(item.alto) || item.alto < 3 || item.alto > 300
+          || item.x - item.ancho / 2 < 0
+          || item.y - item.alto / 2 < 0
+          || item.x + item.ancho / 2 > canvasWidth
+          || item.y + item.alto / 2 > canvasHeight) {
+        throw new Error("ELEMENTO_PLANO_POSICION_INVALIDA");
+      }
+    });
+
+    if (!motive || motive.length > 1000) {
+      throw new Error("MOTIVO_INVALIDO");
+    }
+
+    const { data, error } = await getClient().rpc(RPC.saveAdvancedPlan, {
+      p_ancho: Number(canvasWidth.toFixed(3)),
+      p_alto: Number(canvasHeight.toFixed(3)),
+      p_mesas: normalizedTables,
+      p_elementos: normalizedElements,
+      p_motivo: motive,
+    });
+
+    if (error) handleError(error);
+    return validateEnvelope(data);
+  }
+
+  async function listPlanElements() {
+    const { data, error } = await getClient().rpc(RPC.listPlanElements);
+    if (error) handleError(error);
+
+    const envelope = validateEnvelope(data);
+    if (!Array.isArray(envelope.data.items)) fail();
+
+    envelope.data.items.forEach((item) => {
+      requireInteger(item.id, { min: 1 });
+      requireString(item.tipo);
+      requireString(item.nombre);
+      if (item.plano_x !== null) requireNumber(item.plano_x);
+      if (item.plano_y !== null) requireNumber(item.plano_y);
+      requireNumber(item.ancho);
+      requireNumber(item.alto);
+      requireBoolean(item.activo);
+      requireDate(item.version);
+    });
+
+    return envelope;
+  }
+
+  async function savePlanElements({ elements, reason }) {
+    if (!Array.isArray(elements) || !elements.length) {
+      throw new Error("ELEMENTOS_PLANO_INVALIDOS");
+    }
+
+    const normalized = elements.map((item) => ({
+      id: Number(item.id),
+      x: Number(Number(item.x).toFixed(3)),
+      y: Number(Number(item.y).toFixed(3)),
+      ancho: Number(Number(item.width).toFixed(3)),
+      alto: Number(Number(item.height).toFixed(3)),
+    }));
+
+    normalized.forEach((item) => {
+      if (!Number.isInteger(item.id) || item.id < 1
+          || !Number.isFinite(item.x) || item.x < 0 || item.x > 100
+          || !Number.isFinite(item.y) || item.y < 0 || item.y > 100
+          || !Number.isFinite(item.ancho) || item.ancho < 3 || item.ancho > 80
+          || !Number.isFinite(item.alto) || item.alto < 3 || item.alto > 80) {
+        throw new Error("ELEMENTO_PLANO_POSICION_INVALIDA");
+      }
+    });
+
+    const motive = String(reason || "").trim();
+    if (!motive || motive.length > 1000) {
+      throw new Error("MOTIVO_INVALIDO");
+    }
+
+    const { data, error } = await getClient().rpc(RPC.savePlanElements, {
+      p_elementos: normalized,
+      p_motivo: motive,
+    });
+
+    if (error) handleError(error);
+    return validateEnvelope(data);
+  }
+
+  async function savePlan({ positions, reason }) {
+    if (!Array.isArray(positions) || !positions.length) {
+      throw new Error("PLANO_INVALIDO");
+    }
+
+    const normalized = positions.map((item) => {
+      const tableId = Number(item.tableId);
+      const x = Number(item.x);
+      const y = Number(item.y);
+
+      if (!Number.isInteger(tableId) || tableId < 1) {
+        throw new Error("MESA_INVALIDA");
+      }
+      if (!Number.isFinite(x) || x < 0 || x > 100
+          || !Number.isFinite(y) || y < 0 || y > 100) {
+        throw new Error("PLANO_POSICION_INVALIDA");
+      }
+
+      return {
+        mesa_id: tableId,
+        x: Number(x.toFixed(3)),
+        y: Number(y.toFixed(3)),
+      };
+    });
+
+    const motive = String(reason || "").trim();
+    if (!motive || motive.length > 1000) {
+      throw new Error("MOTIVO_INVALIDO");
+    }
+
+    const { data, error } = await getClient().rpc(RPC.savePlan, {
+      p_posiciones: normalized,
+      p_motivo: motive,
+    });
+
+    if (error) handleError(error);
+    return validateEnvelope(data);
+  }
+
+  async function addTable({
+    name = "",
+    capacity,
+    location = "",
+    notes = "",
+    reason,
+  }) {
+    const seats = Number(capacity);
+    const motive = String(reason || "").trim();
+
+    if (!Number.isInteger(seats) || seats < 1 || seats > 50) {
+      throw new Error("CAPACIDAD_MESA_INVALIDA");
+    }
+    if (!motive || motive.length > 1000) throw new Error("MOTIVO_INVALIDO");
+
+    const { data, error } = await getClient().rpc(RPC.addTable, {
+      p_nombre: String(name || "").trim() || null,
+      p_capacidad: seats,
+      p_ubicacion: String(location || "").trim() || null,
+      p_notas: String(notes || "").trim() || null,
+      p_motivo: motive,
+    });
+
+    if (error) handleError(error);
+    return validateEnvelope(data);
+  }
+
+  async function deleteTable({ tableId, reason, version }) {
+    const id = Number(tableId);
+    const motive = String(reason || "").trim();
+
+    if (!Number.isInteger(id) || id < 1) throw new Error("MESA_INVALIDA");
+    if (!motive || motive.length > 1000) throw new Error("MOTIVO_INVALIDO");
+    requireDate(version);
+
+    const { data, error } = await getClient().rpc(RPC.deleteTable, {
+      p_mesa_id: id,
+      p_motivo: motive,
+      p_version: version,
+    });
+
+    if (error) handleError(error);
+    return validateEnvelope(data);
+  }
+
+  async function releaseAll({ reason }) {
+    const motive = String(reason || "").trim();
+    if (!motive || motive.length > 1000) throw new Error("MOTIVO_INVALIDO");
+
+    const { data, error } = await getClient().rpc(RPC.releaseAll, {
+      p_motivo: motive,
+    });
+
+    if (error) handleError(error);
+    return validateEnvelope(data);
+  }
+
+  async function moveAssignment({ assignmentId, targetTableId, reason, version }) {
+    const assignment = Number(assignmentId);
+    const target = Number(targetTableId);
+    const motive = String(reason || "").trim();
+
+    if (!Number.isInteger(assignment) || assignment < 1) throw new Error("ASIGNACION_INVALIDA");
+    if (!Number.isInteger(target) || target < 1) throw new Error("MESA_INVALIDA");
+    if (!motive || motive.length > 1000) throw new Error("MOTIVO_INVALIDO");
+    requireDate(version);
+
+    const { data, error } = await getClient().rpc(RPC.moveAssignment, {
+      p_asignacion_id: assignment,
+      p_mesa_destino_id: target,
+      p_motivo: motive,
+      p_version: version,
+    });
+
     if (error) handleError(error);
     return validateEnvelope(data);
   }
@@ -397,5 +695,14 @@
     removeAssignment,
     getHistory,
     updateTable,
+    moveAssignment,
+    releaseAll,
+    addTable,
+    deleteTable,
+    savePlan,
+    listPlanElements,
+    savePlanElements,
+    getPlanConfiguration,
+    saveAdvancedPlan,
   });
 })();
