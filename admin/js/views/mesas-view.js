@@ -5,6 +5,11 @@
 
   const formatter = new Intl.NumberFormat("es-MX");
 
+  function isSafeTouchMode() {
+    return window.matchMedia("(pointer: coarse)").matches
+      || window.innerWidth <= 900;
+  }
+
   function el(tag, className = "", text = "") {
     const node = document.createElement(tag);
     if (className) node.className = className;
@@ -1307,8 +1312,7 @@
     // En desktop se conserva el drag inmediato.
     // =====================================================
 
-    const SAFE_TOUCH_MODE = window.matchMedia("(pointer: coarse)").matches
-      || window.innerWidth <= 900;
+    const SAFE_TOUCH_MODE = isSafeTouchMode();
     const LONG_PRESS_MS = 520;
     const LONG_PRESS_TOLERANCE = 10;
 
@@ -3706,7 +3710,7 @@
       const planHint = el(
         "p",
         "tables-plan-hint",
-        SAFE_TOUCH_MODE
+        isSafeTouchMode()
           ? "Móvil: desliza con un dedo para recorrer el plano, usa dos dedos para zoom y mantén presionada una mesa o elemento para moverlo."
           : "Arrastra mesas y elementos. Al acercarte al borde, el lienzo crecerá automáticamente. Selecciona la pista o la mesa de los novios para redimensionarla."
       );
