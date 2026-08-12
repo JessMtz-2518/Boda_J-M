@@ -2005,7 +2005,7 @@
 
     function autoLayout() {
       // -----------------------------------------------------
-      // FASE 5.2.4.7 · DISTRIBUCIÓN ESCALONADA
+      // FASE 5.2.6 · DISTRIBUCIÓN LINEAL
       //
       // Mantiene:
       //   - Mesa de los novios centrada arriba
@@ -2014,9 +2014,9 @@
       //   - Mitad de mesas a la derecha
       //
       // Cambia:
-      //   - Las mesas ya no forman columnas rectas.
-      //   - Se alternan hacia dentro/fuera para crear una
-      //     composición más orgánica, similar a un montaje real.
+      //   - Las mesas se acomodan en columnas rectas.
+      //   - Cada par comparte exactamente la misma coordenada Y.
+      //   - Se elimina el escalonado, la curva y los desfases verticales.
       // -----------------------------------------------------
 
       const weddingWidth = 116;
@@ -2072,135 +2072,101 @@
       const leftItems = items.slice(0, splitIndex);
       const rightItems = items.slice(splitIndex);
 
-      const leftCount = leftItems.length;
-      const rightCount = rightItems.length;
-      const maxCount = Math.max(leftCount, rightCount);
-
-      // Dos "carriles" por lado, pero escalonados.
-      // Las filas alternan cerca/lejos de la pista.
       const topLimit = Math.max(
         brideGroom.y + brideGroom.height / 2 + TABLE_RADIUS + 4,
         24
       );
       const bottomLimit = worldHeight - TABLE_RADIUS - 7;
 
-      const visibleRows = Math.max(
-        Math.ceil(leftCount / 2),
-        Math.ceil(rightCount / 2)
-      );
-
-      const usableHeight = Math.max(20, bottomLimit - topLimit);
-      const rowGap = visibleRows > 1
-        ? Math.min(12.3, usableHeight / (visibleRows - 1))
-        : 0;
-
+      // Dos columnas rectas por cada lado de la pista. El espacio entre
+      // centros supera el diámetro de una mesa + el margen de colisión.
+      const columnGap = TABLE_RADIUS * 2 + COLLISION_GAP + 1.4;
       const danceLeft = danceFloor.x - danceFloor.width / 2;
       const danceRight = danceFloor.x + danceFloor.width / 2;
+      const nearGap = TABLE_RADIUS + COLLISION_GAP + 1.8;
 
-      const nearGap = TABLE_RADIUS + COLLISION_GAP + 1.2;
-      const staggerOffset = TABLE_RADIUS * 1.55;
-      const outerOffset = TABLE_RADIUS * 2.15 + COLLISION_GAP;
-
-      const leftNearX = danceLeft - nearGap;
-      const rightNearX = danceRight + nearGap;
+      const leftInnerX = danceLeft - nearGap;
+      const leftOuterX = leftInnerX - columnGap;
+      const rightInnerX = danceRight + nearGap;
+      const rightOuterX = rightInnerX + columnGap;
 
       const targetHomes = new Map();
 
-      function placeStaggeredSide(sideItems, side) {
-        const rowCount = Math.ceil(sideItems.length / 2);
+      function placeLinearSide(sideItems, side) {
+        const rowCount = Math.max(1, Math.ceil(sideItems.length / 2));
+        const usableHeight = Math.max(0, bottomLimit - topLimit);
+        const minimumRowGap = TABLE_RADIUS * 2 + COLLISION_GAP + 1.2;
+        const desiredRowGap = rowCount > 1 ? usableHeight / (rowCount - 1) : 0;
+        const rowGap = rowCount > 1
+          ? Math.max(minimumRowGap, desiredRowGap)
+          : 0;
+
+        // Si para la cantidad actual de mesas se necesita un poco más de
+        // altura, el lienzo crece antes de colocar las filas. Así se conserva
+        // la alineación sin obligar al resolvedor de colisiones a deformarla.
+        const requiredBottom = topLimit + (rowCount - 1) * rowGap + TABLE_RADIUS + 7;
+        if (requiredBottom > worldHeight) {
+          worldHeight = requiredBottom;
+        }
 
         sideItems.forEach((item, index) => {
           const row = Math.floor(index / 2);
-          const pairPosition = index % 2;
-
-          // Alterna la profundidad para que no se vean lineales.
-          // Primer elemento de cada par queda más cerca de la pista,
-          // el segundo un poco hacia afuera y desfasado verticalmente.
-          const baseY = topLimit + row * rowGap;
-          const verticalStagger = pairPosition === 0 ? -1.2 : 3.2;
-
-          let x;
-          if (side === "left") {
-            x = pairPosition === 0
-              ? leftNearX
-              : leftNearX - outerOffset;
-          } else {
-            x = pairPosition === 0
-              ? rightNearX
-              : rightNearX + outerOffset;
-          }
-
-          // Pequeña curva: las mesas superiores e inferiores se abren
-          // ligeramente hacia afuera; las centrales quedan más próximas.
-          const normalizedRow = rowCount <= 1
-            ? 0
-            : (row / (rowCount - 1)) * 2 - 1;
-          const curve = Math.abs(normalizedRow) * staggerOffset * 0.42;
-
-          if (side === "left") {
-            x -= curve;
-          } else {
-            x += curve;
-          }
+          const column = index % 2;
+          const x = side === "left"
+            ? (column === 0 ? leftInnerX : leftOuterX)
+            : (column === 0 ? rightInnerX : rightOuterX);
 
           targetHomes.set(item.id, {
             tableId: item.id,
             x,
-            y: baseY + verticalStagger,
+            y: topLimit + row * rowGap,
           });
         });
       }
 
-      placeStaggeredSide(leftItems, "left");
-      placeStaggeredSide(rightItems, "right");
+      placeLinearSide(leftItems, "left");
+      placeLinearSide(rightItems, "right");
 
-      // Ajustar lienzo solo si el escalonado lo necesita.
+      // Asegurar margen lateral suficiente sin alterar la alineación.
       const allTargets = [...targetHomes.values()];
-      const minTargetX = Math.min(...allTargets.map((p) => p.x - TABLE_RADIUS));
-      const maxTargetX = Math.max(...allTargets.map((p) => p.x + TABLE_RADIUS));
+      if (allTargets.length) {
+        const minTargetX = Math.min(...allTargets.map((p) => p.x - TABLE_RADIUS));
+        const maxTargetX = Math.max(...allTargets.map((p) => p.x + TABLE_RADIUS));
 
-      if (minTargetX < 5) {
-        const shift = 5 - minTargetX;
-        worldWidth += shift * 2;
-        shiftWorld(shift, 0);
+        if (minTargetX < 5) {
+          const shift = 5 - minTargetX;
+          worldWidth += shift * 2;
+          shiftWorld(shift, 0);
 
-        targetHomes.forEach((pos, id) => {
-          targetHomes.set(id, {
-            ...pos,
-            x: pos.x + shift,
+          targetHomes.forEach((pos, id) => {
+            targetHomes.set(id, { ...pos, x: pos.x + shift });
           });
-        });
+        }
+
+        if (maxTargetX > worldWidth - 5) {
+          worldWidth += (maxTargetX - (worldWidth - 5)) * 2;
+        }
       }
 
-      if (maxTargetX > worldWidth - 5) {
-        worldWidth += (maxTargetX - (worldWidth - 5)) * 2;
-      }
+      const solved = solveTableLayout({ homes: targetHomes });
+      if (!solved) return;
 
-      // Resolver únicamente colisiones residuales.
-      const solved = solveTableLayout({
-        homes: targetHomes,
+      // Reafirmar las coordenadas objetivo cuando no existe colisión. Esto
+      // evita pequeñas desviaciones residuales de ejecuciones anteriores.
+      targetHomes.forEach((home, id) => {
+        const bounds = tableBounds(home);
+        const collidesReserved = collidesWithReserved(bounds, id);
+        if (!collidesReserved) {
+          positions.set(id, { ...home });
+        }
       });
 
-      if (!solved) {
-        return;
-      }
+      homePositions.clear();
+      positions.forEach((pos, id) => homePositions.set(id, { ...pos }));
 
-      compactWorldIfPossible();
-      centerContentInWorld();
-      updateStageGeometry();
       setDirty(true);
-
-      requestAnimationFrame(() => {
-        fitView();
-
-        requestAnimationFrame(() => {
-          centerViewportOnContent();
-
-          requestAnimationFrame(() => {
-            centerView();
-          });
-        });
-      });
+      render();
+      fitView();
     }
 
     function needsWeddingInitialization() {

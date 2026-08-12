@@ -3077,3 +3077,23 @@ body.tables-modal-open{
     height:18px;
   }
 }
+
+/* =========================================================
+   MESAS · FASE 5.2.6
+   Corrección móvil del botón "Organizar automáticamente"
+   ========================================================= */
+@media(max-width:700px){
+  .tables-plan-controls .admin-button:nth-child(5),
+  .tables-plan-controls .admin-button:nth-child(6){
+    min-height:58px;
+  }
+
+  .tables-plan-controls .admin-button:nth-child(5){
+    padding:8px 10px;
+    white-space:normal;
+    overflow-wrap:normal;
+    word-break:normal;
+    line-height:1.18;
+    text-align:center;
+  }
+}
