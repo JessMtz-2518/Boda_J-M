@@ -1436,9 +1436,13 @@
       node.dataset.tableId = String(item.id);
       node.title = `${item.nombre || `Mesa ${item.numero}`} · ${item.ocupados}/${item.capacidad}`;
 
+      const tableName = el("strong", "", item.nombre || `Mesa ${item.numero}`);
+      tableName.style.fontSize = ".98rem";
+      tableName.style.fontWeight = "700";
+      tableName.style.lineHeight = "1.08";
+
       node.append(
-        el("strong", "", item.nombre || `Mesa ${item.numero}`),
-        el("span", "", `${item.ocupados}/${item.capacidad}`),
+        tableName,
         el("small", "", `${item.disponibles} disp.`)
       );
 
@@ -2151,22 +2155,22 @@
       const solved = solveTableLayout({ homes: targetHomes });
       if (!solved) return;
 
-      // Reafirmar las coordenadas objetivo cuando no existe colisión. Esto
-      // evita pequeñas desviaciones residuales de ejecuciones anteriores.
-      targetHomes.forEach((home, id) => {
-        const bounds = tableBounds(home);
-        const collidesReserved = collidesWithReserved(bounds, id);
-        if (!collidesReserved) {
-          positions.set(id, { ...home });
-        }
-      });
-
-      homePositions.clear();
-      positions.forEach((pos, id) => homePositions.set(id, { ...pos }));
-
+      compactWorldIfPossible();
+      centerContentInWorld();
+      updateStageGeometry();
       setDirty(true);
-      render();
-      fitView();
+
+      requestAnimationFrame(() => {
+        fitView();
+
+        requestAnimationFrame(() => {
+          centerViewportOnContent();
+
+          requestAnimationFrame(() => {
+            centerView();
+          });
+        });
+      });
     }
 
     function needsWeddingInitialization() {
