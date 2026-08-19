@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=EB+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="css/admin.css?v=7.1.0">
 </head>
 <body class="admin-loading">
   <main class="admin-page">
@@ -31,11 +31,12 @@
         <div class="admin-brand"><p class="admin-eyebrow">Jessica &amp; Marcos</p><strong>Administración</strong></div>
         <nav class="admin-nav" aria-label="Navegación administrativa">
           <a href="#/dashboard" data-admin-route="dashboard">Dashboard</a>
-          <a href="#/invitados" data-admin-route="invitados">Invitados</a>
+          <a href="#/invitados" data-admin-route="invitados">Invitaciones</a>
           <a href="#/confirmaciones" data-admin-route="confirmaciones">Confirmaciones</a>
           <a href="#/estadisticas" data-admin-route="estadisticas">Estadísticas</a>
           <a href="#/mesas" data-admin-route="mesas">Mesas</a>
           <a href="#/reportes" data-admin-route="reportes">Reportes</a>
+          <a href="#/planeacion" data-admin-route="planeacion">Planeación</a>
         </nav>
       </aside>
 
@@ -58,11 +59,12 @@
   <script src="js/config/supabase-admin-client.js" defer></script>
   <script src="js/auth/auth-service.js" defer></script>
   <script src="js/auth/auth-guard.js" defer></script>
-  <script src="js/services/dashboard-service.js" defer></script>
+  <script src="js/services/dashboard-service.js?v=6.2.0" defer></script>
   <script src="js/services/guests-service.js" defer></script>
   <script src="js/services/confirmations-service.js" defer></script>
   <script src="js/services/tables-service.js" defer></script>
   <script src="js/services/reports-service.js?v=6.1.0" defer></script>
+  <script src="js/services/planner-service.js?v=7.1.0" defer></script>
   <script src="js/utils/dashboard-formatters.js" defer></script>
   <script src="js/utils/invitation-url.js" defer></script>
   <script src="js/utils/whatsapp.js" defer></script>
@@ -73,12 +75,13 @@
   <script src="js/components/dashboard/recent-confirmations.js" defer></script>
   <script src="js/components/dashboard/group-statistics.js" defer></script>
   <script src="js/components/dashboard/evolution-chart.js" defer></script>
-  <script src="js/views/dashboard-view.js" defer></script>
-  <script src="js/views/invitados-view.js" defer></script>
+  <script src="js/views/dashboard-view.js?v=6.2.0" defer></script>
+  <script src="js/views/invitados-view.js?v=6.2.0" defer></script>
   <script src="js/views/confirmaciones-view.js" defer></script>
   <script src="js/views/estadisticas-view.js" defer></script>
   <script src="js/views/mesas-view.js?v=5.2.11" defer></script>
   <script src="js/views/reportes-view.js?v=6.1.0" defer></script>
+  <script src="js/views/planeacion-view.js?v=7.1.0" defer></script>
   <script src="js/router/hash-router.js" defer></script>
   <script src="js/admin-app.js" defer></script>
 </body>

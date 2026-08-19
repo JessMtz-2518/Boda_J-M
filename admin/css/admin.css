@@ -1904,7 +1904,7 @@ body.tables-modal-open{
 
 /* DASHBOARD OPERATIVO */
 .dashboard-operational-view{display:grid;gap:20px}
-.dashboard-operational-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.dashboard-operational-kpis{grid-template-columns:repeat(5,minmax(0,1fr))}
 .dashboard-operational-layout{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:18px;align-items:start}
 .dashboard-operational-panel-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px}
 .dashboard-operational-panel-head h3{margin:0}
@@ -3177,4 +3177,98 @@ body.tables-modal-open{
   .reports-summary-block{page-break-inside:avoid;}
   .reports-list-wrap{overflow:visible!important;}
   .reports-list-table{min-width:0!important;}
+}
+
+
+/* =========================================================
+   FASE 7.1 · WEDDING PLANNER / CHECKLIST MAESTRO
+   ========================================================= */
+
+.planner-view{display:grid;gap:20px;}
+.planner-heading{display:flex;align-items:end;justify-content:space-between;gap:20px;}
+.planner-heading h2{margin:4px 0 6px;font-family:"Cormorant Garamond",serif;font-size:clamp(2.4rem,4vw,3.5rem);font-weight:600;}
+.planner-heading-copy{margin:0;color:var(--admin-muted,#746f63);max-width:680px;}
+.planner-hero{
+  display:grid;grid-template-columns:minmax(180px,.6fr) minmax(320px,1.4fr);gap:22px;
+  padding:28px;border:1px solid rgba(58,69,49,.14);border-radius:24px;
+  background:linear-gradient(135deg,rgba(255,252,245,.96),rgba(234,238,224,.88));
+}
+.planner-countdown{display:flex;flex-direction:column;justify-content:center;padding-right:22px;border-right:1px solid rgba(58,69,49,.14);}
+.planner-countdown-label,.planner-metric-label{font-size:.73rem;letter-spacing:.08em;text-transform:uppercase;color:#59614f;font-weight:600;}
+.planner-countdown-value{font-family:"EB Garamond",serif;font-size:4.4rem;line-height:.92;font-weight:600;color:#273424;margin:6px 0;}
+.planner-countdown-detail{font-size:.88rem;color:#767568;}
+.planner-progress-wrap{display:flex;flex-direction:column;justify-content:center;gap:13px;}
+.planner-progress-copy{display:flex;justify-content:space-between;align-items:center;gap:12px;}
+.planner-progress-copy strong{font-family:"Cormorant Garamond",serif;font-size:1.55rem;}
+.planner-progress-copy span{font-size:.9rem;color:#666a5d;}
+.planner-progress-track{height:13px;border-radius:999px;background:rgba(56,70,49,.11);overflow:hidden;}
+.planner-progress-bar{display:block;height:100%;border-radius:inherit;background:#596d4c;transition:width .35s ease;}
+.planner-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;}
+.planner-metric{padding:18px 18px 16px;border:1px solid rgba(58,69,49,.14);border-radius:18px;background:rgba(255,252,246,.78);min-height:126px;}
+.planner-metric-value{display:block;font-family:"EB Garamond",serif;font-size:2.55rem;line-height:1;margin:20px 0 5px;color:#283326;}
+.planner-metric-detail{font-size:.78rem;color:#7b766c;}
+.planner-metric-positive{background:rgba(225,233,216,.72);}
+.planner-metric-attention{background:rgba(242,226,197,.62);}
+.planner-toolbar{display:grid;grid-template-columns:minmax(260px,1fr) minmax(180px,.3fr) minmax(180px,.3fr);gap:12px;padding:15px;border:1px solid rgba(58,69,49,.12);border-radius:18px;background:rgba(255,252,246,.7);}
+.planner-toolbar input,.planner-toolbar select,.planner-task-form input,.planner-task-form select,.planner-task-form textarea{
+  width:100%;border:1px solid rgba(58,69,49,.2);background:#fffdf7;border-radius:12px;padding:12px 13px;font:inherit;color:inherit;
+}
+.planner-layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(260px,.45fr);gap:18px;align-items:start;}
+.planner-panel{border:1px solid rgba(58,69,49,.13);border-radius:22px;background:rgba(255,252,246,.82);padding:20px;}
+.planner-panel h3{margin:0;font-family:"Cormorant Garamond",serif;font-size:1.6rem;}
+.planner-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px;}
+.planner-list-count{font-size:.78rem;color:#7a776b;}
+.planner-task-list{display:grid;gap:10px;}
+.planner-task{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;padding:16px;border:1px solid rgba(58,69,49,.13);border-radius:16px;background:#fffdf8;}
+.planner-task-completada{opacity:.72;}
+.planner-task-overdue{border-color:rgba(151,94,52,.34);background:#fff9f0;}
+.planner-task h4{margin:8px 0 4px;font-size:1rem;}
+.planner-task-meta,.planner-task-notes{margin:0;font-size:.8rem;color:#777269;}
+.planner-task-notes{margin-top:8px;line-height:1.5;}
+.planner-task-badges{display:flex;flex-wrap:wrap;gap:6px;}
+.planner-badge{display:inline-flex;align-items:center;min-height:25px;padding:4px 8px;border-radius:999px;font-size:.67rem;font-weight:600;background:#ecebe4;color:#4f5549;}
+.planner-priority-alta,.planner-overdue-badge{background:#f1ded1;color:#7a3f27;}
+.planner-priority-baja{background:#e5eee0;color:#45603b;}
+.planner-status-completada{background:#dde9d6;color:#405c36;}
+.planner-status-en_proceso{background:#eee6cf;color:#6f5e2d;}
+.planner-task-actions{display:flex;flex-direction:column;gap:7px;min-width:116px;}
+.planner-task-actions .admin-button{padding:9px 12px;font-size:.72rem;}
+.planner-delete-button{opacity:.78;}
+.planner-upcoming-panel{position:sticky;top:20px;}
+.planner-upcoming-list{display:grid;gap:9px;margin-top:15px;}
+.planner-upcoming-item{display:grid;gap:3px;padding:12px;border-radius:14px;background:#f7f4eb;border:1px solid rgba(58,69,49,.1);}
+.planner-upcoming-item strong{font-size:.86rem;}
+.planner-upcoming-item span{font-family:"EB Garamond",serif;font-size:1.05rem;color:#3d4b36;}
+.planner-upcoming-item small{font-size:.7rem;color:#7b786e;}
+.planner-upcoming-overdue{background:#fff3e6;}
+.planner-empty{padding:28px 16px;text-align:center;color:#77736a;border:1px dashed rgba(58,69,49,.19);border-radius:14px;}
+.planner-empty-small{padding:18px 10px;}
+.planner-global-feedback{min-height:18px;font-size:.78rem;color:#756e63;}
+.planner-task-modal{max-width:760px;}
+.planner-task-form{padding:0 24px 24px;}
+.planner-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+.planner-field-wide{grid-column:1/-1;}
+.planner-form-feedback{min-height:20px;}
+
+@media(max-width:1100px){
+  .planner-metrics{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .planner-layout{grid-template-columns:1fr;}
+  .planner-upcoming-panel{position:static;}
+}
+@media(max-width:760px){
+  .planner-heading{align-items:stretch;flex-direction:column;}
+  .planner-heading .admin-button{width:100%;}
+  .planner-hero{grid-template-columns:1fr;padding:20px;}
+  .planner-countdown{border-right:0;border-bottom:1px solid rgba(58,69,49,.14);padding:0 0 18px;}
+  .planner-countdown-value{font-size:3.8rem;}
+  .planner-metrics{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .planner-toolbar{grid-template-columns:1fr;}
+  .planner-task{grid-template-columns:1fr;}
+  .planner-task-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));}
+  .planner-form-grid{grid-template-columns:1fr;}
+  .planner-field-wide{grid-column:auto;}
+}
+@media(max-width:480px){
+  .planner-metrics{grid-template-columns:1fr 1fr;}
+  .planner-task-actions{grid-template-columns:1fr;}
 }

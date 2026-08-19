@@ -1,6 +1,6 @@
 (() => {
   "use strict";
-  const allowed = new Set(["dashboard","invitados","confirmaciones","estadisticas","mesas","reportes"]);
+  const allowed = new Set(["dashboard","invitados","confirmaciones","estadisticas","mesas","reportes","planeacion"]);
   let container;
   function readRoute(){const route=window.location.hash.replace(/^#\/?/,"").split("/")[0];return allowed.has(route)?route:"dashboard";}
   function render(){const route=readRoute();if(window.location.hash!==`#/${route}`) history.replaceState(null,"",`#/${route}`);document.querySelectorAll("[data-admin-route]").forEach((link)=>{if(link.dataset.adminRoute===route)link.setAttribute("aria-current","page");else link.removeAttribute("aria-current");});const view=window.AdminViews?.[route];if(typeof view!=="function")return;container.replaceChildren(view());container.focus({preventScroll:true});document.title=`${route[0].toUpperCase()+route.slice(1)} | Administración`;}

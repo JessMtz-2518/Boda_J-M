@@ -148,6 +148,9 @@
     const indicators = requireObject(data.indicadores);
     requireNumbers(indicators, [
       "invitaciones_activas",
+      "personas_invitadas",
+      "adultos_invitados",
+      "ninos_invitados",
       "personas_confirmadas",
       "adultos_confirmados",
       "ninos_confirmados",
@@ -176,7 +179,7 @@
 
   function validateEnvelope(name, response) {
     const envelope = requireObject(response);
-    if (envelope.schema_version !== "1.0") invalidContract();
+    if (!["1.0", "1.1"].includes(envelope.schema_version)) invalidContract();
     requireDate(envelope.generated_at);
     const data = requireObject(envelope.data);
     const validator = validators[name];

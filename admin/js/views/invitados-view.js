@@ -91,7 +91,7 @@
     const head = element("header", "guest-editor-head");
     const heading = element("div");
     heading.append(element("p", "admin-eyebrow", "Gestión administrativa"));
-    const title = element("h2", "", "Editar invitado");
+    const title = element("h2", "", "Editar invitación");
     title.id = "guest-editor-title";
     heading.append(title, element("p", "guest-editor-code", `${detail.codigo} · ${detail.activo ? "Activo" : "Inactivo"}`));
     const closeButton = actionButton("Cerrar");
@@ -226,7 +226,7 @@
           version: detail.version,
         });
         close();
-        setFeedback("success", result.actualizado ? "Invitado actualizado correctamente." : "No se detectaron cambios en el invitado.");
+        setFeedback("success", result.actualizado ? "Invitación actualizada correctamente." : "No se detectaron cambios en el invitado.");
         await onSaved();
       } catch (error) {
         status.className = "guest-editor-status guest-editor-status-error";
@@ -255,7 +255,7 @@
     const head = element("header", "guest-editor-head");
     const heading = element("div");
     heading.append(element("p", "admin-eyebrow", "Gestión administrativa"));
-    const title = element("h2", "", isDeactivation ? "Dar de baja invitado" : "Reactivar invitado");
+    const title = element("h2", "", isDeactivation ? "Dar de baja invitación" : "Reactivar invitación");
     title.id = "guest-status-title";
     heading.append(
       title,
@@ -328,7 +328,7 @@
 
     const footer = element("footer", "guest-editor-footer guest-status-footer");
     const cancel = actionButton("Cancelar");
-    const confirm = actionButton(isDeactivation ? "Dar de baja invitado" : "Reactivar invitado", true);
+    const confirm = actionButton(isDeactivation ? "Dar de baja invitación" : "Reactivar invitación", true);
     if (isDeactivation) confirm.classList.add("guest-status-danger-action");
     confirm.type = "submit";
     footer.append(cancel, confirm);
@@ -376,7 +376,7 @@
       cancel.disabled = true;
       closeButton.disabled = true;
       confirm.setAttribute("aria-busy", "true");
-      status.textContent = isDeactivation ? "Dando de baja invitado…" : "Reactivando invitado…";
+      status.textContent = isDeactivation ? "Dando de baja invitación…" : "Reactivando invitación…";
 
       try {
         const result = await window.AdminGuestsService.changeGuestStatus({
@@ -390,8 +390,8 @@
         setFeedback(
           "success",
           result.cambio_aplicado
-            ? (targetActive ? "Invitado reactivado correctamente." : "Invitado dado de baja correctamente.")
-            : "El invitado ya tenía ese estado."
+            ? (targetActive ? "Invitación reactivada correctamente." : "Invitación dada de baja correctamente.")
+            : "La invitación ya tenía ese estado."
         );
         await onChanged();
       } catch (error) {
@@ -418,7 +418,7 @@
     const head = element("header", "guest-editor-head");
     const heading = element("div");
     heading.append(element("p", "admin-eyebrow", "Gestión administrativa"));
-    const title = element("h2", "", "Nuevo invitado");
+    const title = element("h2", "", "Nueva invitación");
     title.id = "guest-create-title";
     heading.append(title, element("p", "guest-editor-code", "El código y el enlace se generarán automáticamente."));
     const closeButton = actionButton("Cerrar");
@@ -482,7 +482,7 @@
 
     const footer = element("footer", "guest-editor-footer");
     const cancel = actionButton("Cancelar");
-    const save = actionButton("Crear invitado", true);
+    const save = actionButton("Crear invitación", true);
     save.type = "submit";
     footer.append(cancel, save);
 
@@ -513,7 +513,7 @@
         (created.ninos_asignados ? ` · ${created.ninos_asignados} ${created.ninos_asignados === 1 ? "niño" : "niños"}` : "");
       const result = element("section", "guest-create-success");
       result.append(
-        element("p", "admin-eyebrow", "Invitado creado correctamente"),
+        element("p", "admin-eyebrow", "Invitación creada correctamente"),
         element("h3", "", created.nombre),
         element("p", "guest-create-code", `${created.codigo} · ${created.grupo}`),
         element("p", "guest-create-pass", `Pase: ${pass}`)
@@ -736,15 +736,15 @@
     const root = element("section", "guest-directory-view");
     const header = element("header", "admin-view-header guest-directory-header");
     const headerCopy = element("div", "guest-directory-header-copy");
-    headerCopy.append(element("p", "admin-eyebrow", "Gestión administrativa"), element("h2", "", "Invitados"), element("p", "admin-view-copy", "Localiza una invitación y administra sus acciones desde un solo lugar."));
-    const newGuest = actionButton("+ Nuevo invitado", true);
+    headerCopy.append(element("p", "admin-eyebrow", "Gestión administrativa"), element("h2", "", "Invitaciones"), element("p", "admin-view-copy", "Administra cada invitación, su cupo de personas y las acciones asociadas desde un solo lugar."));
+    const newGuest = actionButton("+ Nueva invitación", true);
     newGuest.classList.add("guest-new-button");
     header.append(headerCopy, newGuest);
 
     const controls = element("section", "guest-directory-controls");
-    controls.setAttribute("aria-label", "Búsqueda y filtros de invitados");
+    controls.setAttribute("aria-label", "Búsqueda y filtros de invitaciones");
     const searchField = element("label", "guest-search-field");
-    searchField.append(element("span", "", "Buscar invitado"));
+    searchField.append(element("span", "", "Buscar invitación"));
     const search = document.createElement("input");
     search.type = "search";
     search.placeholder = "Nombre, código, grupo o teléfono…";
@@ -773,7 +773,7 @@
     const list = element("div", "guest-directory-list");
 
     const pagination = element("nav", "guest-directory-pagination");
-    pagination.setAttribute("aria-label", "Paginación de invitados");
+    pagination.setAttribute("aria-label", "Paginación de invitaciones");
     const previous = actionButton("Anterior");
     const pageLabel = element("span");
     const next = actionButton("Siguiente");
@@ -803,7 +803,7 @@
         const detail = await window.AdminGuestsService.getGuestDetail(invitadoId);
         openEditor(detail, { onSaved: () => load(), setFeedback });
       } catch (error) {
-        setFeedback("error", "No fue posible cargar los datos del invitado para editar.");
+        setFeedback("error", "No fue posible cargar los datos de la invitación para editar.");
       }
     }
 
@@ -819,7 +819,7 @@
 
     async function changeGuestStatus(invitadoId) {
       try {
-        setFeedback("loading", "Cargando invitado…");
+        setFeedback("loading", "Cargando invitación…");
         const detail = await window.AdminGuestsService.getGuestDetail(invitadoId);
         setFeedback("", "");
         openStatusDialog(detail, {
@@ -830,21 +830,21 @@
           },
         });
       } catch (error) {
-        setFeedback("error", "No fue posible cargar los datos del invitado.");
+        setFeedback("error", "No fue posible cargar los datos de la invitación.");
       }
     }
 
     function render(envelope) {
       const { items, paginacion } = envelope.data;
       ui.list.replaceChildren(...items.map((guest) => guestCard(guest, setFeedback, editGuest, changeGuestStatus)));
-      ui.count.replaceChildren(document.createTextNode("Resultados: "), element("strong", "", `${paginacion.total_registros} ${paginacion.total_registros === 1 ? "invitado" : "invitados"}`));
+      ui.count.replaceChildren(document.createTextNode("Resultados: "), element("strong", "", `${paginacion.total_registros} ${paginacion.total_registros === 1 ? "invitación" : "invitaciones"}`));
       ui.pageLabel.textContent = paginacion.total_paginas ? `Página ${paginacion.pagina} de ${paginacion.total_paginas}` : "Página 0 de 0";
       ui.previous.disabled = paginacion.pagina <= 1;
       ui.next.disabled = paginacion.total_paginas === 0 || paginacion.pagina >= paginacion.total_paginas;
       ui.pagination.hidden = paginacion.total_registros === 0;
       if (items.length === 0) {
         const hasCustomCriteria = Boolean(state.search || state.group || state.state || state.active !== true || state.withChildren !== null);
-        setFeedback("empty", hasCustomCriteria ? "No encontramos invitados que coincidan con la búsqueda o los filtros." : "Todavía no hay invitados activos registrados.");
+        setFeedback("empty", hasCustomCriteria ? "No encontramos invitaciones que coincidan con la búsqueda o los filtros." : "Todavía no hay invitaciones activas registradas.");
       } else {
         setFeedback("", "");
       }
@@ -854,7 +854,7 @@
       if (!ui.root.isConnected) return;
       const currentRequest = ++requestId;
       if (initial) {
-        setFeedback("loading", "Cargando invitados…");
+        setFeedback("loading", "Cargando invitaciones…");
         ui.list.replaceChildren();
       } else {
         ui.updateState.textContent = "Actualizando resultados…";
@@ -872,7 +872,7 @@
           ui.list.replaceChildren();
           ui.count.textContent = "Resultados no disponibles";
         }
-        setFeedback("error", "No fue posible consultar los invitados. Intenta nuevamente.");
+        setFeedback("error", "No fue posible consultar las invitaciones. Intenta nuevamente.");
       } finally {
         if (currentRequest === requestId && ui.root.isConnected) {
           ui.updateState.textContent = "";

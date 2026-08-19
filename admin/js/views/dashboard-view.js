@@ -39,10 +39,11 @@
     const f = window.AdminDashboardFormatters;
     const i = data.indicadores;
     const definitions = [
-      ["Invitados activos", i.invitaciones_activas, "invitaciones vigentes"],
-      ["Personas confirmadas", i.personas_confirmadas, `${f.formatNumber(i.adultos_confirmados)} adultos · ${f.formatNumber(i.ninos_confirmados)} niños`, "positive"],
-      ["Pendientes de confirmar", i.invitaciones_pendientes, "invitaciones sin respuesta", i.invitaciones_pendientes ? "attention" : "positive"],
-      ["Pendientes de mesa", i.pendientes_mesa, "personas confirmadas por ubicar", i.pendientes_mesa ? "attention" : "positive"],
+      ["Invitaciones activas", i.invitaciones_activas, "invitaciones vigentes"],
+      ["Asistentes invitados", i.personas_invitadas, `${f.formatNumber(i.adultos_invitados)} adultos · ${f.formatNumber(i.ninos_invitados)} niños`],
+      ["Asistentes confirmados", i.personas_confirmadas, `${f.formatNumber(i.adultos_confirmados)} adultos · ${f.formatNumber(i.ninos_confirmados)} niños`, "positive"],
+      ["Invitaciones pendientes", i.invitaciones_pendientes, "sin respuesta", i.invitaciones_pendientes ? "attention" : "positive"],
+      ["Pendientes de mesa", i.pendientes_mesa, "asistentes confirmados por ubicar", i.pendientes_mesa ? "attention" : "positive"],
     ];
     const grid = el("div", "dashboard-kpi-grid dashboard-operational-kpis");
     definitions.forEach(([label, value, detail, tone]) => {
@@ -57,7 +58,7 @@
     const items = [];
 
     if (i.invitaciones_pendientes > 0) {
-      items.push(["invitaciones", `${i.invitaciones_pendientes} invitaciones sin respuesta`, "Revisa a quiénes falta confirmar asistencia.", "Ver pendientes", "#/invitados"]);
+      items.push(["invitaciones", `${i.invitaciones_pendientes} invitaciones sin respuesta`, "Revisa qué invitaciones siguen sin respuesta.", "Ver pendientes", "#/invitados"]);
     }
     if (i.pendientes_mesa > 0) {
       items.push(["mesas", `${i.pendientes_mesa} personas confirmadas sin mesa`, "Asigna una mesa para completar la distribución.", "Asignar mesas", "#/mesas"]);
@@ -88,10 +89,10 @@
 
   function activityLabel(type, action) {
     const labels = {
-      "invitado:creado": "Invitado creado",
-      "invitado:actualizado": "Invitado actualizado",
-      "invitado:desactivado": "Invitado dado de baja",
-      "invitado:reactivado": "Invitado reactivado",
+      "invitado:creado": "Invitación creada",
+      "invitado:actualizado": "Invitación actualizada",
+      "invitado:desactivado": "Invitación dada de baja",
+      "invitado:reactivado": "Invitación reactivada",
       "confirmacion:creada": "Confirmación recibida",
       "confirmacion:actualizada": "Confirmación actualizada",
       "mesa:configuracion_inicial": "Mesas configuradas",
@@ -136,7 +137,7 @@
   function renderShortcuts(target) {
     const grid = el("div", "dashboard-shortcuts-grid");
     [
-      ["Invitados", "Administrar padrón, enlaces y altas.", "#/invitados"],
+      ["Invitaciones", "Administrar invitaciones, cupos y enlaces.", "#/invitados"],
       ["Confirmaciones", "Revisar respuestas e historial.", "#/confirmaciones"],
       ["Mesas", "Distribuir asistentes confirmados.", "#/mesas"],
       ["Estadísticas", "Consultar métricas y tendencias.", "#/estadisticas"],
