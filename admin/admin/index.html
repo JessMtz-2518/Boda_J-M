@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Administración | Jessica &amp; Marcos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=EB+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/admin.css?v=9.4.3">
+</head>
+<body class="admin-loading">
+  <main class="admin-page">
+    <section class="admin-login" id="adminLogin" hidden>
+      <article class="admin-login-card" aria-labelledby="adminLoginTitle">
+        <p class="admin-eyebrow">Jessica &amp; Marcos</p>
+        <h1 id="adminLoginTitle">Panel administrativo</h1>
+        <p class="admin-intro">Acceso exclusivo para administradores autorizados.</p>
+        <form id="adminLoginForm">
+          <label class="admin-field" for="adminEmail"><span>Correo electrónico</span><input id="adminEmail" name="email" type="email" autocomplete="username" required></label>
+          <label class="admin-field" for="adminPassword"><span>Contraseña</span><input id="adminPassword" name="password" type="password" autocomplete="current-password" required></label>
+          <button class="admin-button" id="adminLoginButton" type="submit">Iniciar sesión</button>
+          <p class="admin-message" id="adminLoginMessage" role="status" aria-live="polite"></p>
+        </form>
+      </article>
+    </section>
+
+    <section class="admin-shell" id="adminShell" hidden>
+      <aside class="admin-sidebar" id="adminSidebar">
+        <div class="admin-brand"><p class="admin-eyebrow">Jessica &amp; Marcos</p><strong>Administración</strong></div>
+        <nav class="admin-nav" aria-label="Navegación administrativa">
+          <a href="#/dashboard" data-admin-route="dashboard">Dashboard</a>
+          <a href="#/invitados" data-admin-route="invitados">Invitaciones</a>
+          <a href="#/confirmaciones" data-admin-route="confirmaciones">Confirmaciones</a>
+          <a href="#/estadisticas" data-admin-route="estadisticas">Estadísticas</a>
+          <a href="#/mesas" data-admin-route="mesas">Mesas</a>
+          <a href="#/reportes" data-admin-route="reportes">Reportes</a>
+          <a href="#/planeacion" data-admin-route="planeacion">Planeación</a>
+          <a href="#/presupuesto" data-admin-route="presupuesto">Presupuesto</a>
+          <a href="#/timeline" data-admin-route="timeline">Timeline</a>
+          <a href="#/contratos" data-admin-route="contratos">Contratos</a>
+          <a href="#/esenciales" data-admin-route="esenciales">Esenciales</a>
+        </nav>
+      </aside>
+
+      <div class="admin-workspace">
+        <header class="admin-header">
+          <button class="admin-menu-button" id="adminMenuButton" type="button" aria-controls="adminSidebar" aria-expanded="false"><span aria-hidden="true">☰</span><span class="sr-only">Abrir menú</span></button>
+          <div class="admin-session">
+            <div class="admin-account-wrap">
+              <button class="admin-account-button" id="adminAccountButton" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="adminAccountMenu">
+                <span class="admin-account-copy"><strong id="adminName"></strong><span id="adminRole"></span></span>
+                <span class="admin-account-chevron" aria-hidden="true">⌄</span>
+              </button>
+              <div class="admin-account-menu" id="adminAccountMenu" role="menu" hidden>
+                <div class="admin-account-menu-head">
+                  <strong id="adminAccountMenuName">Mi cuenta</strong>
+                  <span id="adminAccountEmail"></span>
+                </div>
+                <button id="adminEditAccountButton" type="button" role="menuitem">Mi cuenta</button>
+                <button id="adminLogoutButton" class="admin-account-logout" type="button" role="menuitem">Cerrar sesión</button>
+              </div>
+            </div>
+          </div>
+        </header>
+        <div class="admin-route-view" id="adminRouteView" tabindex="-1" aria-live="polite"></div>
+      </div>
+      <button class="admin-sidebar-backdrop" id="adminSidebarBackdrop" type="button" aria-label="Cerrar menú" hidden></button>
+    </section>
+
+    <section class="admin-fatal" id="adminFatal" hidden><article class="admin-login-card"><p class="admin-eyebrow">Acceso no disponible</p><h1>No pudimos iniciar el panel</h1><p id="adminFatalMessage">Intenta nuevamente más tarde.</p></article></section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
+  <script src="../js/supabase-config.js" defer></script>
+  <script src="js/config/supabase-admin-client.js" defer></script>
+  <script src="js/auth/auth-service.js?v=9.3.0" defer></script>
+  <script src="js/auth/auth-guard.js" defer></script>
+  <script src="js/services/dashboard-service.js?v=6.2.0" defer></script>
+  <script src="js/services/guests-service.js" defer></script>
+  <script src="js/services/confirmations-service.js" defer></script>
+  <script src="js/services/tables-service.js" defer></script>
+  <script src="js/services/reports-service.js?v=6.1.0" defer></script>
+  <script src="js/services/planner-service.js?v=7.1.1" defer></script>
+  <script src="js/services/finance-service.js?v=7.2.0" defer></script>
+  <script src="js/services/contracts-service.js?v=7.7.3" defer></script>
+  <script src="js/services/essentials-service.js?v=9.2.3" defer></script>
+  <script src="js/utils/dashboard-formatters.js" defer></script>
+  <script src="js/utils/invitation-url.js" defer></script>
+  <script src="js/utils/whatsapp.js" defer></script>
+  <script src="js/utils/qr-code.js" defer></script>
+  <script src="js/components/guest-actions.js" defer></script>
+  <script src="js/components/dashboard/dashboard-feedback.js" defer></script>
+  <script src="js/components/dashboard/kpi-card.js" defer></script>
+  <script src="js/components/dashboard/recent-confirmations.js" defer></script>
+  <script src="js/components/dashboard/group-statistics.js" defer></script>
+  <script src="js/components/dashboard/evolution-chart.js" defer></script>
+  <script src="js/views/dashboard-view.js?v=9.2.7" defer></script>
+  <script src="js/views/invitados-view.js?v=9.4.1" defer></script>
+  <script src="js/views/confirmaciones-view.js" defer></script>
+  <script src="js/views/estadisticas-view.js" defer></script>
+  <script src="js/views/mesas-view.js?v=5.2.11" defer></script>
+  <script src="js/views/reportes-view.js?v=6.1.0" defer></script>
+  <script src="js/views/planeacion-view.js?v=7.1.1" defer></script>
+  <script src="js/views/presupuesto-view.js?v=7.2.0" defer></script>
+  <script src="js/views/timeline-view.js?v=7.5.0" defer></script>
+  <script src="js/views/contratos-view.js?v=7.7.3" defer></script>
+  <script src="js/views/esenciales-view.js?v=9.2.4" defer></script>
+  <script src="js/components/account-menu.js?v=9.3.1" defer></script>
+  <script src="js/components/notification-center.js?v=9.2.7" defer></script>
+  <script src="js/router/hash-router.js" defer></script>
+  <script src="js/admin-app.js?v=9.3.0" defer></script>
+</body>
+</html>
