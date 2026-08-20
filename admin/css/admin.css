@@ -3845,3 +3845,126 @@ body.finance-modal-open{overflow:hidden}
   .dashboard-priority-group-header{min-height:54px;padding:10px 12px}
   .dashboard-priority-group-toggle{width:32px;height:32px;flex-basis:32px}
 }
+
+
+/* =========================================================
+   AJUSTE RESPONSIVE · PRESUPUESTO / PAGOS
+   Evita desbordamiento horizontal en celular
+   ========================================================= */
+@media(max-width:700px){
+  .finance-view,
+  .finance-content,
+  .finance-panel,
+  .finance-subpanel,
+  .finance-table-wrap{
+    min-width:0;
+    max-width:100%;
+  }
+
+  .finance-panel,
+  .finance-subpanel{
+    overflow:hidden;
+  }
+
+  /* Las tres pestañas permanecen visibles sin desplazamiento lateral. */
+  .finance-tabs{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:6px;
+    overflow:visible;
+  }
+
+  .finance-tab{
+    min-width:0;
+    padding:0 8px;
+    font-size:.7rem;
+    white-space:nowrap;
+  }
+
+  /* En móvil el calendario deja de comportarse como tabla ancha
+     y cada pago se convierte en una tarjeta vertical. */
+  .finance-table-wrap{
+    width:100%;
+    overflow:visible;
+  }
+
+  .finance-table{
+    display:block;
+    width:100%;
+    min-width:0;
+  }
+
+  .finance-table thead{
+    display:none;
+  }
+
+  .finance-table tbody{
+    display:grid;
+    gap:12px;
+    width:100%;
+  }
+
+  .finance-table tr{
+    display:grid;
+    width:100%;
+    padding:14px;
+    border:1px solid var(--admin-line);
+    border-radius:14px;
+    background:rgba(255,255,255,.42);
+  }
+
+  .finance-table td{
+    display:grid;
+    grid-template-columns:minmax(88px,36%) minmax(0,1fr);
+    align-items:start;
+    gap:10px;
+    width:100%;
+    min-width:0;
+    padding:8px 0;
+    border-bottom:1px solid rgba(86,101,74,.10);
+    overflow-wrap:anywhere;
+  }
+
+  .finance-table td:last-child{
+    border-bottom:0;
+    padding-bottom:0;
+  }
+
+  .finance-table td::before{
+    color:var(--admin-muted);
+    font-size:.63rem;
+    font-weight:600;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+  }
+
+  .finance-table td:nth-child(1)::before{content:"Fecha"}
+  .finance-table td:nth-child(2)::before{content:"Concepto"}
+  .finance-table td:nth-child(3)::before{content:"Proveedor"}
+  .finance-table td:nth-child(4)::before{content:"Monto"}
+  .finance-table td:nth-child(5)::before{content:"Estado"}
+  .finance-table td:nth-child(6)::before{content:"Acciones"}
+
+  .finance-table-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    width:100%;
+  }
+
+  .finance-table-actions .admin-button{
+    width:100%;
+    min-width:0;
+    padding-left:8px;
+    padding-right:8px;
+  }
+
+  .finance-panel-head{
+    width:100%;
+    min-width:0;
+  }
+
+  .finance-panel-head .admin-button{
+    max-width:100%;
+  }
+}
