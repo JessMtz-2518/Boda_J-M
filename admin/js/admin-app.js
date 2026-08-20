@@ -17,6 +17,12 @@
   function setLoginBusy(busy) { elements.adminEmail.disabled=busy; elements.adminPassword.disabled=busy; elements.adminLoginButton.disabled=busy; elements.adminLoginButton.textContent=busy?"Verificando...":"Iniciar sesion"; }
   function toggleMenu(open) { elements.adminShell.classList.toggle("menu-open",open); elements.adminMenuButton.setAttribute("aria-expanded",String(open)); elements.adminSidebarBackdrop.hidden=!open; }
   function resetRouteToDashboard() { history.replaceState(null,"","#/dashboard"); }
+  const routeGroups={invitados:"invitados",confirmaciones:"invitados",estadisticas:"invitados",mesas:"invitados",planeacion:"organizacion",timeline:"organizacion",esenciales:"organizacion",padrinos:"organizacion",presupuesto:"finanzas",contratos:"finanzas",reportes:"reportes"};
+  function syncNavGroups(){
+    const route=(location.hash.replace(/^#\//,"")||"dashboard").split(/[?&]/)[0];
+    const activeGroup=routeGroups[route]||null;
+    document.querySelectorAll(".admin-nav-group").forEach((group)=>{group.open=Boolean(activeGroup&&group.dataset.navGroup===activeGroup);});
+  }
 
   async function resolveCurrentAccess() {
     if(resolving)return; resolving=true;
@@ -45,7 +51,13 @@
     if(!resolveElements())return;
     elements.adminLoginForm.addEventListener("submit",handleLogin); elements.adminLogoutButton.addEventListener("click",handleLogout);
     elements.adminMenuButton.addEventListener("click",()=>toggleMenu(!elements.adminShell.classList.contains("menu-open"))); elements.adminSidebarBackdrop.addEventListener("click",()=>toggleMenu(false));
-    elements.adminShell.addEventListener("click",(event)=>{if(event.target.closest("[data-admin-route]"))toggleMenu(false);}); window.addEventListener("admin:session-expired",handleSessionExpired);
+    elements.adminShell.addEventListener("click",(event)=>{
+      const routeLink=event.target.closest("[data-admin-route]");
+      if(routeLink){toggleMenu(false);setTimeout(syncNavGroups,0);return;}
+      const summary=event.target.closest(".admin-nav-group > summary");
+      if(summary){const current=summary.parentElement;document.querySelectorAll(".admin-nav-group[open]").forEach((group)=>{if(group!==current)group.open=false;});}
+    });
+    window.addEventListener("hashchange",syncNavGroups); syncNavGroups(); window.addEventListener("admin:session-expired",handleSessionExpired);
     const {data}=window.AdminAuthService.onAuthStateChange(({event})=>{if(event==="SIGNED_OUT"&&!resolving)showLogin();}); authSubscription=data?.subscription||null;
     window.addEventListener("pagehide",()=>{authSubscription?.unsubscribe?.();window.removeEventListener("admin:session-expired",handleSessionExpired);},{once:true}); await resolveCurrentAccess();
   }
