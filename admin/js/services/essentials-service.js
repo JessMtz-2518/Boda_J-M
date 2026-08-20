@@ -1,9 +1,35 @@
 (()=>{"use strict";
-const RPC={summary:"admin_esenciales_resumen",save:"admin_esenciales_guardar",saveSmart:"admin_esenciales_guardar_inteligente",remove:"admin_esenciales_eliminar"};
+const RPC={summary:"admin_esenciales_resumen",save:"admin_esenciales_guardar",saveSmart:"admin_esenciales_guardar_inteligente",remove:"admin_esenciales_eliminar",sections:"admin_esenciales_listar_secciones",saveSection:"admin_esenciales_guardar_seccion",editSection:"admin_esenciales_editar_seccion",editItem:"admin_esenciales_editar",visibility:"admin_esenciales_visibilidad",setVisibility:"admin_esenciales_cambiar_visibilidad"};
 function client(){const c=window.AdminSupabaseClient?.getClient?.();if(!c)throw new Error("El cliente administrativo no está disponible.");return c}
 function env(v){if(!v||v.schema_version!=="1.0"||!v.data)throw new Error("La respuesta de Esenciales no tiene el formato esperado.");return v}
 function session(error){const m=String(error?.message||"").toLowerCase();if(Number(error?.status||0)===401||Number(error?.status||0)===403||m.includes("acceso_administrativo_no_autorizado")){window.dispatchEvent(new CustomEvent("admin:session-expired"))}throw error}
-async function getSummary(){const{data,error}=await client().rpc(RPC.summary);if(error)session(error);return env(data).data}
+function recalcSummary(data){
+  const items=data?.items||[];
+  const applicable=items.filter(i=>i.estado!=="no_aplica");
+  data.resumen={
+    ...(data.resumen||{}),
+    total:applicable.length,
+    listos:items.filter(i=>i.estado==="listo").length,
+    contratados:items.filter(i=>i.estado==="contratado").length,
+    en_decision:items.filter(i=>["buscando","elegido"].includes(i.estado)).length,
+    por_definir:items.filter(i=>i.estado==="por_definir").length
+  };
+  return data
+}
+async function getVisibility(){const{data,error}=await client().rpc(RPC.visibility);if(error)session(error);return env(data).data}
+async function getSummary(){
+  const [summaryResponse,visibilityData]=await Promise.all([
+    client().rpc(RPC.summary),
+    getVisibility()
+  ]);
+  if(summaryResponse.error)session(summaryResponse.error);
+  const data=env(summaryResponse.data).data;
+  const visibility=new Map((visibilityData?.items||[]).map(x=>[Number(x.esencial_id),x.habilitado!==false]));
+  data.allItems=(data.items||[]).map(i=>({...i,habilitado:visibility.get(Number(i.id))!==false}));
+  data.disabledItems=data.allItems.filter(i=>i.habilitado===false);
+  data.items=data.allItems.filter(i=>i.habilitado!==false);
+  return recalcSummary(data)
+}
 async function saveItem(item){
   let response;
   if(item?.id){
@@ -29,4 +55,9 @@ async function saveItem(item){
   if(response.error)session(response.error);return env(response.data)
 }
 async function deleteItem(id){const{data,error}=await client().rpc(RPC.remove,{p_id:Number(id)});if(error)session(error);return env(data)}
-window.AdminEssentialsService=Object.freeze({getSummary,saveItem,deleteItem})})();
+async function getSections(){const{data,error}=await client().rpc(RPC.sections);if(error)session(error);return env(data).data}
+async function saveSection(name){const{data,error}=await client().rpc(RPC.saveSection,{p_nombre:String(name||"").trim()});if(error)session(error);return env(data).data}
+async function editSection(oldName,newName){const{data,error}=await client().rpc(RPC.editSection,{p_nombre_anterior:String(oldName||"").trim(),p_nombre_nuevo:String(newName||"").trim()});if(error)session(error);return env(data).data}
+async function editItem(id,title,category){const{data,error}=await client().rpc(RPC.editItem,{p_id:Number(id),p_titulo:String(title||"").trim(),p_categoria:String(category||"").trim()});if(error)session(error);return env(data).data}
+async function setVisibility(id,enabled){const{data,error}=await client().rpc(RPC.setVisibility,{p_id:Number(id),p_habilitado:enabled!==false});if(error)session(error);return env(data).data}
+window.AdminEssentialsService=Object.freeze({getSummary,saveItem,deleteItem,getSections,saveSection,editSection,editItem,getVisibility,setVisibility})})();

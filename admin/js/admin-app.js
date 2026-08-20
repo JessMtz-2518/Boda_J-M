@@ -12,7 +12,7 @@
   function hideAll() { elements.adminLogin.hidden=true; elements.adminShell.hidden=true; elements.adminFatal.hidden=true; }
   function stopRouter() { if (routerStarted) { window.AdminRouter.stop(); routerStarted=false; } }
   function showLogin(message="") { stopRouter(); hideAll(); elements.adminLoginMessage.textContent=message; elements.adminPassword.value=""; elements.adminLogin.hidden=false; document.body.classList.remove("admin-loading"); }
-  function showShell(access) { hideAll(); elements.adminName.textContent=access.name; elements.adminRole.textContent=access.role; elements.adminShell.hidden=false; document.body.classList.remove("admin-loading"); if(!routerStarted){window.AdminRouter.start(elements.adminRouteView);routerStarted=true;} }
+  function showShell(access) { hideAll(); elements.adminName.textContent=access.name; elements.adminRole.textContent=access.role; elements.adminShell.hidden=false; document.body.classList.remove("admin-loading"); if(!routerStarted){window.AdminRouter.start(elements.adminRouteView);routerStarted=true;} window.dispatchEvent(new CustomEvent("admin:access-ready")); }
   function showFatal(message) { stopRouter(); hideAll(); elements.adminFatalMessage.textContent=message; elements.adminFatal.hidden=false; document.body.classList.remove("admin-loading"); }
   function setLoginBusy(busy) { elements.adminEmail.disabled=busy; elements.adminPassword.disabled=busy; elements.adminLoginButton.disabled=busy; elements.adminLoginButton.textContent=busy?"Verificando...":"Iniciar sesion"; }
   function toggleMenu(open) { elements.adminShell.classList.toggle("menu-open",open); elements.adminMenuButton.setAttribute("aria-expanded",String(open)); elements.adminSidebarBackdrop.hidden=!open; }

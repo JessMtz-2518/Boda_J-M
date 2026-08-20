@@ -133,10 +133,24 @@
     }
 
     if (planner) {
-      planner.tasks.filter((t) => !["completada", "cancelada"].includes(t.status)).map((t) => ({ ...t, days: daysFromToday(t.dueDate) })).filter((t) => t.days !== null && t.days <= 30).forEach((t) => {
-        const score = t.days < 0 ? 100 : t.days <= 7 ? 94 : 76;
-        add(score, t.title, `${t.category || "General"} · ${t.responsible || "Sin responsable"} · ${t.days < 0 ? `vencida hace ${Math.abs(t.days)} días` : t.days === 0 ? "vence hoy" : `vence en ${t.days} días`}`, "Ver tarea", "#/planeacion", score >= 94 ? "critical" : "planner", "Tarea");
-      });
+      const linkedTaskIds = new Set(
+        (essentials?.items || [])
+          .filter((essential) => {
+            const result = essentialPriority(essential);
+            return Number.isInteger(Number(essential.tarea_id)) && result && result.score >= 50;
+          })
+          .map((essential) => Number(essential.tarea_id))
+      );
+
+      planner.tasks
+        .filter((t) => !["completada", "cancelada"].includes(t.status))
+        .filter((t) => !linkedTaskIds.has(Number(t.id)))
+        .map((t) => ({ ...t, days: daysFromToday(t.dueDate) }))
+        .filter((t) => t.days !== null && t.days <= 30)
+        .forEach((t) => {
+          const score = t.days < 0 ? 100 : t.days <= 7 ? 94 : 76;
+          add(score, t.title, `${t.category || "General"} · ${t.responsible || "Sin responsable"} · ${t.days < 0 ? `vencida hace ${Math.abs(t.days)} días` : t.days === 0 ? "vence hoy" : `vence en ${t.days} días`}`, "Ver tarea", "#/planeacion", score >= 94 ? "critical" : "planner", "Tarea");
+        });
     }
 
     if (essentials?.items) {
@@ -548,6 +562,7 @@
       } finally {
         refresh.disabled = false;
         refresh.textContent = "Actualizar";
+        window.dispatchEvent(new CustomEvent("admin:alerts-refresh"));
       }
     }
 

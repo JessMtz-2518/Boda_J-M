@@ -56,6 +56,48 @@
     return "No fue posible guardar los cambios. Revisa los datos e intenta nuevamente.";
   }
 
+  async function validateTableCapacity(additionalSeats) {
+    const delta = Number(additionalSeats) || 0;
+    if (delta <= 0) return { ok: true };
+
+    if (!window.AdminTablesService?.getConfiguration) {
+      return {
+        ok: false,
+        message: "No fue posible validar la capacidad de las mesas. Intenta nuevamente."
+      };
+    }
+
+    try {
+      const envelope = await window.AdminTablesService.getConfiguration();
+      const config = envelope?.data || {};
+
+      // Si todavía no se ha configurado Mesas, no bloqueamos el alta.
+      if (!config.configurado) return { ok: true };
+
+      const current = Number(config.cupo_invitados_activos) || 0;
+      const capacity = Number(config.capacidad_total_actual) || 0;
+      const projected = current + delta;
+
+      if (projected <= capacity) return { ok: true };
+
+      const missing = projected - capacity;
+      return {
+        ok: false,
+        missing,
+        current,
+        capacity,
+        projected,
+        message: `No hay suficientes lugares en las mesas para este cambio. Necesitas aumentar la capacidad en ${missing} ${missing === 1 ? "lugar" : "lugares"} antes de continuar. Ve a Mesas y agrega lugares o una mesa.`
+      };
+    } catch (error) {
+      console.error("Validación de capacidad de mesas:", error);
+      return {
+        ok: false,
+        message: "No fue posible validar la capacidad de las mesas. Intenta nuevamente."
+      };
+    }
+  }
+
   function counterField(labelText, initialValue, minimum = 0) {
     const wrapper = element("div", "guest-editor-counter-field");
     wrapper.append(element("span", "guest-editor-label", labelText));
@@ -214,6 +256,20 @@
       status.textContent = "Guardando cambios…";
 
       try {
+        const newTotal = adults.getValue() + children.getValue();
+        const oldTotal = Number(detail.cupo_total) || 0;
+        const increase = detail.activo ? Math.max(0, newTotal - oldTotal) : 0;
+        const capacityCheck = await validateTableCapacity(increase);
+        if (!capacityCheck.ok) {
+          status.className = "guest-editor-status guest-editor-status-error";
+          status.textContent = capacityCheck.message;
+          save.disabled = false;
+          cancel.disabled = false;
+          closeButton.disabled = false;
+          save.removeAttribute("aria-busy");
+          return;
+        }
+
         const result = await window.AdminGuestsService.updateGuest({
           invitadoId: detail.invitado_id,
           nombre: trimmedName,
@@ -379,6 +435,19 @@
       status.textContent = isDeactivation ? "Dando de baja invitación…" : "Reactivando invitación…";
 
       try {
+        if (targetActive) {
+          const capacityCheck = await validateTableCapacity(Number(detail.cupo_total) || 0);
+          if (!capacityCheck.ok) {
+            status.className = "guest-editor-status guest-editor-status-error";
+            status.textContent = capacityCheck.message;
+            confirm.disabled = false;
+            cancel.disabled = false;
+            closeButton.disabled = false;
+            confirm.removeAttribute("aria-busy");
+            return;
+          }
+        }
+
         const result = await window.AdminGuestsService.changeGuestStatus({
           invitadoId: detail.invitado_id,
           activo: targetActive,
@@ -598,6 +667,17 @@
       status.textContent = "Creando invitado…";
 
       try {
+        const capacityCheck = await validateTableCapacity(total);
+        if (!capacityCheck.ok) {
+          status.className = "guest-editor-status guest-editor-status-error";
+          status.textContent = capacityCheck.message;
+          save.disabled = false;
+          cancel.disabled = false;
+          closeButton.disabled = false;
+          save.removeAttribute("aria-busy");
+          return;
+        }
+
         const capturedPhone = phone.value.trim();
         const created = await window.AdminGuestsService.createGuest({
           nombre: trimmedName,

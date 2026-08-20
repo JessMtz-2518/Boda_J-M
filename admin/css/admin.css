@@ -3968,3 +3968,925 @@ body.finance-modal-open{overflow:hidden}
     max-width:100%;
   }
 }
+
+/* =========================================================
+   FASE 9.1 · CENTRO DE ALERTAS
+   ========================================================= */
+.admin-notification-wrap{position:relative;margin-left:auto}.admin-notification-button{position:relative;display:grid;width:46px;height:46px;place-items:center;border:1px solid var(--admin-line);border-radius:50%;background:rgba(255,250,241,.75);color:var(--admin-olive-dark);font-size:1.35rem;cursor:pointer}.admin-notification-button:hover{background:#fffaf1}.admin-notification-badge{position:absolute;right:-5px;top:-5px;min-width:21px;height:21px;padding:0 5px;border-radius:999px;background:#8d3f3f;color:#fff;font:700 .64rem/21px Montserrat,sans-serif;text-align:center}.admin-notification-drawer{position:absolute;right:0;top:58px;width:min(440px,calc(100vw - 32px));max-height:min(650px,75vh);overflow:auto;border:1px solid var(--admin-line);border-radius:20px;background:var(--admin-ivory);box-shadow:0 24px 65px rgba(38,46,33,.2);z-index:60}.admin-notification-drawer[hidden]{display:none!important}.admin-notification-drawer header{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px 14px;border-bottom:1px solid var(--admin-line);background:rgba(255,250,241,.97);z-index:2}.admin-notification-drawer header span{display:block;margin-bottom:3px;color:var(--admin-olive);font-size:.58rem;font-weight:600;letter-spacing:.12em}.admin-notification-drawer h2{margin:0;font-family:"Cormorant Garamond",Georgia,serif;font-size:1.7rem}.admin-notification-drawer header button{width:34px;height:34px;border:1px solid var(--admin-line);border-radius:50%;background:transparent;color:var(--admin-ink);font-size:1.25rem;cursor:pointer}.admin-notification-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:12px 14px;border-bottom:1px solid var(--admin-line)}.admin-notification-summary span{padding:9px 6px;border-radius:10px;background:rgba(86,101,74,.055);color:var(--admin-muted);font-size:.62rem;text-align:center}.admin-notification-summary b{display:block;margin-bottom:2px;color:var(--admin-olive-dark);font-family:"Cormorant Garamond",Georgia,serif;font-size:1.25rem}.admin-notification-list{display:grid;gap:8px;padding:12px}.admin-notification-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border:1px solid var(--admin-line);border-left:4px solid #b8b3a2;border-radius:13px;color:var(--admin-ink);text-decoration:none}.admin-notification-item.is-urgent{border-left-color:#8d3f3f;background:rgba(141,63,63,.04)}.admin-notification-item.is-high{border-left-color:#ab7748;background:rgba(171,119,72,.04)}.admin-notification-item.is-upcoming{border-left-color:#ae9666}.admin-notification-item div>span{display:block;margin-bottom:3px;color:var(--admin-muted);font-size:.56rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em}.admin-notification-item strong{display:block;font-family:"Cormorant Garamond",Georgia,serif;font-size:1.08rem}.admin-notification-item p{margin:3px 0 0;color:var(--admin-muted);font-size:.68rem;line-height:1.45}.admin-notification-empty{margin:0;padding:24px;color:var(--admin-muted);text-align:center;font-size:.76rem}
+@media(max-width:620px){.admin-header{flex-direction:row;align-items:center}.admin-notification-wrap{margin-left:auto}.admin-session{width:100%;order:3}.admin-notification-drawer{position:fixed;left:14px;right:14px;top:78px;width:auto;max-height:calc(100vh - 94px)}.admin-notification-summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+
+/* =========================================================
+   ESENCIALES · SECCIONES Y ELEMENTOS PERSONALIZADOS
+   ========================================================= */
+.essential-heading-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.essential-section-help{
+  margin:0;
+  color:var(--admin-muted);
+  font-size:.78rem;
+  line-height:1.55;
+}
+.essential-section-modal{
+  width:min(620px,100%);
+}
+.essential-group-empty{
+  grid-column:1/-1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  min-height:82px;
+  padding:16px 18px;
+  border:1px dashed var(--admin-line);
+  border-radius:14px;
+  background:rgba(255,255,255,.22);
+}
+.essential-group-empty p{
+  margin:0;
+  color:var(--admin-muted);
+}
+.essential-group-empty .admin-button{
+  flex:0 0 auto;
+}
+@media(max-width:760px){
+  .essential-heading-actions{
+    display:grid;
+    grid-template-columns:1fr;
+    width:100%;
+  }
+  .essential-heading-actions .admin-button{
+    width:100%;
+  }
+  .essential-group-empty{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .essential-group-empty .admin-button{
+    width:100%;
+  }
+}
+
+
+/* =========================================================
+   ESENCIALES 9.2.1 · EDICIÓN
+   ========================================================= */
+.essential-group-actions{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+}
+.essential-section-edit{
+  min-height:34px;
+  padding:0 12px;
+  font-size:.64rem;
+}
+.essential-custom-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.essential-edit{
+  min-height:32px;
+  padding:0 12px;
+  font-size:.65rem;
+}
+.essential-item-footer{
+  align-items:center;
+}
+.essential-item-footer .essential-custom-actions{
+  margin-left:auto;
+}
+@media(max-width:760px){
+  .essential-group-header{
+    grid-template-columns:minmax(0,1fr) auto;
+  }
+  .essential-group-summary{
+    grid-column:1/2;
+  }
+  .essential-group-actions{
+    grid-column:2/3;
+    grid-row:1/3;
+  }
+  .essential-section-edit{
+    width:auto;
+    min-width:0;
+    padding:0 9px;
+    font-size:.58rem;
+  }
+  .essential-custom-actions{
+    width:100%;
+    justify-content:flex-end;
+  }
+}
+
+
+/* FASE 9.2.2 · Edición total */
+.essential-edit{
+  border-color:rgba(86,101,74,.22);
+}
+
+
+/* =========================================================
+   ESENCIALES 9.2.3 · HABILITAR / DESHABILITAR
+   ========================================================= */
+.essential-disable{
+  border-color:rgba(171,119,72,.28);
+  color:#7d5a37;
+}
+.essential-disabled-modal{
+  width:min(760px,100%);
+}
+.essential-disabled-list{
+  display:grid;
+  gap:10px;
+  padding-top:4px;
+}
+.essential-disabled-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding:14px 16px;
+  border:1px solid var(--admin-line);
+  border-radius:14px;
+  background:rgba(255,255,255,.34);
+}
+.essential-disabled-row > div{
+  display:grid;
+  gap:3px;
+  min-width:0;
+}
+.essential-disabled-row strong{
+  font-family:"Cormorant Garamond",Georgia,serif;
+  font-size:1.08rem;
+  color:var(--admin-ink);
+}
+.essential-disabled-empty{
+  margin:0;
+  padding:22px;
+  border:1px dashed var(--admin-line);
+  border-radius:14px;
+  text-align:center;
+  color:var(--admin-muted);
+}
+@media(max-width:760px){
+  .essential-disabled-row{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .essential-disabled-row .admin-button{
+    width:100%;
+  }
+}
+
+
+/* =========================================================
+   ESENCIALES 9.2.4 · FIX PANELES COLAPSABLES
+   ========================================================= */
+.essential-group-header{
+  grid-template-columns:minmax(0,1fr) auto !important;
+  cursor:pointer;
+  overflow:hidden;
+}
+.essential-group-meta{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:14px;
+}
+.essential-group-meta .essential-group-summary{
+  white-space:nowrap;
+}
+.essential-group-actions{
+  flex:0 0 auto;
+  margin-left:0;
+}
+.essential-group-header[aria-expanded="true"]{
+  border-bottom:1px solid #ddd9cd;
+}
+.essential-group-header[aria-expanded="true"] .essential-group-toggle{
+  background:#eef1e8;
+}
+.essential-section-edit{
+  white-space:nowrap;
+}
+@media(max-width:760px){
+  .essential-group-header{
+    grid-template-columns:minmax(0,1fr) auto !important;
+    gap:10px;
+  }
+  .essential-group-meta{
+    gap:7px;
+  }
+  .essential-group-meta .essential-group-summary{
+    display:none;
+  }
+  .essential-section-edit{
+    max-width:96px;
+    line-height:1.1;
+  }
+}
+
+
+/* =========================================================
+   FASE 9.2.6 · AJUSTE VISUAL MODAL "ELEMENTOS DESHABILITADOS"
+   ========================================================= */
+.essential-disabled-modal{
+  width:min(760px,calc(100vw - 32px));
+  max-height:min(82vh,760px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+.essential-disabled-modal .essential-modal-head{
+  flex:0 0 auto;
+  padding:22px 24px 18px;
+}
+
+.essential-disabled-modal > .essential-section-help{
+  margin:0;
+  padding:18px 24px 12px;
+  color:var(--admin-muted);
+  font-size:.78rem;
+  line-height:1.55;
+}
+
+.essential-disabled-modal .essential-disabled-list{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  padding:0 24px 22px;
+  display:grid;
+  gap:10px;
+}
+
+.essential-disabled-modal .essential-disabled-row{
+  margin:0;
+  padding:14px 16px;
+}
+
+.essential-disabled-modal .essential-disabled-empty{
+  margin:0;
+}
+
+@media(max-width:760px){
+  .essential-disabled-modal{
+    width:min(94vw,760px);
+    max-height:86vh;
+  }
+
+  .essential-disabled-modal .essential-modal-head{
+    padding:18px 18px 14px;
+  }
+
+  .essential-disabled-modal > .essential-section-help{
+    padding:16px 18px 10px;
+  }
+
+  .essential-disabled-modal .essential-disabled-list{
+    padding:0 18px 18px;
+  }
+}
+
+
+/* =========================================================
+   FASE 9.3 · MENÚ DE CUENTA + EDICIÓN DE PERFIL
+   ========================================================= */
+.admin-session{
+  min-width:0;
+}
+.admin-account-wrap{
+  position:relative;
+  min-width:0;
+}
+.admin-account-button{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 9px 7px 11px;
+  border:1px solid transparent;
+  border-radius:12px;
+  background:transparent;
+  color:inherit;
+  cursor:pointer;
+}
+.admin-account-button:hover,
+.admin-account-button[aria-expanded="true"]{
+  border-color:var(--admin-line);
+  background:rgba(255,255,255,.38);
+}
+.admin-account-copy{
+  min-width:0;
+  display:grid;
+  text-align:right;
+}
+.admin-account-copy strong,
+.admin-account-copy span{
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.admin-account-copy strong{
+  color:var(--admin-ink);
+  font-size:.76rem;
+}
+.admin-account-copy span{
+  color:var(--admin-muted);
+  font-size:.63rem;
+}
+.admin-account-chevron{
+  flex:0 0 auto;
+  color:var(--admin-muted);
+  font-size:1rem;
+  transition:transform .18s ease;
+}
+.admin-account-button[aria-expanded="true"] .admin-account-chevron{
+  transform:rotate(180deg);
+}
+.admin-account-menu{
+  position:absolute;
+  z-index:120;
+  top:calc(100% + 8px);
+  right:0;
+  width:min(280px,calc(100vw - 28px));
+  padding:8px;
+  border:1px solid var(--admin-line);
+  border-radius:16px;
+  background:#fffdf8;
+  box-shadow:0 18px 45px rgba(45,52,41,.14);
+}
+.admin-account-menu[hidden]{
+  display:none!important;
+}
+.admin-account-menu-head{
+  display:grid;
+  gap:2px;
+  padding:10px 11px 12px;
+  border-bottom:1px solid var(--admin-line);
+  margin-bottom:6px;
+}
+.admin-account-menu-head strong{
+  font-family:"Cormorant Garamond",Georgia,serif;
+  font-size:1.1rem;
+  color:var(--admin-ink);
+}
+.admin-account-menu-head span{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--admin-muted);
+  font-size:.7rem;
+}
+.admin-account-menu > button{
+  width:100%;
+  min-height:42px;
+  padding:0 11px;
+  border:0;
+  border-radius:10px;
+  background:transparent;
+  color:var(--admin-ink);
+  font:600 .7rem/1 "Montserrat",sans-serif;
+  letter-spacing:.035em;
+  text-align:left;
+  cursor:pointer;
+}
+.admin-account-menu > button:hover{
+  background:rgba(86,101,74,.07);
+}
+.admin-account-menu .admin-account-logout{
+  color:#8a4c47;
+}
+
+.admin-account-modal-overlay{
+  position:fixed;
+  z-index:300;
+  inset:0;
+  display:grid;
+  place-items:center;
+  padding:20px;
+  background:rgba(38,42,35,.42);
+  backdrop-filter:blur(3px);
+}
+body.admin-account-modal-open{
+  overflow:hidden;
+}
+.admin-account-modal{
+  width:min(680px,100%);
+  max-height:min(88vh,760px);
+  overflow:auto;
+  border:1px solid var(--admin-line);
+  border-radius:20px;
+  background:#fffdf8;
+  box-shadow:0 22px 70px rgba(35,39,33,.22);
+}
+.admin-account-modal-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:20px;
+  padding:22px 24px 18px;
+  border-bottom:1px solid var(--admin-line);
+}
+.admin-account-modal-head h2{
+  margin:.15rem 0 0;
+  font-family:"Cormorant Garamond",Georgia,serif;
+  font-size:1.65rem;
+  color:var(--admin-ink);
+}
+.admin-account-modal-body{
+  display:grid;
+  gap:18px;
+  padding:22px 24px 24px;
+}
+.admin-account-section{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  padding:16px;
+  border:1px solid var(--admin-line);
+  border-radius:15px;
+  background:rgba(255,255,255,.28);
+}
+.admin-account-section h3{
+  grid-column:1/-1;
+  margin:0 0 2px;
+  font-family:"Cormorant Garamond",Georgia,serif;
+  font-size:1.18rem;
+  color:var(--admin-ink);
+}
+.admin-account-field{
+  display:grid;
+  gap:6px;
+}
+.admin-account-field > span{
+  color:var(--admin-muted);
+  font-size:.68rem;
+  font-weight:600;
+  letter-spacing:.035em;
+}
+.admin-account-field input{
+  width:100%;
+  min-height:42px;
+  padding:0 11px;
+  border:1px solid var(--admin-line);
+  border-radius:10px;
+  background:#fffdf8;
+  color:var(--admin-ink);
+  font:500 .78rem/1.2 "Montserrat",sans-serif;
+}
+.admin-account-field small{
+  color:var(--admin-muted);
+  font-size:.65rem;
+  line-height:1.45;
+}
+.admin-account-status{
+  min-height:18px;
+  margin:0;
+  color:var(--admin-muted);
+  font-size:.72rem;
+}
+.admin-account-modal-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+}
+
+@media(max-width:760px){
+  .admin-header{
+    gap:8px;
+  }
+  .admin-session{
+    margin-left:auto;
+  }
+  .admin-account-button{
+    max-width:min(190px,52vw);
+    padding:6px 7px 6px 9px;
+  }
+  .admin-account-copy{
+    max-width:145px;
+  }
+  .admin-account-copy span{
+    display:none;
+  }
+  .admin-account-menu{
+    right:-2px;
+  }
+  .admin-account-modal-overlay{
+    padding:12px;
+  }
+  .admin-account-modal-head{
+    padding:18px 18px 14px;
+  }
+  .admin-account-modal-body{
+    padding:18px;
+  }
+  .admin-account-section{
+    grid-template-columns:1fr;
+    padding:14px;
+  }
+  .admin-account-modal-actions{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+  .admin-account-modal-actions .admin-button{
+    width:100%;
+  }
+}
+
+
+/* =========================================================
+   FASE 9.3.1 · HEADER / CUENTA RESPONSIVE REFINADO
+   ========================================================= */
+.admin-header{
+  display:flex;
+  align-items:center;
+}
+
+.admin-header .admin-notification-wrap{
+  margin-left:auto;
+  flex:0 0 auto;
+}
+
+.admin-header .admin-session{
+  margin-left:8px;
+  flex:0 1 auto;
+  min-width:0;
+}
+
+.admin-account-wrap{
+  display:flex;
+  justify-content:flex-end;
+}
+
+.admin-account-button{
+  justify-content:flex-end;
+}
+
+.admin-account-copy{
+  text-align:right;
+}
+
+/* El desplegable se alinea al borde derecho del bloque de cuenta */
+.admin-account-menu{
+  left:auto;
+  right:0;
+  transform:none;
+}
+
+@media(max-width:760px){
+  .admin-header{
+    grid-template-columns:auto 1fr;
+    display:grid;
+    align-items:center;
+    column-gap:10px;
+  }
+
+  .admin-menu-button{
+    grid-column:1;
+    grid-row:1;
+  }
+
+  .admin-notification-wrap{
+    grid-column:2;
+    grid-row:1;
+    justify-self:end;
+    margin-left:0 !important;
+    margin-right:190px;
+  }
+
+  .admin-session{
+    grid-column:2;
+    grid-row:1;
+    justify-self:end;
+    margin-left:0 !important;
+    width:auto;
+    max-width:180px;
+  }
+
+  .admin-account-wrap{
+    width:auto;
+    max-width:180px;
+  }
+
+  .admin-account-button{
+    max-width:180px;
+    width:auto;
+  }
+
+  .admin-account-copy{
+    max-width:138px;
+  }
+
+  .admin-account-menu{
+    right:0;
+    width:min(300px,calc(100vw - 32px));
+  }
+
+  .admin-account-modal{
+    width:min(94vw,680px);
+    max-height:86vh;
+    border-radius:18px;
+  }
+
+  .admin-account-modal-head{
+    gap:12px;
+  }
+
+  .admin-account-modal-head h2{
+    font-size:1.55rem;
+    line-height:1.05;
+  }
+}
+
+@media(max-width:430px){
+  .admin-notification-wrap{
+    margin-right:172px;
+  }
+
+  .admin-session{
+    max-width:164px;
+  }
+
+  .admin-account-wrap,
+  .admin-account-button{
+    max-width:164px;
+  }
+
+  .admin-account-copy{
+    max-width:122px;
+  }
+}
+
+@media(max-width:380px){
+  .admin-notification-wrap{
+    margin-right:150px;
+  }
+
+  .admin-session{
+    max-width:142px;
+  }
+
+  .admin-account-wrap,
+  .admin-account-button{
+    max-width:142px;
+  }
+
+  .admin-account-copy{
+    max-width:102px;
+  }
+}
+
+
+/* =========================================================
+   FASE 9.4 · HOMOLOGACIÓN TIPOGRÁFICA DEL PANEL
+   Objetivo:
+   - Mantener Cormorant Garamond en títulos editoriales.
+   - Usar EB Garamond para cifras, montos, fechas y porcentajes.
+   - Evitar que el número 1 se vea como una "I".
+   ========================================================= */
+
+:root{
+  --admin-font-display:"Cormorant Garamond", Georgia, serif;
+  --admin-font-number:"EB Garamond", Georgia, serif;
+  --admin-font-ui:"Montserrat", Arial, sans-serif;
+}
+
+/* Títulos editoriales */
+.admin-view-header h1,
+.admin-view-header h2,
+.dashboard-heading h2,
+.dashboard-panel h3,
+.essential-group-header h3,
+.essential-modal-head h2,
+.admin-account-modal-head h2,
+.admin-account-section h3,
+.admin-login-card h1,
+.admin-brand strong{
+  font-family:var(--admin-font-display);
+}
+
+/* Números principales del panel */
+.dashboard-kpi-card strong,
+.dashboard-kpi-card .dashboard-kpi-value,
+.dashboard-finance-card strong,
+.dashboard-finance-card .dashboard-finance-value,
+.finance-kpi-card strong,
+.finance-kpi-card .finance-kpi-value,
+.planner-kpi strong,
+.planner-kpi .planner-kpi-value,
+.contracts-kpi strong,
+.contracts-kpi .contracts-kpi-value,
+.essentials-kpi strong,
+.essentials-kpi .essentials-kpi-value,
+.timeline-kpi strong,
+.timeline-kpi .timeline-kpi-value,
+.stat-card strong,
+.stat-card .stat-value,
+.admin-stat-card strong,
+.admin-stat-card .admin-stat-value,
+[class*="kpi"] strong,
+[class*="kpi"] .value,
+[class*="stat"] .value,
+[class*="metric"] .value{
+  font-family:var(--admin-font-number)!important;
+  font-variant-numeric:lining-nums tabular-nums;
+  font-feature-settings:"lnum" 1,"tnum" 1;
+}
+
+/* Montos, cifras financieras y saldos */
+.money,
+.currency,
+.amount,
+.finance-money,
+.finance-amount,
+.budget-amount,
+.contract-amount,
+.payment-amount,
+.vendor-amount,
+[class*="amount"],
+[class*="money"],
+[class*="currency"],
+[class*="saldo"],
+[class*="monto"]{
+  font-family:var(--admin-font-number)!important;
+  font-variant-numeric:lining-nums tabular-nums;
+  font-feature-settings:"lnum" 1,"tnum" 1;
+}
+
+/* Fechas, días, contadores y porcentajes */
+.dashboard-updated,
+.timeline-date-day,
+.timeline-day,
+.timeline-date,
+.payment-date,
+.contract-date,
+.essential-group-summary,
+.admin-notification-badge,
+.admin-notification-summary b,
+.admin-account-menu-head span,
+progress + span,
+[class*="percent"],
+[class*="percentage"],
+[class*="count"],
+[class*="counter"]{
+  font-variant-numeric:lining-nums tabular-nums;
+  font-feature-settings:"lnum" 1,"tnum" 1;
+}
+
+/* Contadores grandes y cifras sueltas dentro de tarjetas */
+.dashboard-kpi-grid .dashboard-kpi-card > strong,
+.dashboard-finance-grid strong,
+.finance-summary-grid strong,
+.planner-summary-grid strong,
+.contracts-summary-grid strong,
+.essentials-summary-grid strong,
+.timeline-summary-grid strong,
+.admin-summary-grid strong{
+  font-family:var(--admin-font-number)!important;
+  font-variant-numeric:lining-nums tabular-nums;
+  font-feature-settings:"lnum" 1,"tnum" 1;
+}
+
+/* Campos numéricos / fechas: legibles y consistentes */
+input[type="number"],
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"]{
+  font-family:var(--admin-font-ui);
+  font-variant-numeric:lining-nums tabular-nums;
+  font-feature-settings:"lnum" 1,"tnum" 1;
+}
+
+/* Tablas: números más limpios sin cambiar el texto descriptivo */
+table td,
+table th{
+  font-variant-numeric:lining-nums tabular-nums;
+  font-feature-settings:"lnum" 1,"tnum" 1;
+}
+
+/* Excepción: títulos de tarjetas siguen siendo editoriales */
+.vendor-card h3,
+.contract-card h3,
+.essential-card h4,
+.timeline-card h4,
+.dashboard-attention-item strong{
+  font-family:var(--admin-font-display);
+  font-variant-numeric:normal;
+  font-feature-settings:normal;
+}
+
+
+/* =========================================================
+   FASE 9.4.1 · NÚMEROS 100% LEGIBLES
+   Montserrat para cifras/datos. Serif sólo para títulos.
+   ========================================================= */
+:root{
+  --admin-font-number:"Montserrat", Arial, sans-serif;
+}
+
+.contracts-metric strong,
+.timeline-metric strong,
+.tables-metric-value,
+.finance-metric-value,
+.essential-metric-value,
+.statistics-metric-value,
+.dashboard-kpi-value,
+.dashboard-kpi-card strong,
+.dashboard-finance-card strong,
+.guest-editor-counter-value,
+.tables-counter-value,
+.tables-table-occupancy,
+.tables-table-occupancy-inline,
+.reports-table-occupancy,
+.reports-table-people,
+.timeline-month-count,
+.admin-notification-summary b{
+  font-family:var(--admin-font-number)!important;
+  font-weight:600;
+  font-variant-numeric:lining-nums tabular-nums;
+  font-feature-settings:"lnum" 1,"tnum" 1;
+}
+
+/* Líneas descriptivas que mezclan texto + cifras */
+.tables-configured-head h3,
+.tables-configured-head p:not(.admin-eyebrow),
+.reports-table-card h3{
+  font-family:var(--admin-font-ui)!important;
+  font-variant-numeric:lining-nums tabular-nums;
+  font-feature-settings:"lnum" 1,"tnum" 1;
+}
+
+/* Mantener jerarquía visual aunque estos títulos usen Montserrat */
+.tables-configured-head h3{
+  font-size:1.2rem;
+  font-weight:600;
+  line-height:1.45;
+}
+.reports-table-card h3{
+  font-size:1rem;
+  font-weight:600;
+}
+
+
+/* =========================================================
+   FASE 9.4.3 · CORRECCIÓN CON SELECTORES REALES
+   Contratos + Plano/Modales de Mesas
+   ========================================================= */
+
+/* CONTRATOS — valores reales generados por contratos-view.js */
+.contracts-financial-item strong,
+.contracts-next-payment strong,
+.contracts-card-details,
+.contracts-modal .contracts-financial-item strong,
+.contracts-modal .contracts-next-payment strong {
+  font-family:"Montserrat", Arial, sans-serif !important;
+  font-variant-numeric:lining-nums tabular-nums !important;
+  font-feature-settings:"lnum" 1,"tnum" 1 !important;
+}
+
+/* Mantener pesos acordes al diseño */
+.contracts-financial-item strong{
+  font-weight:500 !important;
+}
+.contracts-next-payment strong{
+  font-weight:600 !important;
+}
+
+/* MESAS — nodos reales del plano generados por mesas-view.js */
+.tables-plan-table,
+.tables-plan-table strong,
+.tables-plan-table small {
+  font-family:"Montserrat", Arial, sans-serif !important;
+  font-variant-numeric:lining-nums tabular-nums !important;
+  font-feature-settings:"lnum" 1,"tnum" 1 !important;
+}
+
+/* Nombre numerado de Mesa en detalle y edición */
+.tables-detail-modal .tables-modal-head h2,
+.tables-modal-overlay-top .tables-modal-head h2 {
+  font-family:"Montserrat", Arial, sans-serif !important;
+  font-variant-numeric:lining-nums tabular-nums !important;
+  font-feature-settings:"lnum" 1,"tnum" 1 !important;
+  font-weight:500 !important;
+}
+
+/* Subtítulos y métricas con cifras de detalle de mesa */
+.tables-detail-modal .tables-modal-copy,
+.tables-modal-overlay-top .tables-modal-copy,
+.tables-detail-summary strong,
+.tables-detail-summary small {
+  font-family:"Montserrat", Arial, sans-serif !important;
+  font-variant-numeric:lining-nums tabular-nums !important;
+  font-feature-settings:"lnum" 1,"tnum" 1 !important;
+}
