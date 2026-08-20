@@ -3272,3 +3272,576 @@ body.tables-modal-open{
   .planner-metrics{grid-template-columns:1fr 1fr;}
   .planner-task-actions{grid-template-columns:1fr;}
 }
+
+
+/* =========================================================
+   FASE 7.2 · PRESUPUESTO + PROVEEDORES + PAGOS
+   ========================================================= */
+.finance-view{display:grid;gap:20px}
+.finance-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
+.finance-global-status{min-height:18px;margin:0;color:var(--admin-danger);font-size:.78rem}
+.finance-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.finance-metric{display:grid;gap:8px;padding:20px;border:1px solid var(--admin-line);border-radius:18px;background:rgba(255,250,241,.9)}
+.finance-metric-soft{background:rgba(231,235,222,.9)}
+.finance-metric-warning{border-color:rgba(141,63,63,.3);background:rgba(141,63,63,.07)}
+.finance-metric-label{color:var(--admin-olive);font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.finance-metric-value{color:var(--admin-olive-dark);font-family:"EB Garamond",Georgia,serif;font-size:2rem;font-weight:600}
+.finance-metric-detail{color:var(--admin-muted);font-size:.72rem}
+.finance-tabs{display:flex;gap:8px;padding:8px;border:1px solid rgba(255,255,255,.72);border-radius:16px;background:rgba(255,250,241,.86)}
+.finance-tab{min-height:42px;padding:0 18px;border:0;border-radius:10px;background:transparent;color:var(--admin-olive-dark);font-size:.76rem;font-weight:600;cursor:pointer}
+.finance-tab.is-active{background:var(--admin-olive);color:#fff}
+.finance-content{display:grid;gap:18px}
+.finance-panel,.finance-subpanel{padding:clamp(20px,3vw,28px);border:1px solid rgba(255,255,255,.72);border-radius:20px;background:rgba(255,250,241,.9);box-shadow:0 16px 38px rgba(38,46,33,.06)}
+.finance-panel-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}
+.finance-budget-progress{display:grid;gap:9px}
+.finance-progress-labels{display:flex;justify-content:space-between;gap:16px;color:var(--admin-muted);font-size:.76rem}
+.finance-progress-track{position:relative;height:12px;overflow:hidden;border-radius:999px;background:rgba(86,101,74,.12)}
+.finance-progress-committed,.finance-progress-paid{position:absolute;inset:0 auto 0 0;border-radius:999px}
+.finance-progress-committed{background:rgba(86,101,74,.28)}
+.finance-progress-paid{background:var(--admin-olive)}
+.finance-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.finance-subpanel h3{margin-bottom:14px}
+.finance-upcoming-row,.finance-category-row{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:12px 0;border-bottom:1px solid var(--admin-line)}
+.finance-upcoming-row:last-child,.finance-category-row:last-child{border-bottom:0}
+.finance-upcoming-row>div{display:grid;gap:3px}
+.finance-upcoming-row span,.finance-category-row span{color:var(--admin-muted);font-size:.76rem}
+.finance-upcoming-row.is-overdue strong:first-child{color:var(--admin-danger)}
+.finance-empty{margin:0;color:var(--admin-muted);line-height:1.6}
+.finance-empty-large{padding:30px;text-align:center;border:1px dashed var(--admin-line);border-radius:14px}
+.finance-vendor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.finance-vendor-card{display:grid;gap:15px;padding:18px;border:1px solid var(--admin-line);border-radius:16px;background:rgba(255,255,255,.45)}
+.finance-vendor-top{display:flex;justify-content:space-between;gap:16px}
+.finance-vendor-top p{margin:4px 0 0;color:var(--admin-muted);font-size:.76rem}
+.finance-vendor-figures{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:12px;border-radius:12px;background:rgba(86,101,74,.06)}
+.finance-vendor-figures span,.finance-vendor-figures strong{font-size:.75rem}
+.finance-vendor-meta{display:flex;flex-wrap:wrap;gap:8px 16px;color:var(--admin-muted);font-size:.75rem}
+.finance-card-actions,.finance-table-actions{display:flex;flex-wrap:wrap;gap:8px}
+.finance-status{display:inline-flex;align-items:center;width:max-content;padding:5px 9px;border-radius:999px;background:rgba(86,101,74,.1);color:var(--admin-olive-dark);font-size:.67rem;font-weight:600}
+.finance-status-contratado,.finance-status-pagado,.finance-status-liquidado{background:#e4eddc;color:#405238}
+.finance-status-prospecto,.finance-status-pendiente{background:#f0ecdf;color:#6e5f31}
+.finance-status-vencido{background:#f3dddd;color:#7f3434}
+.finance-status-cancelado{background:#ecebea;color:#72706c}
+.finance-table-wrap{overflow:auto}
+.finance-table{width:100%;border-collapse:collapse;min-width:800px}
+.finance-table th,.finance-table td{padding:13px 12px;border-bottom:1px solid var(--admin-line);text-align:left;vertical-align:middle}
+.finance-table th{color:var(--admin-muted);font-size:.68rem;letter-spacing:.07em;text-transform:uppercase}
+.finance-table td{font-size:.78rem}
+.finance-table tr.is-overdue td:first-child,.finance-table tr.is-overdue td:nth-child(2){color:var(--admin-danger)}
+.finance-modal-overlay{position:fixed;inset:0;display:grid;place-items:center;padding:18px;background:rgba(30,36,27,.58);backdrop-filter:blur(5px);z-index:100}
+.finance-modal{width:min(860px,100%);max-height:min(90vh,820px);overflow:auto;border:1px solid rgba(255,255,255,.74);border-radius:24px;background:var(--admin-ivory);box-shadow:var(--admin-shadow)}
+.finance-modal-head{position:sticky;top:0;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:22px 24px 18px;border-bottom:1px solid var(--admin-line);background:rgba(255,250,241,.97);z-index:2}
+.finance-form{padding:22px 24px 24px}
+.finance-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.finance-form-grid-single{grid-template-columns:1fr}
+.finance-field{display:grid;gap:8px}
+.finance-field>span{font-size:.75rem;font-weight:600}
+.finance-field input,.finance-field select,.finance-field textarea{width:100%;min-height:50px;padding:11px 13px;border:1px solid var(--admin-line);border-radius:12px;background:rgba(255,255,255,.72);color:var(--admin-ink);font:inherit;outline:none}
+.finance-field textarea{resize:vertical}
+.finance-field input:focus,.finance-field select:focus,.finance-field textarea:focus{border-color:var(--admin-olive);box-shadow:0 0 0 3px rgba(86,101,74,.13)}
+.finance-field-wide{grid-column:1/-1}
+.finance-form-status{min-height:20px;margin:14px 0 0;color:var(--admin-danger);font-size:.76rem}
+.finance-form-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+body.finance-modal-open{overflow:hidden}
+
+@media(max-width:1100px){
+  .finance-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .finance-metric:last-child{grid-column:1/-1}
+}
+@media(max-width:760px){
+  .finance-heading,.finance-panel-head{align-items:stretch;flex-direction:column}
+  .finance-heading .admin-button,.finance-panel-head .admin-button{width:100%}
+  .finance-metrics,.finance-summary-grid,.finance-vendor-grid,.finance-form-grid{grid-template-columns:1fr}
+  .finance-metric:last-child{grid-column:auto}
+  .finance-tabs{overflow:auto}
+  .finance-tab{flex:1 0 auto}
+  .finance-progress-labels{align-items:flex-start;flex-direction:column;gap:4px}
+  .finance-vendor-figures{grid-template-columns:1fr}
+  .finance-modal-overlay{padding:8px}
+  .finance-modal{max-height:94vh;border-radius:18px}
+  .finance-modal-head,.finance-form{padding:18px}
+  .finance-field-wide{grid-column:auto}
+  .finance-form-actions{display:grid}
+  .finance-form-actions .admin-button{width:100%}
+}
+
+
+/* =========================================================
+   FASE 7.3 · Alertas financieras + Dashboard ejecutivo
+   ========================================================= */
+.dashboard-panel-finance{grid-column:1/-1}
+.dashboard-finance-summary{display:grid;gap:14px}
+.dashboard-finance-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.dashboard-finance-next{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 14px;border:1px solid var(--admin-line);border-radius:14px;background:rgba(86,101,74,.055)}
+.dashboard-finance-next>span{color:var(--admin-muted);font-size:.67rem}
+.dashboard-finance-next>strong{color:var(--admin-olive-dark);font-size:.78rem}
+.dashboard-attention-critical{border-color:rgba(141,63,63,.28);background:rgba(141,63,63,.065)}
+.dashboard-attention-critical strong{color:var(--admin-danger)}
+.dashboard-attention-finance{border-color:rgba(86,101,74,.24);background:rgba(86,101,74,.055)}
+.dashboard-shortcuts-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:1050px){.dashboard-finance-kpis,.dashboard-shortcuts-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.dashboard-finance-kpis,.dashboard-shortcuts-grid{grid-template-columns:1fr}.dashboard-finance-next{grid-template-columns:1fr;gap:4px}}
+
+
+/* =========================================================
+   FASE 7.4 · Centro de alertas + próximos compromisos
+   ========================================================= */
+.dashboard-panel-commitments{grid-column:1/-1}
+.dashboard-commitments-list{display:grid;gap:10px}
+.dashboard-commitment{
+  display:grid;
+  grid-template-columns:132px minmax(0,1fr) auto;
+  gap:16px;
+  align-items:center;
+  padding:14px 16px;
+  border:1px solid var(--admin-line);
+  border-radius:16px;
+  background:rgba(255,255,255,.34);
+  color:inherit;
+  text-decoration:none;
+  transition:transform .16s ease,border-color .16s ease,background .16s ease;
+}
+.dashboard-commitment:hover{transform:translateY(-1px);border-color:rgba(86,101,74,.34);background:rgba(255,255,255,.58)}
+.dashboard-commitment-date{display:grid;gap:2px}
+.dashboard-commitment-date strong{font-family:"Cormorant Garamond",serif;font-size:1.12rem;color:var(--admin-olive-dark)}
+.dashboard-commitment-date span{font-size:.67rem;color:var(--admin-muted)}
+.dashboard-commitment-copy{display:grid;gap:3px;min-width:0}
+.dashboard-commitment-copy>strong{font-size:.86rem;color:var(--admin-olive-dark);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dashboard-commitment-copy>span:last-child{font-size:.72rem;color:var(--admin-muted)}
+.dashboard-commitment-kind{font-size:.62rem!important;letter-spacing:.12em;text-transform:uppercase;color:var(--admin-olive)!important}
+.dashboard-commitment-payment{border-left:4px solid rgba(86,101,74,.48)}
+.dashboard-commitment-task{border-left:4px solid rgba(174,150,102,.55)}
+.dashboard-commitment.is-overdue{border-color:rgba(141,63,63,.3);border-left-color:var(--admin-danger);background:rgba(141,63,63,.055)}
+.dashboard-commitment.is-overdue .dashboard-commitment-date strong,
+.dashboard-commitment.is-overdue .dashboard-commitment-date span{color:var(--admin-danger)}
+.dashboard-commitment-arrow{font-size:1.1rem;color:var(--admin-muted)}
+.dashboard-attention-planner{border-color:rgba(174,150,102,.3);background:rgba(174,150,102,.07)}
+@media(max-width:700px){
+  .dashboard-commitment{grid-template-columns:1fr auto;gap:8px 12px}
+  .dashboard-commitment-date{grid-column:1/-1;display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .dashboard-commitment-copy>strong{white-space:normal}
+}
+
+/* =========================================================
+   FASE 7.5 · Timeline maestro
+   ========================================================= */
+.timeline-view{display:grid;gap:20px}
+.timeline-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
+.timeline-heading h2{margin:4px 0 6px;font-family:"Cormorant Garamond",serif;font-size:clamp(2.5rem,5vw,4.4rem);font-weight:500;line-height:.95;color:var(--admin-olive-dark)}
+.timeline-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.timeline-metric{display:grid;gap:8px;padding:18px 20px;border:1px solid var(--admin-line);border-radius:16px;background:rgba(255,250,241,.78)}
+.timeline-metric>span{font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--admin-olive);font-weight:600}
+.timeline-metric>strong{font-family:"Cormorant Garamond",serif;font-size:2.35rem;font-weight:600;line-height:1;color:var(--admin-olive-dark)}
+.timeline-metric>small{font-size:.72rem;color:var(--admin-muted)}
+.timeline-filters{display:flex;flex-wrap:wrap;gap:8px;padding:8px;border:1px solid var(--admin-line);border-radius:16px;background:rgba(255,250,241,.8)}
+.timeline-filter{min-height:42px;padding:9px 18px;border:0;border-radius:11px;background:transparent;color:var(--admin-ink);font:inherit;font-size:.76rem;font-weight:600;cursor:pointer}
+.timeline-filter.is-active{background:var(--admin-olive);color:#fff}
+.timeline-load-status{margin:0;padding:16px 18px;border:1px solid var(--admin-line);border-radius:14px;background:rgba(255,250,241,.7);color:var(--admin-muted)}
+.timeline-load-status[hidden]{display:none}
+.timeline-body{display:grid;gap:20px;padding:26px 28px;border:1px solid var(--admin-line);border-radius:22px;background:rgba(255,250,241,.78)}
+.timeline-month{position:relative;display:grid;grid-template-columns:220px minmax(0,1fr);gap:24px}
+.timeline-month:not(:last-child){padding-bottom:22px;border-bottom:1px solid var(--admin-line)}
+.timeline-month-header{display:grid;grid-template-columns:auto 1fr;align-content:start;gap:5px 10px;padding-top:6px}
+.timeline-month-dot{width:10px;height:10px;margin-top:6px;border-radius:50%;background:var(--admin-olive)}
+.timeline-month-header h3{margin:0;font-size:.78rem;letter-spacing:.1em;color:var(--admin-olive-dark)}
+.timeline-month-count{grid-column:2;color:var(--admin-muted);font-size:.7rem}
+.timeline-event-list{display:grid;gap:10px}
+.timeline-event{display:grid;grid-template-columns:72px minmax(0,1fr) 34px;align-items:center;gap:14px;padding:15px 16px;border:1px solid var(--admin-line);border-left:4px solid rgba(174,150,102,.55);border-radius:15px;background:rgba(255,255,255,.46)}
+.timeline-event-payment{border-left-color:rgba(86,101,74,.55)}
+.timeline-event-wedding{border-left-color:var(--admin-olive);background:linear-gradient(135deg,rgba(86,101,74,.12),rgba(255,250,241,.9))}
+.timeline-event.is-completed{opacity:.62}
+.timeline-event-date{display:grid;justify-items:center;padding-right:12px;border-right:1px solid var(--admin-line)}
+.timeline-event-date strong{font-family:"Cormorant Garamond",serif;font-size:1.8rem;line-height:1;color:var(--admin-olive-dark)}
+.timeline-event-date span{font-size:.62rem;letter-spacing:.09em;color:var(--admin-muted)}
+.timeline-event-copy{min-width:0}
+.timeline-event-top{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:5px}
+.timeline-kind,.timeline-status{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:.61rem;font-weight:600;letter-spacing:.04em}
+.timeline-kind{background:rgba(174,150,102,.13);color:#705e36}
+.timeline-kind-payment{background:rgba(86,101,74,.12);color:var(--admin-olive-dark)}
+.timeline-kind-wedding{background:var(--admin-olive);color:#fff}
+.timeline-status{background:#efede5;color:#665f4e}
+.timeline-status-completada,.timeline-status-pagado{background:#e4eddc;color:#405238}
+.timeline-status-en-proceso,.timeline-status-pendiente{background:#f0ecdf;color:#6e5f31}
+.timeline-status-vencido{background:#f3dddd;color:#7f3434}
+.timeline-status-cancelada,.timeline-status-cancelado{background:#ecebea;color:#72706c}
+.timeline-status-wedding{background:rgba(86,101,74,.12);color:var(--admin-olive-dark)}
+.timeline-event h4{margin:0;color:var(--admin-ink);font-size:.9rem}
+.timeline-event-meta{margin:4px 0 0;color:var(--admin-muted);font-size:.72rem}
+.timeline-event-action{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;color:var(--admin-olive-dark);text-decoration:none;font-size:1.15rem}
+.timeline-event-action:hover{background:rgba(86,101,74,.08)}
+.timeline-empty{padding:34px;text-align:center;border:1px dashed var(--admin-line);border-radius:14px;color:var(--admin-muted)}
+@media(max-width:980px){
+  .timeline-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .timeline-month{grid-template-columns:1fr}
+  .timeline-month-header{grid-template-columns:auto 1fr auto}
+  .timeline-month-count{grid-column:3;grid-row:1}
+}
+@media(max-width:700px){
+  .timeline-heading{align-items:stretch;flex-direction:column}
+  .timeline-heading .admin-button{width:100%}
+  .timeline-metrics{grid-template-columns:1fr 1fr}
+  .timeline-body{padding:18px 14px}
+  .timeline-event{grid-template-columns:58px minmax(0,1fr) 28px;gap:10px;padding:13px 11px}
+  .timeline-event-date{padding-right:9px}
+  .timeline-event-date strong{font-size:1.5rem}
+  .timeline-filters{overflow:auto;flex-wrap:nowrap}
+  .timeline-filter{flex:1 0 auto}
+}
+@media(max-width:430px){
+  .timeline-metrics{grid-template-columns:1fr}
+}
+
+
+/* =========================================================
+   FASE 7.7 · Contratos & Documentos
+   ========================================================= */
+.contracts-view{display:grid;gap:20px}
+.contracts-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
+.contracts-heading h2{margin:4px 0 6px;font-family:"Cormorant Garamond",serif;font-size:clamp(2.5rem,5vw,4.35rem);font-weight:500;line-height:.95;color:var(--admin-olive-dark)}
+.contracts-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.contracts-metric{display:grid;gap:8px;padding:18px 20px;border:1px solid var(--admin-line);border-radius:16px;background:rgba(255,250,241,.78)}
+.contracts-metric>span{font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--admin-olive);font-weight:600}
+.contracts-metric>strong{font-family:"Cormorant Garamond",serif;font-size:2.25rem;font-weight:600;line-height:1;color:var(--admin-olive-dark)}
+.contracts-metric>small{font-size:.7rem;color:var(--admin-muted)}
+.contracts-toolbar{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:10px;padding:12px;border:1px solid var(--admin-line);border-radius:16px;background:rgba(255,250,241,.8)}
+.contracts-toolbar input,.contracts-toolbar select,.contracts-field input,.contracts-field select,.contracts-field textarea{width:100%;border:1px solid var(--admin-line);border-radius:11px;background:rgba(255,255,255,.72);color:var(--admin-ink);font:inherit;padding:11px 12px;outline:none}
+.contracts-toolbar input:focus,.contracts-toolbar select:focus,.contracts-field input:focus,.contracts-field select:focus,.contracts-field textarea:focus{border-color:rgba(86,101,74,.52);box-shadow:0 0 0 3px rgba(86,101,74,.08)}
+.contracts-load-status,.contracts-empty{margin:0;padding:18px;border:1px solid var(--admin-line);border-radius:14px;background:rgba(255,250,241,.7);color:var(--admin-muted)}
+.contracts-load-status[hidden]{display:none}
+.contracts-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.contracts-card{display:grid;gap:14px;padding:20px;border:1px solid var(--admin-line);border-left:4px solid rgba(174,150,102,.48);border-radius:18px;background:rgba(255,250,241,.78)}
+.contracts-card-firmado{border-left-color:rgba(86,101,74,.72)}
+.contracts-card-por_firmar{border-left-color:rgba(174,150,102,.9)}
+.contracts-card-en_revision{border-left-color:rgba(114,126,151,.65)}
+.contracts-card-no_requiere{opacity:.72;border-left-color:rgba(120,120,120,.4)}
+.contracts-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.contracts-card-head h3{margin:3px 0 0;color:var(--admin-ink);font-size:1rem}
+.contracts-card-category{font-size:.63rem;letter-spacing:.09em;text-transform:uppercase;color:var(--admin-muted)}
+.contracts-status{display:inline-flex;padding:5px 9px;border-radius:999px;background:#efede5;color:#665f4e;font-size:.61rem;font-weight:700;white-space:nowrap}
+.contracts-status-firmado{background:#e4eddc;color:#405238}
+.contracts-status-en_revision{background:#e6e9ef;color:#505d76}
+.contracts-status-por_firmar{background:#f0e9d8;color:#715d2e}
+.contracts-status-no_requiere{background:#ecebea;color:#72706c}
+.contracts-card-details{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.contracts-card-details span{padding:9px 10px;border-radius:10px;background:rgba(86,101,74,.055);font-size:.69rem;color:var(--admin-muted)}
+.contracts-card-details span:first-child{font-weight:700;color:var(--admin-olive-dark)}
+.contracts-card-notes{margin:0;padding:11px 12px;border-left:2px solid rgba(86,101,74,.22);color:var(--admin-muted);font-size:.72rem;line-height:1.45}
+.contracts-card-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:4px}
+.contracts-card-footer>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.7rem;color:var(--admin-muted)}
+.contracts-modal-open{overflow:hidden}
+.contracts-modal-overlay{position:fixed;inset:0;z-index:1200;display:grid;place-items:center;padding:18px;background:rgba(35,39,31,.48);backdrop-filter:blur(5px)}
+.contracts-modal{width:min(760px,100%);max-height:92vh;overflow:auto;border:1px solid rgba(255,255,255,.35);border-radius:22px;background:var(--admin-cream,#fbf6eb);box-shadow:0 24px 70px rgba(25,29,22,.22)}
+.contracts-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:22px 24px;border-bottom:1px solid var(--admin-line)}
+.contracts-modal-head h2{margin:4px 0 0;font-family:"Cormorant Garamond",serif;font-size:2rem;color:var(--admin-olive-dark)}
+.contracts-form{display:grid;gap:18px;padding:22px 24px}
+.contracts-modal-finance{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 14px;border-radius:13px;background:rgba(86,101,74,.07)}
+.contracts-modal-finance span{font-size:.68rem;color:var(--admin-muted)}
+.contracts-modal-finance strong{font-size:.76rem;color:var(--admin-olive-dark)}
+.contracts-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.contracts-field{display:grid;gap:6px;font-size:.7rem;color:var(--admin-muted)}
+.contracts-field-wide{grid-column:1/-1}
+.contracts-field textarea{resize:vertical;min-height:100px}
+.contracts-form-status{min-height:18px;margin:0;color:var(--admin-danger);font-size:.72rem}
+.contracts-form-actions{display:flex;justify-content:flex-end;gap:10px}
+@media(max-width:1100px){.contracts-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.contracts-grid{grid-template-columns:1fr}}
+@media(max-width:760px){
+  .contracts-heading{align-items:stretch;flex-direction:column}.contracts-heading .admin-button{width:100%}
+  .contracts-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .contracts-toolbar{grid-template-columns:1fr}
+  .contracts-card-details{grid-template-columns:1fr}
+  .contracts-card-footer{align-items:stretch;flex-direction:column}.contracts-card-footer .admin-button{width:100%}
+  .contracts-modal-overlay{padding:8px}.contracts-modal{max-height:95vh;border-radius:18px}
+  .contracts-modal-head,.contracts-form{padding:18px}.contracts-form-grid{grid-template-columns:1fr}.contracts-field-wide{grid-column:auto}
+  .contracts-modal-finance{align-items:flex-start;flex-direction:column}.contracts-form-actions{display:grid}.contracts-form-actions .admin-button{width:100%}
+}
+@media(max-width:430px){.contracts-metrics{grid-template-columns:1fr}}
+
+
+/* =========================================================
+   FASE 7.7.3 · Control contractual sin archivos
+   ========================================================= */
+.contracts-financial-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.contracts-financial-item{display:grid;gap:4px;padding:10px 11px;border-radius:11px;background:rgba(86,101,74,.055)}
+.contracts-financial-item span{font-size:.61rem;letter-spacing:.04em;text-transform:uppercase;color:var(--admin-muted)}
+.contracts-financial-item strong{font-family:"Cormorant Garamond",serif;font-size:1.05rem;color:var(--admin-olive-dark)}
+.contracts-next-payment{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--admin-line);border-radius:11px;background:rgba(255,255,255,.4)}
+.contracts-next-payment>span{font-size:.62rem;text-transform:uppercase;letter-spacing:.05em;color:var(--admin-muted)}
+.contracts-next-payment>strong{font-size:.72rem;color:var(--admin-ink)}
+.contracts-next-payment>small{font-size:.68rem;color:var(--admin-muted)}
+.contracts-next-payment.is-overdue{border-color:rgba(127,52,52,.25);background:rgba(243,221,221,.38)}
+.contracts-next-payment.is-overdue>span{color:#7f3434}
+.contracts-card-previews{display:grid;gap:8px}
+.contracts-note-preview{display:grid;grid-template-columns:88px minmax(0,1fr);gap:10px;padding:9px 11px;border-left:2px solid rgba(86,101,74,.2);background:rgba(86,101,74,.025)}
+.contracts-note-preview span{font-size:.61rem;text-transform:uppercase;letter-spacing:.05em;color:var(--admin-muted)}
+.contracts-note-preview p{margin:0;font-size:.7rem;line-height:1.4;color:var(--admin-muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.contracts-modal-finance-block{display:grid;gap:10px}
+.contracts-modal-section-title{margin:0;font-size:.68rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--admin-olive)}
+@media(max-width:900px){.contracts-financial-strip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){
+  .contracts-financial-strip{grid-template-columns:1fr 1fr}
+  .contracts-next-payment{grid-template-columns:1fr;gap:4px}
+  .contracts-note-preview{grid-template-columns:1fr;gap:4px}
+}
+
+/* Fase 7.8 — Checklist esencial */
+.essentials-view{padding-bottom:40px}.essentials-heading h2{font-size:clamp(2.7rem,5vw,4.4rem);margin:.1rem 0}.essential-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:28px 0 18px}.essential-metric{background:#fbf8f0;border:1px solid #d9dacd;border-radius:20px;padding:20px}.essential-metric-label,.essential-category{font-size:11px;letter-spacing:.08em;color:#56664c;text-transform:uppercase}.essential-metric-value{display:block;font:600 34px/1.1 "EB Garamond",serif;color:#20351f;margin:12px 0 4px}.essential-metric-copy{color:#8b7965}.essential-progress{background:#fbf8f0;border:1px solid #d9dacd;border-radius:20px;padding:22px;margin-bottom:18px}.essential-progress-copy{display:flex;justify-content:space-between;align-items:center}.essential-progress-copy h3{font:600 26px "Cormorant Garamond",serif;margin:0}.essential-progress-track{height:12px;background:#e2e4da;border-radius:999px;overflow:hidden;margin-top:14px}.essential-progress-track span{display:block;height:100%;background:#586c4e;border-radius:inherit}.essential-filters{display:grid;grid-template-columns:1fr 240px;gap:12px;background:#fbf8f0;border-radius:18px;padding:12px;margin-bottom:24px}.essential-filters input,.essential-filters select,.essential-status,.essential-notes{font:inherit;border:1px solid #d8d6cb;border-radius:12px;background:#fffdf8;padding:13px;color:#263223}.essential-group{background:#fbf8f0;border-radius:22px;padding:22px;margin-bottom:18px}.essential-group-header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ddd9cd;padding-bottom:12px;margin-bottom:14px}.essential-group-header h3{font:600 27px "Cormorant Garamond",serif;margin:0}.essential-group-header span{font-size:12px;color:#887965}.essential-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.essential-item{border:1px solid #ddd9cd;border-left:4px solid #9aa88f;border-radius:16px;padding:16px;background:#fffdf8}.essential-item-top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.essential-item h3{font-size:15px;margin:5px 0 12px}.essential-status{padding:8px 10px;min-width:135px;font-size:12px}.essential-notes{width:100%;box-sizing:border-box;resize:vertical;font-size:12px}.essential-save-message{display:block;height:15px;margin-top:5px;color:#74806d}@media(max-width:1000px){.essential-metrics{grid-template-columns:repeat(2,1fr)}.essential-grid{grid-template-columns:1fr}}@media(max-width:650px){.essential-metrics,.essential-filters{grid-template-columns:1fr}.essential-item-top,.essential-progress-copy{flex-direction:column}.essential-status{width:100%}}
+
+/* =========================================================
+   FASE 7.8.2 · Checklist esencial inteligente
+   ========================================================= */
+.essentials-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:18px}
+.essential-links{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.essential-link-select{width:100%;min-width:0;border:1px solid #d8d6cb;border-radius:10px;background:#fffdf8;padding:9px 10px;color:#56614f;font:inherit;font-size:11px}
+.essential-smart{min-height:26px;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0 9px;padding:6px 9px;border-radius:10px;background:rgba(86,101,74,.06)}
+.essential-smart:empty{display:none}.essential-smart-copy{font-size:11px;color:#68725f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.essential-smart-button{padding:5px 9px!important;min-height:auto!important;font-size:10px!important}
+.essential-item-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:30px}.essential-delete{padding:6px 9px!important;min-height:auto!important;font-size:10px!important;color:#7b4b46!important}.essential-save-message{height:auto;margin:0}
+.essential-modal-open{overflow:hidden}.essential-modal-overlay{position:fixed;inset:0;z-index:1300;display:grid;place-items:center;padding:18px;background:rgba(35,39,31,.48);backdrop-filter:blur(5px)}.essential-modal{width:min(760px,100%);max-height:92vh;overflow:auto;border-radius:22px;background:#fbf6eb;box-shadow:0 24px 70px rgba(25,29,22,.22)}.essential-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:22px 24px;border-bottom:1px solid var(--admin-line)}.essential-modal-head h2{margin:4px 0 0;font:600 2.3rem "Cormorant Garamond",serif;color:var(--admin-olive-dark)}.essential-modal-form{display:grid;gap:16px;padding:22px 24px}.essential-modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.essential-modal-field{display:grid;gap:6px;font-size:12px;color:var(--admin-muted)}.essential-modal-field input,.essential-modal-field select,.essential-modal-field textarea{width:100%;box-sizing:border-box;border:1px solid #d8d6cb;border-radius:12px;background:#fffdf8;padding:12px;font:inherit;color:var(--admin-ink)}.essential-modal-field-wide{grid-column:1/-1}.essential-modal-status{min-height:18px;margin:0;color:var(--admin-danger);font-size:12px}.essential-modal-actions{display:flex;justify-content:flex-end;gap:10px}
+@media(max-width:760px){.essentials-heading{align-items:stretch;flex-direction:column}.essentials-heading .admin-button{width:100%}.essential-links,.essential-modal-grid{grid-template-columns:1fr}.essential-modal-field-wide{grid-column:auto}.essential-modal-actions{display:grid}.essential-modal-actions .admin-button{width:100%}.essential-modal-overlay{padding:8px}}
+
+/* =========================================================
+   FASE 7.8.3 · Secciones colapsables del Checklist esencial
+   ========================================================= */
+.essential-group{
+  padding:0;
+  overflow:hidden;
+}
+.essential-group-header{
+  width:100%;
+  appearance:none;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:inherit;
+  font:inherit;
+  text-align:left;
+  cursor:pointer;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto 38px;
+  gap:14px;
+  align-items:center;
+  margin:0;
+  padding:20px 22px;
+  border-bottom:0;
+}
+.essential-group-header:hover{
+  background:rgba(88,108,78,.045);
+}
+.essential-group-header:focus-visible{
+  outline:2px solid #586c4e;
+  outline-offset:-4px;
+}
+.essential-group-header[aria-expanded="true"]{
+  border-bottom:1px solid #ddd9cd;
+}
+.essential-group-header h3{
+  margin:0;
+}
+.essential-group-summary{
+  white-space:nowrap;
+  text-align:right;
+}
+.essential-group-toggle{
+  width:34px;
+  height:34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  justify-self:end;
+  border:1px solid #d8d6cb;
+  border-radius:50%;
+  background:#fffdf8;
+  color:#34462f;
+  font:500 25px/1 "Montserrat",sans-serif;
+  transition:transform .18s ease,background .18s ease;
+}
+.essential-group-header[aria-expanded="true"] .essential-group-toggle{
+  background:#eef1e8;
+}
+.essential-group .essential-grid{
+  padding:16px 22px 22px;
+}
+.essential-group .essential-grid[hidden]{
+  display:none!important;
+}
+@media(max-width:650px){
+  .essential-group-header{
+    grid-template-columns:minmax(0,1fr) 36px;
+    padding:17px 16px;
+  }
+  .essential-group-summary{
+    grid-column:1 / -1;
+    grid-row:2;
+    text-align:left;
+  }
+  .essential-group-toggle{
+    grid-column:2;
+    grid-row:1;
+  }
+  .essential-group .essential-grid{
+    padding:12px 14px 16px;
+  }
+}
+
+/* =========================================================
+   ESENCIALES · FASE 7.9
+   Inteligencia y sincronización automática
+   ========================================================= */
+.essential-intelligence{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:9px 11px;
+  border-radius:12px;
+  background:rgba(88,108,78,.055);
+  border:1px solid rgba(88,108,78,.10);
+}
+.essential-auto-toggle{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  color:#34462f;
+  font:600 11px/1.25 "Montserrat",sans-serif;
+  letter-spacing:.02em;
+  white-space:nowrap;
+}
+.essential-auto-toggle input{
+  width:16px;
+  height:16px;
+  accent-color:#586c4e;
+}
+.essential-auto-info{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:7px;
+  min-width:0;
+  text-align:right;
+}
+.essential-auto-badge,
+.essential-manual-badge{
+  flex:0 0 auto;
+  padding:4px 7px;
+  border-radius:999px;
+  font:700 9px/1 "Montserrat",sans-serif;
+  letter-spacing:.08em;
+}
+.essential-auto-badge{
+  background:#dfe9d8;
+  color:#385032;
+}
+.essential-manual-badge{
+  background:#eee9d8;
+  color:#675d34;
+}
+.essential-auto-copy{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  color:#756f62;
+  font:500 10px/1.35 "Montserrat",sans-serif;
+}
+@media(max-width:760px){
+  .essential-intelligence{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .essential-auto-info{
+    justify-content:flex-start;
+    text-align:left;
+  }
+  .essential-auto-copy{
+    white-space:normal;
+  }
+}
+
+
+/* =========================================================
+   FASE 8.0 · CENTRO DE PRIORIDADES
+   ========================================================= */
+.dashboard-priority-center{display:grid;gap:14px}
+.dashboard-priority-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.dashboard-priority-metric{display:flex;align-items:end;justify-content:space-between;gap:12px;padding:13px 15px;border:1px solid var(--admin-line);border-radius:14px;background:rgba(255,255,255,.42)}
+.dashboard-priority-metric span{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--admin-muted)}
+.dashboard-priority-metric strong{font-family:"Cormorant Garamond",Georgia,serif;font-size:1.65rem;line-height:1;color:var(--admin-olive-dark)}
+.dashboard-priority-critical{border-color:rgba(141,63,63,.25);background:rgba(141,63,63,.055)}
+.dashboard-priority-high{border-color:rgba(171,119,72,.27);background:rgba(171,119,72,.055)}
+.dashboard-priority-upcoming{border-color:rgba(174,150,102,.28);background:rgba(174,150,102,.06)}
+.dashboard-priority-badges{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:1px}
+.dashboard-priority-badge,.dashboard-priority-kind{display:inline-flex;align-items:center;min-height:20px;padding:2px 8px;border-radius:999px;font-size:.58rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.dashboard-priority-badge-critical{color:#713838;background:rgba(141,63,63,.12)}
+.dashboard-priority-badge-high{color:#81592f;background:rgba(171,119,72,.13)}
+.dashboard-priority-badge-upcoming{color:#6f603d;background:rgba(174,150,102,.16)}
+.dashboard-priority-badge-later{color:var(--admin-muted);background:rgba(86,101,74,.08)}
+.dashboard-priority-kind{color:var(--admin-muted);background:rgba(86,101,74,.07);font-weight:600}
+.dashboard-attention-high{border-color:rgba(171,119,72,.27);background:rgba(171,119,72,.055)}
+.dashboard-attention-upcoming{border-color:rgba(174,150,102,.28);background:rgba(174,150,102,.06)}
+@media(max-width:700px){.dashboard-priority-summary{grid-template-columns:1fr}.dashboard-priority-metric{align-items:center}}
+
+
+/* =========================================================
+   FASE 8.0.1 · PRIORIDADES COLAPSABLES
+   ========================================================= */
+.dashboard-priority-center{display:grid;gap:10px}
+.dashboard-priority-group{
+  overflow:hidden;
+  border:1px solid var(--admin-line);
+  border-radius:16px;
+  background:rgba(255,255,255,.42);
+}
+.dashboard-priority-group-critical{border-color:rgba(141,63,63,.25);background:rgba(141,63,63,.035)}
+.dashboard-priority-group-high{border-color:rgba(171,119,72,.24);background:rgba(171,119,72,.035)}
+.dashboard-priority-group-upcoming{border-color:rgba(174,150,102,.25);background:rgba(174,150,102,.035)}
+.dashboard-priority-group-header{
+  width:100%;
+  min-height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:11px 14px 11px 16px;
+  border:0;
+  background:transparent;
+  color:var(--admin-ink);
+  cursor:pointer;
+  text-align:left;
+}
+.dashboard-priority-group-header:hover{background:rgba(86,101,74,.035)}
+.dashboard-priority-group-heading{display:flex;align-items:center;gap:12px;min-width:0}
+.dashboard-priority-group-label{
+  font-size:.69rem;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--admin-muted);
+}
+.dashboard-priority-group-count{
+  font-family:"Cormorant Garamond",Georgia,serif;
+  font-size:1.65rem;
+  line-height:1;
+  color:var(--admin-olive-dark);
+}
+.dashboard-priority-group-toggle{
+  flex:0 0 34px;
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  border:1px solid var(--admin-line);
+  border-radius:50%;
+  background:rgba(255,255,255,.35);
+  color:var(--admin-olive-dark);
+  font:500 1rem/1 "Montserrat",sans-serif;
+}
+.dashboard-priority-group .dashboard-priority-list{
+  padding:0 12px 12px;
+}
+.dashboard-priority-group .dashboard-priority-list[hidden]{display:none!important}
+.dashboard-priority-empty{
+  padding:14px 12px;
+  border-top:1px solid var(--admin-line);
+  color:var(--admin-muted);
+  font-size:.78rem;
+}
+@media(max-width:700px){
+  .dashboard-priority-group-header{min-height:54px;padding:10px 12px}
+  .dashboard-priority-group-toggle{width:32px;height:32px;flex-basis:32px}
+}
