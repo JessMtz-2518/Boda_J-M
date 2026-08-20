@@ -4890,3 +4890,62 @@ table th{
   font-variant-numeric:lining-nums tabular-nums !important;
   font-feature-settings:"lnum" 1,"tnum" 1 !important;
 }
+
+
+/* =========================================================
+   FASE 9.4.4 · FIX GLOBAL DE ALTURA / SCROLL FANTASMA EN MÓVIL
+   El contenido debe definir la altura real de cada módulo.
+   ========================================================= */
+@media(max-width:760px){
+  html,
+  body{
+    min-height:100%;
+    height:auto;
+  }
+
+  .admin-shell,
+  .admin-layout,
+  .admin-main,
+  .admin-content,
+  .admin-route-view,
+  #adminShell,
+  #adminRouteView{
+    min-height:0 !important;
+    height:auto !important;
+  }
+
+  .admin-main,
+  .admin-content,
+  .admin-route-view,
+  #adminRouteView{
+    overflow:visible !important;
+  }
+
+  .admin-main::after,
+  .admin-content::after,
+  .admin-route-view::after,
+  #adminRouteView::after{
+    content:none !important;
+    display:none !important;
+  }
+
+  #adminRouteView > :last-child,
+  .admin-route-view > :last-child{
+    margin-bottom:0 !important;
+  }
+
+  .admin-main{
+    padding-bottom:24px !important;
+  }
+}
+
+/* Mantener scroll interno únicamente donde sí corresponde */
+.admin-modal,
+.tables-modal,
+.contracts-modal,
+.essential-disabled-modal,
+.admin-account-modal,
+.admin-notification-drawer,
+.tables-plan-viewport{
+  overscroll-behavior:contain;
+}
