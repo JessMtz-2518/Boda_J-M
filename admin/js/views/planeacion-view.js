@@ -221,7 +221,7 @@
     const toolbar = el("div", "planner-toolbar");
     const search = document.createElement("input");
     search.type = "search";
-    search.placeholder = "Buscar pendiente, categoría o responsable";
+    search.placeholder = "Buscar tarea, categoría o responsable";
     search.className = "planner-search";
 
     const statusFilter = document.createElement("select");
@@ -239,7 +239,7 @@
     const content = el("div", "planner-layout");
     const listPanel = el("section", "planner-panel planner-list-panel");
     const listHead = el("header", "planner-panel-head");
-    listHead.append(el("h3", "", "Checklist maestro"), el("span", "planner-list-count", "0 pendientes"));
+    listHead.append(el("h3", "", "Checklist maestro"), el("span", "planner-list-count", "0 tareas"));
     const list = el("div", "planner-task-list");
     listPanel.append(listHead, list);
 
@@ -267,7 +267,7 @@
 
     function renderMetrics(summary) {
       metrics.replaceChildren(
-        buildMetric("Total", summary.total || 0, "pendientes registrados"),
+        buildMetric("Total", summary.total || 0, Number(summary.total || 0) === 1 ? "tarea registrada" : "tareas registradas"),
         buildMetric("Completadas", summary.completed || 0, "tareas cerradas", "positive"),
         buildMetric("En proceso", summary.inProgress || 0, "en seguimiento"),
         buildMetric("Pendientes", summary.pending || 0, "por iniciar"),
@@ -308,7 +308,7 @@
 
     function renderTaskList() {
       const tasks = filteredTasks();
-      listHead.querySelector(".planner-list-count").textContent = `${tasks.length} ${tasks.length === 1 ? "pendiente" : "pendientes"}`;
+      listHead.querySelector(".planner-list-count").textContent = `${tasks.length} ${tasks.length === 1 ? "tarea" : "tareas"}`;
       list.replaceChildren();
 
       if (!tasks.length) {

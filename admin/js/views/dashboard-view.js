@@ -2,7 +2,7 @@
   "use strict";
 
   window.AdminViews = window.AdminViews || {};
-  const state = { operational: null, recent: null, finance: null, planner: null, essentials: null, generatedAt: null };
+  const state = { operational: null, recent: null, finance: null, planner: null, essentials: null, godparents: null, contracts: null, generatedAt: null };
 
   window.AdminDashboardState = Object.freeze({
     clear() {
@@ -11,6 +11,8 @@
       state.finance = null;
       state.planner = null;
       state.essentials = null;
+      state.godparents = null;
+      state.contracts = null;
       state.generatedAt = null;
     },
   });
@@ -99,6 +101,16 @@
 
   function essentialPriority(item) {
     if (!item || ["listo", "contratado", "no_aplica"].includes(item.estado)) return null;
+
+    // Si el esencial ya fue elegido y no requiere ni proveedor ni Planeación,
+    // se considera resuelto para efectos del Centro de prioridades.
+    if (
+      item.estado === "elegido" &&
+      item.proveedor_no_aplica === true &&
+      item.planeacion_no_aplica === true
+    ) {
+      return null;
+    }
     const taskDays = daysFromToday(item.tarea_fecha_limite);
     if (taskDays !== null && item.tarea_estado && !["completada", "cancelada"].includes(item.tarea_estado)) {
       if (taskDays < 0) return { score: 100, reason: `Tarea vencida hace ${Math.abs(taskDays)} días` };
@@ -110,7 +122,7 @@
     const dueWindow = weddingDays === null ? null : weddingDays - lead;
     if (item.estado === "por_definir") {
       if (dueWindow !== null && dueWindow <= 0) return { score: 82, reason: "Conviene definirlo desde ahora por su anticipación recomendada" };
-      if (dueWindow !== null && dueWindow <= 45) return { score: 68, reason: `Conviene iniciarlo en los próximos ${Math.max(0, dueWindow)} días` };
+      if (dueWindow !== null && dueWindow <= 45) return { score: 68, reason: `Conviene atenderlos en los próximos ${Math.max(0, dueWindow)} días` };
       return { score: 30, reason: "Todavía puede esperar, pero sigue pendiente" };
     }
     if (["buscando", "elegido"].includes(item.estado)) {
@@ -120,7 +132,7 @@
     return { score: 25, reason: "Pendiente de seguimiento" };
   }
 
-  function renderAttention(target, operational, finance, planner, essentials) {
+  function renderAttention(target, operational, finance, planner, essentials, godparents, contracts) {
     const items = [];
     const add = (priority, title, detail, action, hash, tone = "attention", kind = "Operación") => {
       items.push({ priority, title, detail, action, hash, tone, kind });
@@ -153,15 +165,249 @@
         });
     }
 
+    // CONTRATOS
+    // Firma: 1–5 días / hoy / vencida = Urgente; 6–14 días = Prioridad alta.
+    // Más de 14 días no genera alerta de firma. "Sin contrato" queda como Próximo.
+    (contracts?.contracts || []).forEach((contract) => {
+      if (contract.status === "firmado" || contract.status === "no_requiere") return;
+
+      if (["en_revision", "por_firmar"].includes(contract.status)) {
+        const days = daysFromToday(contract.signatureDueDate);
+
+        if (days !== null && days <= 5) {
+          const detail =
+            days < 0
+              ? `Firma vencida hace ${Math.abs(days)} días`
+              : days === 0
+                ? "La firma vence hoy"
+                : `La firma vence en ${days} días`;
+
+          add(97, contract.vendorName || "Proveedor", detail, "Ver contrato", "#/contratos", "critical", "Contrato");
+          return;
+        }
+
+        if (days !== null && days >= 6 && days <= 14) {
+          add(84, contract.vendorName || "Proveedor", `La firma vence en ${days} días`, "Ver contrato", "#/contratos", "high", "Contrato");
+          return;
+        }
+      }
+
+      if (contract.status === "sin_contrato") {
+        add(56, contract.vendorName || "Proveedor", "Proveedor activo sin contrato definido", "Ver contrato", "#/contratos", "attention", "Contrato");
+      }
+    });
+
     if (essentials?.items) {
+      // Padrinos confirmados indican cobertura/responsabilidad, pero no
+      // resuelven el estado operativo del Esencial ni sus tareas.
+      const confirmedLinkedEssentials = new Set(
+        (godparents?.items || [])
+          .filter((item) => item.estado === "confirmado" && item.esencial_id)
+          .map((item) => Number(item.esencial_id))
+      );
+
       essentials.items.forEach((essential) => {
         const result = essentialPriority(essential);
         if (!result || result.score < 50) return;
         const meta = priorityMeta(result.score);
         const links = [essential.categoria, result.reason];
-        if (!essential.proveedor_id && essential.estado !== "listo") links.push("sin proveedor vinculado");
+        const coveredByGodparents = confirmedLinkedEssentials.has(Number(essential.id));
+
+        if (coveredByGodparents) {
+          links.push("cubierto por padrinos");
+        } else if (!essential.proveedor_id && !essential.proveedor_no_aplica && essential.estado !== "listo") {
+          links.push("sin proveedor vinculado");
+        }
+
+        if (!essential.tarea_id && essential.planeacion_no_aplica) links.push("Planeación: no aplica");
         add(result.score, essential.titulo, links.join(" · "), "Ver esencial", "#/esenciales", meta.tone, "Esencial");
       });
+    }
+
+    if (godparents?.summary) {
+      const pendingItems = (godparents.items || []).filter(
+        (item) => item.estado === "por_definir" && item.activo !== false
+      );
+
+      if (pendingItems.length > 0) {
+        const dated = pendingItems
+          .filter((item) => item.fecha_objetivo)
+          .map((item) => ({ ...item, days: daysFromToday(item.fecha_objetivo) }))
+          .filter((item) => item.days !== null)
+          .sort((a, b) => a.days - b.days);
+
+        const urgent = dated.filter((item) => item.days <= 0);
+        const high = dated.filter((item) => item.days > 0 && item.days <= 14);
+        const upcomingDated = dated.filter((item) => item.days > 14);
+        const undated = pendingItems.filter((item) => !item.fecha_objetivo);
+
+        urgent.forEach((item) => {
+          const timing = item.days === 0
+            ? "La fecha objetivo es hoy"
+            : `La fecha objetivo venció hace ${Math.abs(item.days)} días`;
+          add(
+            98,
+            `${item.tipo} pendiente por definir`,
+            `${timing}. Conviene resolverlo cuanto antes.`,
+            "Ver padrinos",
+            "#/padrinos",
+            "critical",
+            "Padrinos"
+          );
+        });
+
+        high.forEach((item) => {
+          add(
+            84,
+            `${item.tipo} pendiente por definir`,
+            `Fecha objetivo en ${item.days} días. Conviene avisarles con anticipación para que contemplen su participación y el gasto correspondiente.`,
+            "Ver padrinos",
+            "#/padrinos",
+            "high",
+            "Padrinos"
+          );
+        });
+
+        const upcomingCount = upcomingDated.length + undated.length;
+        if (upcomingCount > 0) {
+          const parts = [];
+          if (upcomingDated.length) {
+            parts.push(`${upcomingDated.length} ${upcomingDated.length === 1 ? "padrino con fecha objetivo" : "padrinos con fecha objetivo"}`);
+          }
+          if (undated.length) {
+            parts.push(`${undated.length} sin fecha objetivo`);
+          }
+
+          let nextText = "";
+          if (upcomingDated.length) {
+            const next = upcomingDated[0];
+            const nextDate = new Date(`${next.fecha_objetivo}T12:00:00`);
+            const formatted = new Intl.DateTimeFormat("es-MX", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            }).format(nextDate);
+            nextText = ` Próxima fecha: ${next.tipo} · ${formatted}.`;
+          }
+
+          const confirmedWithoutCommitmentDate = (godparents.items || []).filter(
+            (item) =>
+              item.estado === "confirmado" &&
+              item.activo !== false &&
+              (item.cumplimiento_estado || "pendiente") !== "entregado" &&
+              !item.fecha_compromiso
+          ).length;
+
+          const commitmentNote = confirmedWithoutCommitmentDate > 0
+            ? ` · ${confirmedWithoutCommitmentDate} ${confirmedWithoutCommitmentDate === 1 ? "compromiso confirmado sin fecha de entrega" : "compromisos confirmados sin fecha de entrega"}`
+            : "";
+
+          add(
+            58,
+            `${upcomingCount} ${upcomingCount === 1 ? "padrino pendiente por definir" : "padrinos pendientes por definir"}`,
+            `${parts.join(" · ")}${commitmentNote}.${nextText} Conviene avisarles con anticipación para que contemplen su participación y el gasto correspondiente.`,
+            "Ver padrinos",
+            "#/padrinos",
+            "attention",
+            "Padrinos"
+          );
+        }
+      }
+    }
+
+
+    // Cumplimiento de padrinos confirmados.
+    // Próximos se agrupan; Prioridad alta/Urgente se muestran individualmente.
+    if (godparents?.summary) {
+      const confirmedFulfillment = (godparents.items || []).filter(
+        (item) =>
+          item.estado === "confirmado" &&
+          item.activo !== false &&
+          (item.cumplimiento_estado || "pendiente") !== "entregado"
+      );
+
+      const datedFulfillment = confirmedFulfillment
+        .filter((item) => item.fecha_compromiso)
+        .map((item) => ({
+          ...item,
+          commitmentDays: daysFromToday(item.fecha_compromiso),
+        }))
+        .filter((item) => item.commitmentDays !== null)
+        .sort((a, b) => a.commitmentDays - b.commitmentDays);
+
+      const fulfillmentUrgent = datedFulfillment.filter((item) => item.commitmentDays <= 5);
+      const fulfillmentHigh = datedFulfillment.filter(
+        (item) => item.commitmentDays > 5 && item.commitmentDays <= 14
+      );
+      const fulfillmentUpcoming = datedFulfillment.filter((item) => item.commitmentDays > 14);
+      const fulfillmentUndated = confirmedFulfillment.filter((item) => !item.fecha_compromiso);
+
+      fulfillmentUrgent.forEach((item) => {
+        const statusText =
+          (item.cumplimiento_estado || "pendiente") === "en_proceso"
+            ? "sigue en proceso"
+            : "sigue pendiente";
+        const timing =
+          item.commitmentDays < 0
+            ? `El compromiso venció hace ${Math.abs(item.commitmentDays)} días`
+            : item.commitmentDays === 0
+              ? "El compromiso vence hoy"
+              : `El compromiso vence en ${item.commitmentDays} días`;
+
+        add(
+          99,
+          `${item.tipo} · compromiso ${statusText}`,
+          `${timing}. Revisa el seguimiento con ${item.nombres_padrinos || "los padrinos"}.`,
+          "Ver padrinos",
+          "#/padrinos",
+          "critical",
+          "Padrinos"
+        );
+      });
+
+      fulfillmentHigh.forEach((item) => {
+        add(
+          86,
+          `${item.tipo} · compromiso próximo`,
+          `Entrega/compromiso en ${item.commitmentDays} días · ${
+            item.cumplimiento_estado === "en_proceso" ? "En proceso" : "Pendiente"
+          } · ${item.nombres_padrinos || "Padrinos por confirmar"}.`,
+          "Ver padrinos",
+          "#/padrinos",
+          "high",
+          "Padrinos"
+        );
+      });
+
+      // La fecha de compromiso es opcional.
+      // Sólo los compromisos con fecha participan en Próximos/Alta/Urgente.
+      // Los compromisos sin fecha se conservan como información dentro de Padrinos,
+      // pero no generan alerta por sí solos.
+      const fulfillmentUpcomingCount = fulfillmentUpcoming.length;
+
+      if (fulfillmentUpcomingCount > 0) {
+        const next = fulfillmentUpcoming[0];
+        const nextDate = new Date(`${next.fecha_compromiso}T12:00:00`);
+        const formatted = new Intl.DateTimeFormat("es-MX", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        }).format(nextDate);
+
+        add(
+          57,
+          `${fulfillmentUpcomingCount} ${
+            fulfillmentUpcomingCount === 1
+              ? "compromiso de padrinos por completar"
+              : "compromisos de padrinos por completar"
+          }`,
+          `Próximo compromiso: ${next.tipo} · ${formatted}.`,
+          "Ver padrinos",
+          "#/padrinos",
+          "attention",
+          "Padrinos"
+        );
+      }
     }
 
     if (operational) {
@@ -169,6 +415,48 @@
       if (i.pendientes_mesa > 0) add(55, `${i.pendientes_mesa} personas confirmadas sin mesa`, "Completa la distribución de asistentes confirmados.", "Asignar mesas", "#/mesas", "attention", "Invitados");
       if (i.invitaciones_pendientes > 0) add(42, `${i.invitaciones_pendientes} invitaciones sin respuesta`, "Conviene mantener seguimiento a las confirmaciones.", "Ver pendientes", "#/invitados", "attention", "Invitados");
     }
+
+    // Agrupa Esenciales del mismo nivel para mantener compacto el Dashboard.
+    const priorityTier = (score) => score >= 95 ? "urgent" : score >= 75 ? "high" : score >= 50 ? "upcoming" : "later";
+    const essentialGroups = new Map();
+
+    items.forEach((item) => {
+      if (item.kind !== "Esencial" || item.priority < 50) return;
+      const tier = priorityTier(item.priority);
+      if (!essentialGroups.has(tier)) essentialGroups.set(tier, []);
+      essentialGroups.get(tier).push(item);
+    });
+
+    essentialGroups.forEach((groupItems) => {
+      if (groupItems.length < 2) return;
+
+      groupItems.forEach((item) => {
+        const index = items.indexOf(item);
+        if (index >= 0) items.splice(index, 1);
+      });
+
+      const maxPriority = Math.max(...groupItems.map((item) => item.priority));
+      const reasons = [...new Set(groupItems.map((item) => {
+        const parts = String(item.detail || "").split(" · ");
+        return parts.length > 1 ? parts[1] : "";
+      }).filter(Boolean))];
+
+      // El Dashboard es un resumen: evita listar todos los nombres de los
+      // Esenciales cuando el grupo es grande. El detalle vive en Esenciales.
+      let summary = `${groupItems.length} pendientes de proveedor o definición`;
+      if (reasons.length === 1) summary = `${reasons[0]}. ${summary}`;
+      else if (reasons.length > 1) summary = `${summary}. ${reasons.join(" · ")}`;
+
+      items.push({
+        priority: maxPriority,
+        title: `${groupItems.length} esenciales por atender`,
+        detail: summary,
+        action: "Ver esenciales",
+        hash: "#/esenciales",
+        tone: priorityMeta(maxPriority).tone,
+        kind: "Esenciales",
+      });
+    });
 
     items.sort((a, b) => b.priority - a.priority);
     const counts = { urgent: 0, high: 0, upcoming: 0 };
@@ -234,6 +522,42 @@
     target.replaceChildren(wrap);
   }
 
+  function renderGodparents(target, godparents) {
+    const summary = godparents?.summary || {};
+    const total = Number(summary.total) || 0;
+    const confirmed = Number(summary.confirmados) || 0;
+    const pending = Number(summary.por_definir) || 0;
+    const percent = total > 0 ? Math.round((confirmed / total) * 100) : 0;
+
+    const wrap = el("div", "dashboard-godparents-summary");
+
+    const hero = el("div", "dashboard-godparents-hero");
+    const number = el("div", "dashboard-godparents-number");
+    number.append(
+      el("strong", "", `${confirmed} de ${total}`),
+      el("span", "", "confirmados")
+    );
+
+    const progressWrap = el("div", "dashboard-godparents-progress-wrap");
+    const progress = el("div", "dashboard-godparents-progress");
+    const bar = el("span", "dashboard-godparents-progress-bar");
+    bar.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+    progress.append(bar);
+
+    const meta = el("div", "dashboard-godparents-meta");
+    meta.append(
+      el("span", "", `${percent}% definido`),
+      el("span", "", `${pending} ${pending === 1 ? "por definir" : "por definir"}`)
+    );
+
+    progressWrap.append(progress, meta);
+    hero.append(number, progressWrap);
+
+    const action = linkButton("Ver padrinos", "#/padrinos");
+    wrap.append(hero, action);
+    target.replaceChildren(wrap);
+  }
+
   function renderFinance(target, finance) {
     const c = window.AdminDashboardComponents;
     const s = finance.summary;
@@ -260,7 +584,7 @@
       next.append(
         el("span", "", "Próximo pago"),
         el("strong", "", `${open.concept} · ${money(open.amount)}`),
-        el("span", "", `${open.vendorName || "Sin proveedor"} · ${open.dueDate}`)
+        el("span", "", `${open.vendorName || "Sin proveedor"} · ${formatShortDate(open.dueDate)}`)
       );
       wrap.append(next);
     }
@@ -421,6 +745,7 @@
       ["Estadísticas", "Consultar métricas y tendencias.", "#/estadisticas"],
       ["Planeación", "Checklist maestro y próximas fechas.", "#/planeacion"],
       ["Presupuesto", "Proveedores, pagos y control financiero.", "#/presupuesto"],
+      ["Padrinos", "Revisar padrinos confirmados y pendientes.", "#/padrinos"],
     ].forEach(([title, detail, hash]) => {
       const card = el("a", "dashboard-shortcut-card");
       card.href = hash;
@@ -448,6 +773,7 @@
     const attention = panel("Centro de prioridades", "dashboard-panel-attention");
     const finance = panel("Finanzas de la boda", "dashboard-panel-finance");
     const commitments = panel("Próximos compromisos", "dashboard-panel-commitments");
+    const godparents = panel("Padrinos", "dashboard-panel-godparents");
     const recent = panel("Últimas confirmaciones", "dashboard-panel-recent");
     const activity = panel("Actividad reciente", "dashboard-panel-activity");
     const shortcuts = panel("Accesos rápidos", "dashboard-panel-shortcuts");
@@ -459,7 +785,7 @@
     const mainGrid = el("div", "dashboard-operational-layout");
     mainGrid.append(attention.card, recent.card);
 
-    root.append(header, globalStatus, kpis.card, finance.card, commitments.card, mainGrid, activity.card, shortcuts.card);
+    root.append(header, globalStatus, kpis.card, finance.card, commitments.card, godparents.card, mainGrid, activity.card, shortcuts.card);
 
     const feedback = window.AdminDashboardComponents.feedback;
     const loading = (body) => body.replaceChildren(feedback("loading", "Cargando información…"));
@@ -473,18 +799,22 @@
       state.finance = null;
       state.planner = null;
       state.essentials = null;
+      state.godparents = null;
+      state.contracts = null;
       state.generatedAt = null;
-      [kpis.body, finance.body, attention.body, recent.body, activity.body].forEach(loading);
+      [kpis.body, finance.body, commitments.body, godparents.body, attention.body, recent.body, activity.body].forEach(loading);
       renderShortcuts(shortcuts.body);
 
       try {
         const service = window.AdminDashboardService;
-        const [opResult, recentResult, financeResult, plannerResult, essentialsResult] = await Promise.allSettled([
+        const [opResult, recentResult, financeResult, plannerResult, essentialsResult, godparentsResult, contractsResult] = await Promise.allSettled([
           service.getOperational(),
           service.getRecentConfirmations(),
           window.AdminFinanceService.getSummary(),
           window.AdminPlannerService.getSummary(),
           window.AdminEssentialsService.getSummary(),
+          window.AdminGodparentsService.getSummary(),
+          window.AdminContractsService.getSummary(),
         ]);
         if (!root.isConnected) return;
 
@@ -525,14 +855,30 @@
           console.error("Dashboard essentials:", essentialsResult.reason);
         }
 
+        if (godparentsResult.status === "fulfilled") {
+          state.godparents = godparentsResult.value;
+          renderGodparents(godparents.body, state.godparents);
+        } else {
+          errors += 1;
+          console.error("Dashboard godparents:", godparentsResult.reason);
+          godparents.body.replaceChildren(feedback("error", "No fue posible cargar el resumen de padrinos."));
+        }
+
+        if (contractsResult.status === "fulfilled") {
+          state.contracts = contractsResult.value;
+        } else {
+          errors += 1;
+          console.error("Dashboard contracts:", contractsResult.reason);
+        }
+
         if (state.finance || state.planner) {
           renderCommitments(commitments.body, state.finance, state.planner);
         } else {
           commitments.body.replaceChildren(feedback("error", "No fue posible cargar los próximos compromisos."));
         }
 
-        if (state.operational || state.finance || state.planner || state.essentials) {
-          renderAttention(attention.body, state.operational, state.finance, state.planner, state.essentials);
+        if (state.operational || state.finance || state.planner || state.essentials || state.godparents || state.contracts) {
+          renderAttention(attention.body, state.operational, state.finance, state.planner, state.essentials, state.godparents, state.contracts);
         } else {
           attention.body.replaceChildren(feedback("error", "No fue posible cargar las alertas operativas."));
         }

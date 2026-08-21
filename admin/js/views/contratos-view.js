@@ -130,9 +130,9 @@
 
     grid.append(
       field("Estado del contrato", status),
-      field("Fecha límite para firma", signatureDue),
+      field("Fecha límite acordada para firma", signatureDue),
       field("Fecha de firma", signed),
-      field("Vigencia / fecha contractual", validUntil),
+      field("Fecha del evento / servicio", validUntil),
       field("Condiciones importantes", conditions, true),
       field("Política de cancelación", cancellation, true),
       field("Notas y acuerdos especiales", notes, true)
@@ -168,15 +168,20 @@
     cancel.addEventListener("click", dismiss);
     overlay.addEventListener("click", (event) => { if (event.target === overlay) dismiss(); });
 
-    status.addEventListener("change", () => {
-      const signedRequired = status.value === "firmado";
-      signed.required = signedRequired;
-      if (status.value === "no_requiere") {
-        signed.value = "";
-        signatureDue.value = "";
-      }
-    });
-    status.dispatchEvent(new Event("change"));
+    function syncContractFields() {
+      const isSigned = status.value === "firmado";
+      const hasSignatureProcess = ["en_revision", "por_firmar", "firmado"].includes(status.value);
+
+      signed.required = isSigned;
+      signed.disabled = !isSigned;
+      signatureDue.disabled = !hasSignatureProcess;
+
+      if (!isSigned) signed.value = "";
+      if (!hasSignatureProcess) signatureDue.value = "";
+    }
+
+    status.addEventListener("change", syncContractFields);
+    syncContractFields();
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -195,6 +200,7 @@
           cancellationPolicy: cancellation.value,
           notes: notes.value,
         });
+        window.dispatchEvent(new CustomEvent("admin:alerts-refresh"));
         dismiss();
         await onSaved();
       } catch (error) {
@@ -229,11 +235,32 @@
     card.append(head, financialLine(item), nextPaymentBox(item));
 
     const dates = el("div", "contracts-card-details");
-    dates.append(
-      el("span", "", item.signatureDueDate ? `Firma límite: ${dateLabel(item.signatureDueDate)}` : "Sin fecha límite de firma"),
-      el("span", "", item.signedDate ? `Firmado: ${dateLabel(item.signedDate)}` : "Aún no firmado"),
-      el("span", "", item.validUntil ? `Fecha contractual: ${dateLabel(item.validUntil)}` : "Sin fecha contractual")
-    );
+
+    if (item.status === "firmado") {
+      const signedText = item.signedDate ? `Firmado: ${dateLabel(item.signedDate)}` : "Firmado";
+      const serviceText = item.validUntil ? `Servicio: ${dateLabel(item.validUntil)}` : "Servicio: sin fecha";
+      dates.append(el("span", "", `${signedText} · ${serviceText}`));
+    } else if (["en_revision", "por_firmar"].includes(item.status)) {
+      dates.append(
+        el(
+          "span",
+          "",
+          item.signatureDueDate
+            ? `Firma límite: ${dateLabel(item.signatureDueDate)}`
+            : "Sin fecha límite de firma"
+        )
+      );
+      if (item.validUntil) dates.append(el("span", "", `Servicio: ${dateLabel(item.validUntil)}`));
+    } else {
+      dates.append(
+        el(
+          "span",
+          "",
+          item.validUntil ? `Servicio: ${dateLabel(item.validUntil)}` : "Servicio: sin fecha"
+        )
+      );
+    }
+
     card.append(dates);
 
     const previews = el("div", "contracts-card-previews");

@@ -443,7 +443,7 @@
     table.className = "finance-table";
     const thead = document.createElement("thead");
     const trh = document.createElement("tr");
-    ["Fecha", "Concepto", "Proveedor", "Monto", "Estado", "Acciones"].forEach((label) => {
+    ["Fecha límite", "Concepto", "Proveedor", "Monto", "Estado", "Fecha de pago", "Acciones"].forEach((label) => {
       const th = document.createElement("th");
       th.textContent = label;
       trh.append(th);
@@ -470,6 +470,10 @@
       const statusTd = document.createElement("td");
       statusTd.append(el("span", `finance-status finance-status-${payment.displayStatus}`, statusLabel(payment.displayStatus)));
       tr.append(statusTd);
+
+      const paidDateTd = document.createElement("td");
+      paidDateTd.textContent = payment.paidDate ? dateLabel(payment.paidDate) : "—";
+      tr.append(paidDateTd);
 
       const actionsTd = document.createElement("td");
       const actionsWrap = el("div", "finance-table-actions");

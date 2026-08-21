@@ -116,13 +116,22 @@ function openNewModal(data,reload){const overlay=el("div","essential-modal-overl
 const title=document.createElement("input");title.required=true;title.maxLength=180;title.placeholder="Ej. Letrero de bienvenida";
 const category=document.createElement("select");category.required=true;category.append(option("","Selecciona una sección",!data?.seccionInicial));categoryNames(data).forEach(name=>category.append(option(name,name,name===data?.seccionInicial)));
 const status=document.createElement("select");order.forEach(v=>status.append(option(v,labels[v],v==="por_definir")));
-const vendor=document.createElement("select");vendor.append(option("","Sin proveedor vinculado",true));(data.proveedores||[]).forEach(v=>vendor.append(option(String(v.id),`${v.nombre} · ${v.categoria}`)));
-const task=document.createElement("select");task.append(option("","Sin tarea vinculada",true));(data.tareas||[]).forEach(t=>task.append(option(String(t.id),`${t.titulo}${t.fecha_limite?` · ${dateMx(t.fecha_limite)}`:""}`)));
+const vendor=document.createElement("select");vendor.append(option("","Sin proveedor vinculado",true),option("__no_aplica__","Proveedor: no aplica"));(data.proveedores||[]).forEach(v=>vendor.append(option(String(v.id),`${v.nombre} · ${v.categoria}`)));
+const task=document.createElement("select");task.append(option("","Sin tarea vinculada",true),option("__no_aplica__","Planeación: no aplica"));(data.tareas||[]).forEach(t=>task.append(option(String(t.id),`${t.titulo}${t.fecha_limite?` · ${dateMx(t.fecha_limite)}`:""}`)));
 const notes=document.createElement("textarea");notes.rows=3;notes.placeholder="Notas o detalle que quieras recordar…";
 function field(label,control){const f=el("label","essential-modal-field");f.append(el("span","",label),control);return f}
 const grid=el("div","essential-modal-grid");grid.append(field("Esencial *",title),field("Categoría *",category),field("Estado",status),field("Proveedor",vendor),field("Tarea de Planeación",task),field("Notas",notes));grid.lastElementChild.classList.add("essential-modal-field-wide");
 const msg=el("p","essential-modal-status","");const actions=el("div","essential-modal-actions");const cancel=button("Cancelar"),save=button("Agregar esencial",true);save.type="submit";actions.append(cancel,save);form.append(grid,msg,actions);modal.append(head,form);overlay.append(modal);document.body.append(overlay);document.body.classList.add("essential-modal-open");
-function dismiss(){overlay.remove();document.body.classList.remove("essential-modal-open")};close.onclick=dismiss;cancel.onclick=dismiss;form.addEventListener("submit",async e=>{e.preventDefault();save.disabled=true;msg.textContent="Guardando…";try{await window.AdminEssentialsService.saveItem({title:title.value,category:category.value,status:status.value,vendorId:vendor.value,taskId:task.value,notes:notes.value});dismiss();await reload()}catch(err){msg.textContent=err.message||"No se pudo guardar.";save.disabled=false}})}
+function dismiss(){overlay.remove();document.body.classList.remove("essential-modal-open")};close.onclick=dismiss;cancel.onclick=dismiss;form.addEventListener("submit",async e=>{e.preventDefault();save.disabled=true;msg.textContent="Guardando…";try{await window.AdminEssentialsService.saveItem({
+  title:title.value,
+  category:category.value,
+  status:status.value,
+  vendorId:vendor.value==="__no_aplica__"?"":vendor.value,
+  taskId:task.value==="__no_aplica__"?"":task.value,
+  vendorNotApplicable:vendor.value==="__no_aplica__",
+  planningNotApplicable:task.value==="__no_aplica__",
+  notes:notes.value
+});dismiss();await reload()}catch(err){msg.textContent=err.message||"No se pudo guardar.";save.disabled=false}})}
 function card(item,data,reload){
   const a=el("article","essential-item");
   const top=el("div","essential-item-top");
@@ -137,13 +146,51 @@ function card(item,data,reload){
   const links=el("div","essential-links");
   const vendor=document.createElement("select");
   vendor.className="essential-link-select";
-  vendor.append(option("","Proveedor: sin vincular",!item.proveedor_id));
-  (data.proveedores||[]).forEach(v=>vendor.append(option(String(v.id),`Proveedor: ${v.nombre}`,Number(v.id)===Number(item.proveedor_id))));
+  vendor.append(
+    option("","Proveedor: sin vincular",!item.proveedor_id&&!item.proveedor_no_aplica),
+    option("__no_aplica__","Proveedor: no aplica",item.proveedor_no_aplica===true)
+  );
+  (data.proveedores||[]).forEach(v=>vendor.append(option(String(v.id),`Proveedor: ${v.nombre}`,Number(v.id)===Number(item.proveedor_id)&&!item.proveedor_no_aplica)));
   const task=document.createElement("select");
   task.className="essential-link-select";
-  task.append(option("","Planeación: sin vincular",!item.tarea_id));
-  (data.tareas||[]).forEach(t=>task.append(option(String(t.id),`Tarea: ${t.titulo}`,Number(t.id)===Number(item.tarea_id))));
+  task.append(
+    option("","Planeación: sin vincular",!item.tarea_id&&!item.planeacion_no_aplica),
+    option("__no_aplica__","Planeación: no aplica",item.planeacion_no_aplica===true)
+  );
+  (data.tareas||[]).forEach(t=>task.append(option(String(t.id),`Tarea: ${t.titulo}`,Number(t.id)===Number(item.tarea_id)&&!item.planeacion_no_aplica)));
   links.append(vendor,task);
+
+  let padrinoLink=null;
+  if(item.padrino_relacion){
+    padrinoLink=el("a","essential-padrino-link");
+    padrinoLink.href="#/padrinos";
+
+    const statusValue=item.padrino_relacion.padrino_estado||"por_definir";
+    const typeLabel=item.padrino_relacion.padrino_tipo||"Padrinos";
+    const namesLabel=item.padrino_relacion.padrino_nombres||"";
+    const fulfillmentValue=item.padrino_relacion.cumplimiento_estado||"pendiente";
+
+    const fulfillmentLabels={
+      pendiente:"Pendiente",
+      en_proceso:"En proceso",
+      entregado:"Entregado / listo"
+    };
+
+    const coverageLabel=statusValue==="confirmado"?"COBERTURA":"PADRINOS";
+    const coverageStatus=statusValue==="confirmado"
+      ?(fulfillmentLabels[fulfillmentValue]||"Pendiente")
+      :"Por definir";
+
+    padrinoLink.append(
+      el("span","essential-padrino-label",coverageLabel),
+      el("strong","",namesLabel?`${typeLabel} · ${namesLabel}`:typeLabel),
+      el(
+        "span",
+        `essential-padrino-status essential-padrino-status-${statusValue} essential-padrino-fulfillment-${fulfillmentValue}`,
+        coverageStatus
+      )
+    );
+  }
 
   const intelligence=el("div","essential-intelligence");
   const syncLabel=el("label","essential-auto-toggle");
@@ -156,9 +203,13 @@ function card(item,data,reload){
   const autoInfo=el("div","essential-auto-info");
   if(sync.checked){
     autoInfo.append(el("span","essential-auto-badge","AUTO"));
+    const noAplicaSignals=[
+      item.proveedor_no_aplica?"Proveedor: no aplica":"",
+      item.planeacion_no_aplica?"Planeación: no aplica":""
+    ].filter(Boolean);
     const autoText=item.motivo_automatico
-      ? `${item.motivo_automatico} · Estado actual: ${labels[item.estado]}`
-      : `Sin señales vinculadas · Estado actual: ${labels[item.estado]}`;
+      ? `${item.motivo_automatico}${noAplicaSignals.length?` · ${noAplicaSignals.join(" · ")}`:""} · Estado actual: ${labels[item.estado]}`
+      : `${noAplicaSignals.length?noAplicaSignals.join(" · "):"Sin señales vinculadas"} · Estado actual: ${labels[item.estado]}`;
     autoInfo.append(el("span","essential-auto-copy",autoText));
   }else{
     autoInfo.append(el("span","essential-manual-badge","MANUAL"),el("span","essential-auto-copy","El estado lo controlas directamente desde este elemento."));
@@ -215,8 +266,10 @@ function card(item,data,reload){
         id:item.id,
         status:baseStatus,
         notes:notes.value,
-        vendorId:vendor.value,
-        taskId:task.value,
+        vendorId:vendor.value==="__no_aplica__"?"":vendor.value,
+        taskId:task.value==="__no_aplica__"?"":task.value,
+        vendorNotApplicable:vendor.value==="__no_aplica__",
+        planningNotApplicable:task.value==="__no_aplica__",
         syncAuto
       });
       msg.textContent="Guardado";
@@ -241,7 +294,9 @@ function card(item,data,reload){
     save({manualStatus,forceSync:sync.checked});
   };
 
-  a.append(top,links,intelligence,notes,footer);
+  a.append(top,links);
+  if(padrinoLink)a.append(padrinoLink);
+  a.append(intelligence,notes,footer);
   return a
 }
 window.AdminViews=window.AdminViews||{};window.AdminViews.esenciales=()=>{const root=el("section","essentials-view");const head=el("header","admin-view-header essentials-heading");const headCopy=el("div");headCopy.append(el("p","admin-eyebrow","WEDDING COMMAND CENTER"),el("h2","","Checklist esencial"),el("p","admin-view-copy","Todo lo que necesita la boda, conectado con proveedores y Planeación."));const headActions=el("div","essential-heading-actions"),disabledBtn=button("DESHABILITADOS"),addSection=button("AGREGAR SECCIÓN"),add=button("AGREGAR ESENCIAL",true);headActions.append(disabledBtn,addSection,add);head.append(headCopy,headActions);const metrics=el("div","essential-metrics"),filters=el("div","essential-filters");const search=document.createElement("input");search.type="search";search.placeholder="Buscar esencial o categoría…";const status=document.createElement("select");status.innerHTML='<option value="">Todos los estados</option>'+order.map(v=>`<option value="${v}">${labels[v]}</option>`).join("");filters.append(search,status);const progress=el("section","essential-progress"),list=el("div","essential-groups"),loading=el("p","contracts-load-status","Cargando checklist…");root.append(head,metrics,progress,filters,loading,list);let data=null;
@@ -315,5 +370,19 @@ function render(){if(!data)return;const r=data.resumen||{};metrics.replaceChildr
 
   sec.append(h,grid);list.append(sec)
 })}
-async function load(){loading.hidden=false;try{const [summary,sections]=await Promise.all([window.AdminEssentialsService.getSummary(),window.AdminEssentialsService.getSections()]);data=summary;data.secciones=sections?.items||[];loading.hidden=true;render()}catch(e){loading.hidden=false;loading.textContent=e.message||"No fue posible cargar el checklist."}}
+async function load(){loading.hidden=false;try{
+  const [summary,sections,relations]=await Promise.all([
+    window.AdminEssentialsService.getSummary(),
+    window.AdminEssentialsService.getSections(),
+    window.AdminGodparentsService.getRelations()
+  ]);
+  data=summary;
+  data.secciones=sections?.items||[];
+  const relationMap=new Map((relations||[]).map(r=>[Number(r.esencial_id),r]));
+  const attach=(item)=>({...item,padrino_relacion:relationMap.get(Number(item.id))||null});
+  data.items=(data.items||[]).map(attach);
+  if(Array.isArray(data.allItems))data.allItems=data.allItems.map(attach);
+  if(Array.isArray(data.disabledItems))data.disabledItems=data.disabledItems.map(attach);
+  loading.hidden=true;render()
+}catch(e){loading.hidden=false;loading.textContent=e.message||"No fue posible cargar el checklist."}}
 disabledBtn.onclick=()=>data&&openDisabledModal(data,load);addSection.onclick=()=>openSectionModal(load);add.onclick=()=>data&&openNewModal(data,load);search.oninput=render;status.onchange=render;setTimeout(load,0);return root}})();

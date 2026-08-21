@@ -6,6 +6,12 @@
     confirmado: "Confirmado",
   });
 
+  const FULFILLMENT = Object.freeze({
+    pendiente: "Pendiente",
+    en_proceso: "En proceso",
+    entregado: "Entregado / listo",
+  });
+
   function el(tag, className = "", text = "") {
     const node = document.createElement(tag);
     if (className) node.className = className;
@@ -45,7 +51,7 @@
     return error?.details || error?.message || "No fue posible guardar la información del padrino.";
   }
 
-  function openEditor(item, guests, reload) {
+  function openEditor(item, guests, essentials, reload) {
     const overlay = el("div", "godparents-modal-overlay");
     const modal = el("section", "godparents-modal");
     modal.setAttribute("role", "dialog");
@@ -75,7 +81,7 @@
     });
 
     const invitation = document.createElement("select");
-    invitation.append(option("", "Sin invitación vinculada", !item?.invitacion_id));
+    invitation.append(option("", "Sin padrino(s) vinculados", !item?.invitacion_id));
     guests.forEach((guest) => {
       const label = `${guest.nombre} · ${guest.grupo}`;
       invitation.append(
@@ -91,6 +97,48 @@
     names.maxLength = 250;
     names.value = item?.nombres_padrinos || "";
     names.placeholder = "Ej. Laura y Jorge";
+
+    const targetDate = document.createElement("input");
+    targetDate.type = "date";
+    targetDate.value = item?.fecha_objetivo || "";
+    targetDate.min = new Date().toISOString().slice(0, 10);
+    targetDate.max = "2027-05-01";
+
+    const essential = document.createElement("select");
+    essential.append(option("", "Sin esencial relacionado", !item?.esencial_id));
+    essentials.forEach((entry) => {
+      essential.append(
+        option(
+          String(entry.id),
+          `${entry.titulo} · ${entry.categoria}`,
+          Number(entry.id) === Number(item?.esencial_id)
+        )
+      );
+    });
+
+    const fulfillmentStatus = document.createElement("select");
+    Object.entries(FULFILLMENT).forEach(([value, label]) => {
+      fulfillmentStatus.append(
+        option(value, label, value === (item?.cumplimiento_estado || "pendiente"))
+      );
+    });
+
+    const commitmentDate = document.createElement("input");
+    commitmentDate.type = "date";
+    commitmentDate.value = item?.fecha_compromiso || "";
+    commitmentDate.max = "2027-05-01";
+
+    function syncFulfillmentAvailability() {
+      const enabled = status.value === "confirmado";
+      fulfillmentStatus.disabled = !enabled;
+      commitmentDate.disabled = !enabled;
+      if (!enabled) {
+        fulfillmentStatus.value = "pendiente";
+        commitmentDate.value = "";
+      }
+    }
+    status.addEventListener("change", syncFulfillmentAvailability);
+    syncFulfillmentAvailability();
 
     const notes = document.createElement("textarea");
     notes.rows = 4;
@@ -110,6 +158,10 @@
       field("Estado", status),
       field("Invitación vinculada", invitation, true),
       field("Nombre(s) de los padrinos", names, true),
+      field("Fecha objetivo para definir / invitar", targetDate, true),
+      field("Esencial relacionado", essential, true),
+      field("Cumplimiento del compromiso", fulfillmentStatus),
+      field("Fecha compromiso / entrega", commitmentDate),
       field("Notas", notes, true)
     );
 
@@ -157,7 +209,13 @@
           invitationName: linked?.nombre || "",
           names: names.value,
           notes: notes.value,
+          targetDate: targetDate.value || null,
+          essentialId: essential.value || null,
+          fulfillmentStatus: fulfillmentStatus.value,
+          commitmentDate: commitmentDate.value || null,
         });
+
+        window.dispatchEvent(new CustomEvent("admin:alerts-refresh"));
         dismiss();
         await reload();
       } catch (error) {
@@ -167,7 +225,7 @@
     });
   }
 
-  function card(item, guests, reload) {
+  function card(item, guests, essentials, reload) {
     const node = el("article", `godparents-card godparents-card-${item.estado}`);
     const head = el("div", "godparents-card-head");
     const copy = el("div");
@@ -184,22 +242,74 @@
       )
     );
 
-    const people = el("div", "godparents-people");
+    const people = el("div", "godparents-people godparents-people-natural");
 
-    if (item.invitacion_nombre) {
+    if (item.estado === "confirmado" && item.nombres_padrinos) {
       people.append(
-        el("div", "godparents-person", `Invitación · ${item.invitacion_nombre}`)
+        el("div", "godparents-natural-names", item.nombres_padrinos)
       );
+
+      if (item.invitacion_nombre) {
+        people.append(
+          el("div", "godparents-natural-family", item.invitacion_nombre)
+        );
+      }
+
+      const fulfillment = item.cumplimiento_estado || "pendiente";
+      const label = FULFILLMENT[fulfillment] || fulfillment;
+      const coveredLabel = item.esencial_titulo || item.tipo || "Compromiso";
+
+      if (item.esencial_titulo) {
+        const related = el(
+          "a",
+          "godparents-natural-coverage godparents-related-essential",
+          `Cubren ${coveredLabel} · ${label}`
+        );
+        related.href = "#/esenciales";
+        people.append(related);
+      } else {
+        people.append(
+          el("div", "godparents-natural-coverage", `Cubren ${coveredLabel} · ${label}`)
+        );
+      }
+
+      if (item.fecha_compromiso) {
+        const date = new Date(`${item.fecha_compromiso}T12:00:00`);
+        const formatted = new Intl.DateTimeFormat("es-MX", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        }).format(date);
+        people.append(
+          el("div", "godparents-natural-date", `Compromiso: ${formatted}`)
+        );
+      }
     } else {
-      people.append(
-        el("div", "godparents-person godparents-person-empty", "Sin invitación vinculada")
-      );
-    }
+      if (item.invitacion_nombre) {
+        people.append(
+          el("div", "godparents-natural-family", item.invitacion_nombre)
+        );
+      } else {
+        people.append(
+          el("div", "godparents-person godparents-person-empty", "Sin padrino(s) vinculados")
+        );
+      }
 
-    if (item.nombres_padrinos) {
-      people.append(
-        el("div", "godparents-person", `Padrinos · ${item.nombres_padrinos}`)
-      );
+      if (item.nombres_padrinos) {
+        people.append(
+          el("div", "godparents-natural-names", item.nombres_padrinos)
+        );
+      }
+
+      if (item.esencial_titulo) {
+        const related = el(
+          "a",
+          "godparents-natural-coverage godparents-related-essential",
+          `Relacionado con ${item.esencial_titulo}`
+        );
+        related.href = "#/esenciales";
+        people.append(related);
+      }
     }
 
     if (item.notas) {
@@ -211,7 +321,7 @@
     const disable = button("Deshabilitar");
     disable.classList.add("godparents-disable");
 
-    edit.onclick = () => openEditor(item, guests, reload);
+    edit.onclick = () => openEditor(item, guests, essentials, reload);
     disable.onclick = async () => {
       if (!confirm(`¿Deshabilitar "${item.tipo}"? Podrás habilitarlo nuevamente después.`)) return;
       disable.disabled = true;
@@ -320,6 +430,7 @@
 
     let data = null;
     let guests = [];
+    let essentials = [];
 
     function render() {
       if (!data) return;
@@ -351,7 +462,7 @@
           el("p", "godparents-empty", "No hay padrinos que coincidan con los filtros.")
         );
       } else {
-        items.forEach((item) => grid.append(card(item, guests, load)));
+        items.forEach((item) => grid.append(card(item, guests, essentials, load)));
       }
     }
 
@@ -361,13 +472,15 @@
       add.disabled = true;
 
       try {
-        const [summary, guestList] = await Promise.all([
+        const [summary, guestList, essentialsData] = await Promise.all([
           window.AdminGodparentsService.getSummary(),
           window.AdminGodparentsService.listAllActiveGuests(),
+          window.AdminEssentialsService.getSummary(),
         ]);
 
         data = summary;
         guests = guestList;
+        essentials = (essentialsData?.items || []).filter((item) => item.habilitado !== false);
         status.hidden = true;
         add.disabled = false;
         render();
@@ -380,7 +493,7 @@
 
     search.oninput = render;
     filter.onchange = render;
-    add.onclick = () => openEditor(null, guests, load);
+    add.onclick = () => openEditor(null, guests, essentials, load);
     disabled.onclick = () => data && openDisabled(data, load);
 
     queueMicrotask(load);

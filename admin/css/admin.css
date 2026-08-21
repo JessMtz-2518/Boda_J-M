@@ -5033,3 +5033,343 @@ body.godparents-modal-open{overflow:hidden}
 .admin-nav-group-links a[aria-current="page"]{position:relative}
 .admin-nav-group-links a[aria-current="page"]::before{content:"";position:absolute;left:5px;top:50%;width:3px;height:18px;border-radius:999px;background:#eef0e7;transform:translateY(-50%)}
 .admin-nav-dashboard{margin-bottom:5px}
+
+
+/* =========================================================
+   FASE 10.3 · PADRINOS EN DASHBOARD
+   ========================================================= */
+.dashboard-panel-godparents .dashboard-panel-body{
+  padding-top:4px;
+}
+.dashboard-godparents-summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+}
+.dashboard-godparents-hero{
+  min-width:0;
+  flex:1 1 auto;
+  display:grid;
+  grid-template-columns:auto minmax(180px,1fr);
+  align-items:center;
+  gap:22px;
+}
+.dashboard-godparents-number{
+  display:grid;
+  gap:1px;
+}
+.dashboard-godparents-number strong{
+  font-family:"Montserrat",Arial,sans-serif;
+  font-size:2rem;
+  font-weight:600;
+  line-height:1;
+  color:var(--admin-olive-dark);
+  font-variant-numeric:lining-nums tabular-nums;
+}
+.dashboard-godparents-number span{
+  color:var(--admin-muted);
+  font-size:.68rem;
+}
+.dashboard-godparents-progress-wrap{
+  display:grid;
+  gap:7px;
+}
+.dashboard-godparents-progress{
+  position:relative;
+  width:100%;
+  height:9px;
+  overflow:hidden;
+  border-radius:999px;
+  background:rgba(86,101,74,.10);
+}
+.dashboard-godparents-progress-bar{
+  position:absolute;
+  inset:0 auto 0 0;
+  width:0;
+  border-radius:inherit;
+  background:var(--admin-olive);
+  transition:width .3s ease;
+}
+.dashboard-godparents-meta{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  color:var(--admin-muted);
+  font-size:.67rem;
+}
+.dashboard-panel-godparents .dashboard-action-link{
+  flex:0 0 auto;
+}
+@media(max-width:760px){
+  .dashboard-godparents-summary{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .dashboard-godparents-hero{
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+  .dashboard-panel-godparents .dashboard-action-link{
+    width:100%;
+    text-align:center;
+  }
+}
+
+
+/* FASE 10.5 · Relación Padrinos ↔ Esenciales */
+.godparents-related-essential{
+  text-decoration:none;
+  cursor:pointer;
+}
+.godparents-related-essential:hover{
+  text-decoration:underline;
+}
+.essential-padrino-link{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:8px;
+  margin-top:8px;
+  padding:9px 12px;
+  border:1px solid var(--admin-border);
+  border-radius:12px;
+  background:rgba(86,101,74,.055);
+  color:var(--admin-olive-dark);
+  text-decoration:none;
+  font-size:.72rem;
+}
+.essential-padrino-link:hover{
+  background:rgba(86,101,74,.09);
+}
+.essential-padrino-label{
+  font-size:.58rem;
+  letter-spacing:.11em;
+  font-weight:700;
+  color:var(--admin-muted);
+}
+@media(max-width:760px){
+  .essential-padrino-link{
+    grid-template-columns:1fr;
+    align-items:start;
+  }
+}
+
+
+/* =========================================================
+   FASE 10.6.3 · ALERTAS AGRUPADAS Y SEMÁFORO VISIBLE
+   ========================================================= */
+.admin-notification-list{
+  display:grid;
+  gap:14px;
+}
+
+.admin-notification-group{
+  display:grid;
+  gap:8px;
+}
+
+.admin-notification-group-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:7px 10px;
+  border-radius:10px;
+  font-size:.66rem;
+  font-weight:700;
+  letter-spacing:.12em;
+}
+
+.admin-notification-group-head b{
+  display:grid;
+  place-items:center;
+  min-width:24px;
+  height:24px;
+  padding:0 7px;
+  border-radius:999px;
+  font-size:.72rem;
+  letter-spacing:0;
+}
+
+.admin-notification-group-items{
+  display:grid;
+  gap:8px;
+}
+
+/* Urgente */
+.admin-notification-group.is-urgent .admin-notification-group-head{
+  background:rgba(156,63,59,.12);
+  color:#8f3f3b;
+  border:1px solid rgba(156,63,59,.28);
+}
+.admin-notification-group.is-urgent .admin-notification-group-head b{
+  background:#9c3f3b;
+  color:#fff;
+}
+.admin-notification-item.is-urgent{
+  border-left:5px solid #9c3f3b !important;
+  background:rgba(156,63,59,.055) !important;
+}
+
+/* Prioridad alta */
+.admin-notification-group.is-high .admin-notification-group-head{
+  background:rgba(181,115,50,.13);
+  color:#955f2d;
+  border:1px solid rgba(181,115,50,.30);
+}
+.admin-notification-group.is-high .admin-notification-group-head b{
+  background:#b57332;
+  color:#fff;
+}
+.admin-notification-item.is-high{
+  border-left:5px solid #b57332 !important;
+  background:rgba(181,115,50,.055) !important;
+}
+
+/* Próximos */
+.admin-notification-group.is-upcoming .admin-notification-group-head{
+  background:rgba(86,101,74,.11);
+  color:var(--admin-olive-dark);
+  border:1px solid rgba(86,101,74,.24);
+}
+.admin-notification-group.is-upcoming .admin-notification-group-head b{
+  background:var(--admin-olive);
+  color:#fff;
+}
+.admin-notification-item.is-upcoming{
+  border-left:5px solid var(--admin-olive) !important;
+  background:rgba(86,101,74,.045) !important;
+}
+
+/* El badge representa TODAS las alertas visibles en la campana. */
+.admin-notification-badge{
+  min-width:20px;
+  padding:0 5px;
+}
+
+
+/* =========================================================
+   FASE 10.6.4 · ALERTAS COMPACTAS
+   Los contadores superiores funcionan como leyenda del
+   semáforo; se eliminan encabezados repetidos del listado.
+   ========================================================= */
+.admin-notification-list{
+  display:grid;
+  gap:9px;
+}
+
+.admin-notification-item{
+  margin:0 !important;
+}
+
+/* Mantener distinción clara sólo mediante color */
+.admin-notification-item.is-urgent{
+  border-left:5px solid #9c3f3b !important;
+  background:rgba(156,63,59,.065) !important;
+}
+.admin-notification-item.is-high{
+  border-left:5px solid #b57332 !important;
+  background:rgba(181,115,50,.065) !important;
+}
+.admin-notification-item.is-upcoming{
+  border-left:5px solid var(--admin-olive) !important;
+  background:rgba(86,101,74,.055) !important;
+}
+
+/* Las etiquetas internas muestran sólo el tipo de asunto. */
+.admin-notification-item > div > span{
+  letter-spacing:.10em;
+}
+
+
+/* FASE 10.7 · Cobertura por padrinos */
+.essential-padrino-status-confirmado{
+  font-weight:700;
+  color:var(--admin-olive-dark);
+}
+.essential-padrino-link:has(.essential-padrino-status-confirmado){
+  background:rgba(86,101,74,.08);
+}
+
+
+/* =========================================================
+   FASE 10.8 · CUMPLIMIENTO DE PADRINOS
+   ========================================================= */
+.godparents-fulfillment{
+  font-weight:600;
+}
+.godparents-fulfillment-pendiente{
+  border-left:3px solid #b57332;
+}
+.godparents-fulfillment-en_proceso{
+  border-left:3px solid var(--admin-olive);
+}
+.godparents-fulfillment-entregado{
+  border-left:3px solid #55744a;
+  background:rgba(85,116,74,.09);
+}
+.godparents-form select:disabled,
+.godparents-form input:disabled{
+  opacity:.58;
+  cursor:not-allowed;
+  background:rgba(0,0,0,.025);
+}
+
+
+/* =========================================================
+   FASE 10.8.1 · TARJETAS DE PADRINOS EN LENGUAJE NATURAL
+   ========================================================= */
+.godparents-people-natural{
+  gap:0;
+  margin-top:12px;
+  padding:14px 16px;
+  border-radius:12px;
+  background:rgba(255,255,255,.28);
+}
+.godparents-people-natural .godparents-person{
+  margin:0;
+}
+.godparents-natural-names{
+  font-size:15px;
+  font-weight:700;
+  color:var(--admin-ink);
+  line-height:1.35;
+}
+.godparents-natural-family{
+  margin-top:3px;
+  font-size:12px;
+  color:var(--admin-muted);
+  line-height:1.4;
+}
+.godparents-natural-coverage{
+  display:block;
+  margin-top:9px;
+  padding-top:9px;
+  border-top:1px solid rgba(55,67,47,.10);
+  color:var(--admin-ink);
+  font-size:13px;
+  font-weight:600;
+  line-height:1.4;
+  text-decoration:none;
+}
+.godparents-natural-date{
+  margin-top:3px;
+  font-size:12px;
+  color:var(--admin-muted);
+  line-height:1.4;
+}
+.godparents-people-natural .godparents-person-empty{
+  padding:0;
+  border:0;
+  background:transparent;
+  color:var(--admin-muted);
+}
+.godparents-fulfillment,
+.godparents-fulfillment-pendiente,
+.godparents-fulfillment-en_proceso,
+.godparents-fulfillment-entregado{
+  border-left:0 !important;
+  background:transparent !important;
+}

@@ -39,6 +39,8 @@ async function saveItem(item){
       p_notas:String(item?.notes||"").trim()||null,
       p_proveedor_id:item?.vendorId?Number(item.vendorId):null,
       p_tarea_id:item?.taskId?Number(item.taskId):null,
+      p_proveedor_no_aplica:item?.vendorNotApplicable===true,
+      p_planeacion_no_aplica:item?.planningNotApplicable===true,
       p_sincronizacion_automatica:item?.syncAuto!==false
     });
   }else{
@@ -49,7 +51,9 @@ async function saveItem(item){
       p_estado:item?.status||"por_definir",
       p_notas:String(item?.notes||"").trim()||null,
       p_proveedor_id:item?.vendorId?Number(item.vendorId):null,
-      p_tarea_id:item?.taskId?Number(item.taskId):null
+      p_tarea_id:item?.taskId?Number(item.taskId):null,
+      p_proveedor_no_aplica:item?.vendorNotApplicable===true,
+      p_planeacion_no_aplica:item?.planningNotApplicable===true
     });
   }
   if(response.error)session(response.error);return env(response.data)
