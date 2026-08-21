@@ -203,16 +203,40 @@ function card(item,data,reload){
   const autoInfo=el("div","essential-auto-info");
   if(sync.checked){
     autoInfo.append(el("span","essential-auto-badge","AUTO"));
+
+    const providerLinked=Boolean(item.proveedor_id||item.proveedor);
+    const planningLinked=Boolean(item.tarea_id||item.tarea);
     const noAplicaSignals=[
       item.proveedor_no_aplica?"Proveedor: no aplica":"",
       item.planeacion_no_aplica?"Planeación: no aplica":""
     ].filter(Boolean);
-    const autoText=item.motivo_automatico
-      ? `${item.motivo_automatico}${noAplicaSignals.length?` · ${noAplicaSignals.join(" · ")}`:""} · Estado actual: ${labels[item.estado]}`
-      : `${noAplicaSignals.length?noAplicaSignals.join(" · "):"Sin señales vinculadas"} · Estado actual: ${labels[item.estado]}`;
+
+    const linkedSignals=[];
+    if(providerLinked)linkedSignals.push("Proveedor vinculado");
+    if(planningLinked)linkedSignals.push("Tarea de Planeación vinculada");
+
+    let autoText="";
+    if(item.motivo_automatico){
+      const signalText=linkedSignals.length
+        ? linkedSignals.join(" · ")
+        : noAplicaSignals.length
+          ? noAplicaSignals.join(" · ")
+          : item.motivo_automatico;
+      autoText=`${signalText} · Estado actualizado automáticamente: ${labels[item.estado]}`;
+    }else if(linkedSignals.length){
+      autoText=`${linkedSignals.join(" · ")} · Estado: ${labels[item.estado]}`;
+    }else if(noAplicaSignals.length){
+      autoText=`${noAplicaSignals.join(" · ")} · Estado: ${labels[item.estado]}`;
+    }else{
+      autoText=`Sin proveedor ni tarea vinculada · Estado: ${labels[item.estado]}`;
+    }
+
     autoInfo.append(el("span","essential-auto-copy",autoText));
   }else{
-    autoInfo.append(el("span","essential-manual-badge","MANUAL"),el("span","essential-auto-copy","El estado lo controlas directamente desde este elemento."));
+    autoInfo.append(
+      el("span","essential-manual-badge","MANUAL"),
+      el("span","essential-auto-copy",`Control manual · Estado: ${labels[item.estado]}`)
+    );
   }
   intelligence.append(autoInfo);
 
@@ -301,7 +325,12 @@ function card(item,data,reload){
 }
 window.AdminViews=window.AdminViews||{};window.AdminViews.esenciales=()=>{const root=el("section","essentials-view");const head=el("header","admin-view-header essentials-heading");const headCopy=el("div");headCopy.append(el("p","admin-eyebrow","WEDDING COMMAND CENTER"),el("h2","","Checklist esencial"),el("p","admin-view-copy","Todo lo que necesita la boda, conectado con proveedores y Planeación."));const headActions=el("div","essential-heading-actions"),disabledBtn=button("DESHABILITADOS"),addSection=button("AGREGAR SECCIÓN"),add=button("AGREGAR ESENCIAL",true);headActions.append(disabledBtn,addSection,add);head.append(headCopy,headActions);const metrics=el("div","essential-metrics"),filters=el("div","essential-filters");const search=document.createElement("input");search.type="search";search.placeholder="Buscar esencial o categoría…";const status=document.createElement("select");status.innerHTML='<option value="">Todos los estados</option>'+order.map(v=>`<option value="${v}">${labels[v]}</option>`).join("");filters.append(search,status);const progress=el("section","essential-progress"),list=el("div","essential-groups"),loading=el("p","contracts-load-status","Cargando checklist…");root.append(head,metrics,progress,filters,loading,list);let data=null;
 const expandedGroups=new Set();
-function render(){if(!data)return;const r=data.resumen||{};metrics.replaceChildren(metric("TOTAL",r.total||0,"esenciales aplicables"),metric("LISTOS",r.listos||0,"completamente resueltos"),metric("CONTRATADOS",r.contratados||0,"proveedor asegurado"),metric("EN DECISIÓN",r.en_decision||0,"buscando o elegidos"),metric("POR DEFINIR",r.por_definir||0,"aún sin iniciar"));progress.innerHTML=`<div class="essential-progress-copy"><h3>Progreso general</h3><strong>${r.porcentaje||0}% preparado</strong></div><div class="essential-progress-track"><span style="width:${Math.min(100,Number(r.porcentaje||0))}%"></span></div>`;const q=search.value.trim().toLowerCase(),st=status.value;const items=(data.items||[]).filter(i=>(!st||i.estado===st)&&(!q||`${i.titulo} ${i.categoria} ${i.proveedor||""} ${i.tarea||""}`.toLowerCase().includes(q)));list.replaceChildren();const groups=new Map();categoryNames(data).forEach(name=>groups.set(name,[]));items.forEach(i=>{if(!groups.has(i.categoria))groups.set(i.categoria,[]);groups.get(i.categoria).push(i)});const filtering=Boolean(q||st);if(filtering){for(const [name,arr] of [...groups]){if(!arr.length&&!name.toLowerCase().includes(q))groups.delete(name)}}if(!groups.size){list.append(el("div","timeline-empty","No hay elementos que coincidan con los filtros."));return}groups.forEach((arr,name)=>{
+function render(){if(!data)return;const r=data.resumen||{};metrics.replaceChildren(
+metric("TOTAL",r.total||0,"esenciales aplicables"),
+metric("DEFINIDOS",(r.contratados||0)+(r.listos||0),`${r.contratados||0} contratados · ${r.listos||0} resuelto${Number(r.listos||0)===1?"":"s"} sin proveedor`),
+metric("PROSPECTOS",r.en_decision||0,"buscando o evaluando opciones"),
+metric("POR DEFINIR",r.por_definir||0,"aún sin iniciar")
+);progress.innerHTML=`<div class="essential-progress-copy"><h3>Progreso general</h3><strong>${r.porcentaje||0}% preparado</strong></div><div class="essential-progress-track"><span style="width:${Math.min(100,Number(r.porcentaje||0))}%"></span></div>`;const q=search.value.trim().toLowerCase(),st=status.value;const items=(data.items||[]).filter(i=>(!st||i.estado===st)&&(!q||`${i.titulo} ${i.categoria} ${i.proveedor||""} ${i.tarea||""}`.toLowerCase().includes(q)));list.replaceChildren();const groups=new Map();categoryNames(data).forEach(name=>groups.set(name,[]));items.forEach(i=>{if(!groups.has(i.categoria))groups.set(i.categoria,[]);groups.get(i.categoria).push(i)});const filtering=Boolean(q||st);if(filtering){for(const [name,arr] of [...groups]){if(!arr.length&&!name.toLowerCase().includes(q))groups.delete(name)}}if(!groups.size){list.append(el("div","timeline-empty","No hay elementos que coincidan con los filtros."));return}groups.forEach((arr,name)=>{
   const sec=el("section","essential-group"),h=el("div","essential-group-header");
   const title=el("h3","",name);
   const summary=el("span","essential-group-summary",arr.length?`${arr.filter(i=>["listo","contratado"].includes(i.estado)).length} de ${arr.filter(i=>i.estado!=="no_aplica").length} resueltos`:"Sin esenciales todavía");
