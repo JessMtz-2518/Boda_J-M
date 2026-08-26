@@ -1083,13 +1083,49 @@ footer span {
     backdrop-filter: blur(3px);
   }
 
+  /* Cuenta regresiva móvil: una sola línea para conservar ritmo visual */
+  .section.compact {
+    padding-top: 44px;
+    padding-bottom: 44px;
+  }
+
   .countdown {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    width: 100%;
+    max-width: 520px;
+    margin-top: 22px;
+  }
+
+  .countdown div {
+    min-width: 0;
+    padding: 0 7px;
+    border-right: 1px solid var(--line);
   }
 
   .countdown div:nth-child(2) {
+    border-right: 1px solid var(--line);
+  }
+
+  .countdown div:last-child {
     border-right: 0;
+  }
+
+  .countdown strong {
+    font-size: clamp(2.55rem, 13vw, 4rem);
+    line-height: .9;
+  }
+
+  .countdown span {
+    margin-top: 10px;
+    font-size: clamp(.46rem, 2.05vw, .62rem);
+    letter-spacing: .11em;
+    white-space: nowrap;
+  }
+
+  /* En móvil la navegación rápida duplica las secciones que ya siguen en el scroll. */
+  .nav-strip {
+    display: none;
   }
 
   .details-grid {
