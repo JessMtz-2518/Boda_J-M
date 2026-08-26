@@ -192,6 +192,20 @@
       }
 
       setMessage("CLABE copiada correctamente.");
+
+      // Señal de intención: copiar la CLABE no equivale a una transferencia confirmada.
+      const token = (new URLSearchParams(window.location.search).get("inv") || "").trim();
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(token)) {
+        try {
+          const client = window.SupabaseClient?.getClient?.();
+          if (client) {
+            const { error: trackingError } = await client.rpc("registrar_copia_clabe", { p_token: token });
+            if (trackingError) console.warn("Gift Experience: no fue posible registrar la copia de CLABE.", trackingError);
+          }
+        } catch (trackingError) {
+          console.warn("Gift Experience: seguimiento de CLABE no disponible.", trackingError);
+        }
+      }
     } catch (error) {
       console.error("Gift Experience: no fue posible copiar la CLABE.", error);
       setMessage("No fue posible copiarla automáticamente. Puedes seleccionarla manualmente.");
