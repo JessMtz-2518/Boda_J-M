@@ -17,7 +17,7 @@
   function setLoginBusy(busy) { elements.adminEmail.disabled=busy; elements.adminPassword.disabled=busy; elements.adminLoginButton.disabled=busy; elements.adminLoginButton.textContent=busy?"Verificando...":"Iniciar sesion"; }
   function toggleMenu(open) { elements.adminShell.classList.toggle("menu-open",open); elements.adminMenuButton.setAttribute("aria-expanded",String(open)); elements.adminSidebarBackdrop.hidden=!open; }
   function resetRouteToDashboard() { history.replaceState(null,"","#/dashboard"); }
-  const routeGroups={invitados:"invitados",confirmaciones:"invitados",estadisticas:"reportes",mesas:"invitados",planeacion:"organizacion",timeline:"organizacion",esenciales:"organizacion",padrinos:"organizacion",presupuesto:"finanzas",contratos:"finanzas",reportes:"reportes"};
+  const routeGroups={invitados:"invitados",confirmaciones:"invitados",estadisticas:"reportes",mesas:"invitados",planeacion:"organizacion",timeline:"organizacion",esenciales:"organizacion",padrinos:"organizacion",presupuesto:"finanzas",contratos:"finanzas",regalos:"finanzas",reportes:"reportes"};
   function syncNavGroups(){
     const route=(location.hash.replace(/^#\//,"")||"dashboard").split(/[?&]/)[0];
     const activeGroup=routeGroups[route]||null;
