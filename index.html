@@ -40,7 +40,7 @@
   <link href="css/performance.css" rel="stylesheet" />
   <link href="css/premium-atmosphere.css" rel="stylesheet" />
   <link href="css/gift-experience.css" rel="stylesheet" />
-  <link href="css/rsvp-personalizado.css" rel="stylesheet" />
+  <link href="css/rsvp-personalizado.css?v=12.2.0" rel="stylesheet" />
   <link href="css/admin-preview.css" rel="stylesheet" />
   <link href="css/cinematic-entrance.css" rel="stylesheet" />
 </head>
@@ -737,9 +737,14 @@
             Al confirmar, se abrirá WhatsApp para enviar tu respuesta a los novios.
           </p>
 
-          <button class="btn primary" type="submit">
-            Confirmar asistencia
-          </button>
+          <div class="rsvp-response-actions">
+            <button class="btn primary" type="submit">
+              Confirmar asistencia
+            </button>
+            <button class="btn rsvp-decline-button" id="rsvpDeclineButton" type="button">
+              No podremos asistir
+            </button>
+          </div>
         </form>
 
         <p aria-live="polite" class="form-msg" id="formMsg"></p>
@@ -827,7 +832,7 @@
   <script src="js/supabase-config.js" defer></script>
   <script src="js/supabase-client.js" defer></script>
   <script src="js/services/invitados-service.js" defer></script>
-  <script src="js/rsvp-supabase.js" defer></script>
+  <script src="js/rsvp-supabase.js?v=12.2.0" defer></script>
   <script src="js/admin-preview.js" defer></script>
   <script src="js/gift-experience.js" defer></script>
 </body>

@@ -67,6 +67,11 @@
       confirmedAdults,
       confirmedChildren,
       hasConfirmation,
+      confirmationState: String(valueFrom(source, ["estado", "state"],
+        valueFrom(record, ["estado_confirmacion", "confirmation_status"], "")) || ""),
+      deadline: String(valueFrom(record, ["fecha_limite_rsvp", "rsvp_deadline"], "") || ""),
+      rsvpActive: Boolean(valueFrom(record, ["rsvp_activo"], true)),
+      allowModifications: Boolean(valueFrom(record, ["permitir_modificaciones"], true)),
       message: String(valueFrom(source, ["mensaje", "message"],
         valueFrom(record, ["mensaje_confirmacion", "confirmation_message"], "")) || ""),
     };
@@ -168,6 +173,30 @@
     elements.error.hidden = false;
   }
 
+
+
+  function isDeadlineExpired(record) {
+    return Boolean(record?.deadline && Number.isFinite(Date.parse(record.deadline)) && Date.now() > Date.parse(record.deadline));
+  }
+
+  function setRsvpAvailability(record) {
+    const expired = isDeadlineExpired(record);
+    const closed = record.rsvpActive === false || expired || (record.hasConfirmation && record.allowModifications === false);
+    elements.form.classList.toggle("rsvp-is-closed", closed);
+    elements.form.querySelectorAll("button").forEach((node) => { node.disabled = closed; });
+
+    if (!closed) return;
+    if (elements.deadlineNote) {
+      elements.deadlineNote.classList.add("rsvp-deadline-closed");
+      elements.deadlineNote.textContent = expired
+        ? "El periodo de confirmación ha finalizado. Si necesitas realizar algún cambio, comunícate con Jessica y Marcos."
+        : "Las confirmaciones se encuentran cerradas. Si necesitas realizar algún cambio, comunícate con Jessica y Marcos.";
+    }
+    elements.message.textContent = record.hasConfirmation
+      ? "Tu última respuesta quedó registrada. El periodo para realizar cambios ya finalizó."
+      : "El periodo para responder esta invitación ya finalizó.";
+  }
+
   function renderInvitation(record) {
     invitation = record;
 
@@ -207,6 +236,21 @@
       ? "Actualizar asistencia"
       : "Confirmar asistencia";
 
+    if (elements.declineButton) {
+      elements.declineButton.textContent = record.confirmationState === "no_asistira"
+        ? "Mantener: no podremos asistir"
+        : "No podremos asistir";
+    }
+
+    if (elements.deadlineNote && record.deadline && Number.isFinite(Date.parse(record.deadline))) {
+      const formatted = new Intl.DateTimeFormat("es-MX", {
+        timeZone: "America/Mexico_City",
+        dateStyle: "long",
+      }).format(new Date(record.deadline));
+      elements.deadlineNote.textContent =
+        `Puedes responder hasta el ${formatted}. Si no recibimos respuesta antes de esa fecha, la invitación se considerará como no asistirá.`;
+    }
+
     const hasChildren = record.children > 0;
     elements.childrenField.hidden = !hasChildren;
     elements.assignedChildrenBox.hidden = !hasChildren;
@@ -214,6 +258,7 @@
 
     elements.card.hidden = false;
     elements.form.hidden = false;
+    setRsvpAvailability(record);
   }
 
   function validateCounts(adults, children) {
@@ -279,11 +324,65 @@
       "Confirmacion guardada. WhatsApp se abrio con tu respuesta preparada.";
   }
 
+  async function handleDecline() {
+    if (submitting || isDeadlineExpired(invitation) || invitation?.rsvpActive === false) return;
+
+    const accepted = window.confirm(
+      "¿Confirmas que no podrán asistir a la boda?"
+    );
+    if (!accepted) return;
+
+    submitting = true;
+    elements.submitButton.disabled = true;
+    if (elements.declineButton) {
+      elements.declineButton.disabled = true;
+      elements.declineButton.setAttribute("aria-busy", "true");
+    }
+    elements.message.textContent = "Guardando tu respuesta...";
+
+    try {
+      await window.InvitadosService.guardarConfirmacion({
+        tokenAcceso,
+        adultos: 0,
+        ninos: 0,
+        mensaje: invitation.hasConfirmation
+          ? invitation.message
+          : elements.guestMessage.value.trim(),
+      });
+
+      openWhatsApp({
+        adults: 0,
+        children: 0,
+        guestMessage: invitation.hasConfirmation ? "" : elements.guestMessage.value.trim(),
+      });
+
+      invitation.hasConfirmation = true;
+      invitation.confirmationState = "no_asistira";
+      invitation.confirmedAdults = 0;
+      invitation.confirmedChildren = 0;
+      elements.adultCount.value = "0";
+      elements.childrenCount.value = "0";
+      elements.message.textContent = "Tu respuesta quedó registrada: no asistirán.";
+      if (elements.declineButton) elements.declineButton.textContent = "✓ No asistirán";
+    } catch (error) {
+      console.error("RSVP Supabase:", error);
+      elements.message.textContent =
+        "No fue posible guardar tu respuesta. Intenta nuevamente.";
+    } finally {
+      submitting = false;
+      elements.submitButton.disabled = false;
+      if (elements.declineButton) {
+        elements.declineButton.disabled = false;
+        elements.declineButton.removeAttribute("aria-busy");
+      }
+    }
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
     event.stopImmediatePropagation();
 
-    if (submitting) {
+    if (submitting || isDeadlineExpired(invitation) || invitation?.rsvpActive === false || (invitation?.hasConfirmation && invitation?.allowModifications === false)) {
       return;
     }
 
@@ -371,6 +470,16 @@
     elements.guestMessage = document.querySelector("#guestMessage");
     elements.message = document.querySelector("#formMsg");
     elements.submitButton = elements.form?.querySelector('button[type="submit"]');
+    elements.declineButton = document.querySelector("#rsvpDeclineButton");
+    elements.deadlineNote = document.querySelector("#rsvpDeadlineNote");
+
+    if (!elements.deadlineNote) {
+      const note = document.createElement("p");
+      note.id = "rsvpDeadlineNote";
+      note.className = "rsvp-deadline-note";
+      elements.form?.querySelector(".rsvp-response-actions")?.insertAdjacentElement("beforebegin", note);
+      elements.deadlineNote = note;
+    }
 
     elements.existingConfirmationNotice = document.querySelector(
       "#rsvpExistingConfirmationNotice"
@@ -430,6 +539,7 @@
 
       renderInvitation(normalizedInvitation);
       elements.form.addEventListener("submit", handleSubmit, { capture: true });
+      elements.declineButton?.addEventListener("click", handleDecline);
     } catch (error) {
       console.error("RSVP Supabase:", error);
       showError("No fue posible consultar tu invitacion. Intenta nuevamente.");
