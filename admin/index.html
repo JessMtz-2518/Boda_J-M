@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=EB+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/admin.css?v=10.8.1">
+  <link rel="stylesheet" href="css/admin.css?v=12.2.0">
 </head>
 <body class="admin-loading">
   <main class="admin-page">
@@ -37,7 +37,6 @@
             <div class="admin-nav-group-links">
               <a href="#/invitados" data-admin-route="invitados">Invitaciones</a>
               <a href="#/confirmaciones" data-admin-route="confirmaciones">Confirmaciones</a>
-              <a href="#/estadisticas" data-admin-route="estadisticas">Estadísticas</a>
               <a href="#/mesas" data-admin-route="mesas">Mesas</a>
             </div>
           </details>
@@ -45,8 +44,8 @@
           <details class="admin-nav-group" data-nav-group="organizacion">
             <summary>Organización <span aria-hidden="true">⌄</span></summary>
             <div class="admin-nav-group-links">
-              <a href="#/planeacion" data-admin-route="planeacion">Planeación</a>
               <a href="#/timeline" data-admin-route="timeline">Timeline</a>
+              <a href="#/planeacion" data-admin-route="planeacion">Planeación</a>
               <a href="#/esenciales" data-admin-route="esenciales">Esenciales</a>
               <a href="#/padrinos" data-admin-route="padrinos">Padrinos</a>
             </div>
@@ -63,6 +62,7 @@
           <details class="admin-nav-group" data-nav-group="reportes">
             <summary>Reportes <span aria-hidden="true">⌄</span></summary>
             <div class="admin-nav-group-links">
+              <a href="#/estadisticas" data-admin-route="estadisticas">Estadísticos</a>
               <a href="#/reportes" data-admin-route="reportes">Reportes</a>
             </div>
           </details>
@@ -105,9 +105,9 @@
   <script src="js/auth/auth-guard.js" defer></script>
   <script src="js/services/dashboard-service.js?v=6.2.0" defer></script>
   <script src="js/services/guests-service.js" defer></script>
-  <script src="js/services/confirmations-service.js" defer></script>
+  <script src="js/services/confirmations-service.js?v=12.2.0" defer></script>
   <script src="js/services/tables-service.js" defer></script>
-  <script src="js/services/reports-service.js?v=6.1.0" defer></script>
+  <script src="js/services/reports-service.js?v=11.0.0" defer></script>
   <script src="js/services/planner-service.js?v=7.1.1" defer></script>
   <script src="js/services/finance-service.js?v=7.2.0" defer></script>
   <script src="js/services/contracts-service.js?v=7.7.3" defer></script>
@@ -125,13 +125,14 @@
   <script src="js/components/dashboard/evolution-chart.js" defer></script>
   <script src="js/views/dashboard-view.js?v=10.9.4" defer></script>
   <script src="js/views/invitados-view.js?v=9.4.1" defer></script>
-  <script src="js/views/confirmaciones-view.js" defer></script>
+  <script src="js/views/confirmaciones-view.js?v=12.2.0" defer></script>
   <script src="js/views/estadisticas-view.js" defer></script>
-  <script src="js/views/mesas-view.js?v=5.2.11" defer></script>
-  <script src="js/views/reportes-view.js?v=6.1.0" defer></script>
+  <script src="js/views/mesas-view.js?v=12.0.0" defer></script>
+  <script src="js/libs/xlsx.bundle.js?v=1.2.0" defer></script>
+  <script src="js/views/reportes-view.js?v=11.3.0" defer></script>
   <script src="js/views/planeacion-view.js?v=10.12.3" defer></script>
   <script src="js/views/presupuesto-view.js?v=10.13.0" defer></script>
-  <script src="js/views/timeline-view.js?v=7.5.0" defer></script>
+  <script src="js/views/timeline-view.js?v=10.20.0" defer></script>
   <script src="js/views/contratos-view.js?v=7.7.3" defer></script>
   <script src="js/views/esenciales-view.js?v=10.17.0" defer></script>
   <script src="js/views/padrinos-view.js?v=10.8.3" defer></script>

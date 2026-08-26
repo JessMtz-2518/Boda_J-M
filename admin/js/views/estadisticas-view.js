@@ -35,6 +35,34 @@
     return Math.max(0, Math.min(100, (safeValue / safeTotal) * 100));
   }
 
+  function isDeadlineExpired(dateValue) {
+    // La RPC de configuración puede devolver la fecha como YYYY-MM-DD o como
+    // timestamp ISO (YYYY-MM-DDTHH:mm:ss...). Para la regla de negocio solo
+    // importa el día calendario configurado, por eso leemos los primeros
+    // componentes de fecha y evitamos conversiones de zona horaria.
+    const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(dateValue || "").trim());
+    if (!match) return false;
+
+    const deadlineKey = Number(`${match[1]}${match[2]}${match[3]}`);
+    const now = new Date();
+    const todayKey = (now.getFullYear() * 10000) + ((now.getMonth() + 1) * 100) + now.getDate();
+    return todayKey > deadlineKey;
+  }
+
+  function applyDeadlineClassification(summary, groups, rsvpConfig) {
+    const expired = isDeadlineExpired(rsvpConfig?.fecha_limite_rsvp);
+
+    const classifyInvitations = (invitations) => {
+      if (!invitations) return;
+      const unanswered = Math.max(0, Number(invitations.pendientes) || 0);
+      invitations.vencidas = expired ? unanswered : 0;
+      invitations.pendientes = expired ? 0 : unanswered;
+    };
+
+    classifyInvitations(summary?.invitaciones);
+    (groups || []).forEach((item) => classifyInvitations(item?.invitaciones));
+  }
+
   function setProgress(bar, value) {
     const percent = Math.max(0, Math.min(100, Number(value) || 0));
     bar.style.setProperty("--statistics-progress", `${percent}%`);
@@ -72,8 +100,6 @@
     const attendance = data.asistencia;
     const quota = data.cupo;
     const percentages = data.porcentajes;
-    const unconfirmedCapacity = Math.max(0, quota.total_reservado - attendance.total_confirmado);
-
     const grid = el("div", "statistics-overview-grid");
     grid.append(
       metricCard("Invitaciones activas", formatNumber(invitations.activas), "Padrón vigente"),
@@ -84,10 +110,10 @@
 
     const secondary = el("div", "statistics-secondary-grid");
     secondary.append(
-      metricCard("Pendientes", formatNumber(invitations.pendientes), "Invitaciones sin respuesta", invitations.pendientes ? "attention" : ""),
+      metricCard("Pendientes", formatNumber(invitations.pendientes), "Invitaciones dentro del plazo", invitations.pendientes ? "attention" : ""),
+      metricCard("Plazo vencido", formatNumber(invitations.vencidas || 0), "Invitaciones sin respuesta al cierre", invitations.vencidas ? "attention" : ""),
       metricCard("Asistirán", formatNumber(invitations.asistiran), "Invitaciones que confirmaron"),
-      metricCard("No asistirán", formatNumber(invitations.no_asistiran), "Invitaciones declinadas"),
-      metricCard("Cupo aún no confirmado", formatNumber(unconfirmedCapacity), "Diferencia entre cupo reservado y asistentes confirmados")
+      metricCard("No asistirán", formatNumber(invitations.no_asistiran), "Invitaciones declinadas")
     );
 
     target.replaceChildren(grid, secondary);
@@ -128,7 +154,8 @@
     wrap.append(
       statusRow("Asistirán", invitations.asistiran, active, "Invitaciones confirmadas", "positive"),
       statusRow("No asistirán", invitations.no_asistiran, active, "Invitaciones declinadas", "negative"),
-      statusRow("Pendientes", invitations.pendientes, active, "Aún sin respuesta", "neutral")
+      statusRow("Pendientes", invitations.pendientes, active, "Sin respuesta dentro del plazo", "neutral"),
+      statusRow("Plazo vencido", invitations.vencidas || 0, active, "Sin respuesta al cierre", "neutral")
     );
 
     const note = el(
@@ -156,9 +183,11 @@
     );
 
     const key = el("div", "statistics-group-key");
+    const unansweredValue = invitations.vencidas || invitations.pendientes || 0;
+    const unansweredLabel = invitations.vencidas ? "vencidas" : "pendientes";
     key.append(
       el("div", "", `${formatNumber(attendance.total_confirmado)} asistentes`),
-      el("div", "", `${formatNumber(invitations.pendientes)} pendientes`)
+      el("div", "", `${formatNumber(unansweredValue)} ${unansweredLabel}`)
     );
 
     const responseLabel = el("div", "statistics-group-progress-label");
@@ -298,15 +327,23 @@
         const service = window.AdminDashboardService;
         if (!service) throw new Error("Servicio administrativo no disponible.");
 
+        const confirmationsService = window.AdminConfirmationsService;
         const results = await Promise.allSettled([
           service.getSummary(),
           service.getGroupStatistics(),
           service.getEvolution(),
+          confirmationsService?.getRsvpConfiguration?.() || Promise.resolve(null),
         ]);
 
         if (!root.isConnected) return;
 
         let errors = 0;
+        const configResult = results[3];
+        const rsvpConfig = configResult?.status === "fulfilled" ? configResult.value : null;
+
+        if (configResult?.status === "rejected") {
+          console.error("Statistics RSVP configuration request:", configResult.reason);
+        }
 
         const summaryResult = results[0];
         if (summaryResult.status === "fulfilled") {
@@ -316,6 +353,7 @@
             clearSectionError(activity.body);
             state.summary = summaryResult.value.data;
             state.generatedAt = summaryResult.value.generated_at;
+            applyDeadlineClassification(state.summary, null, rsvpConfig);
             renderOverview(overview.body, state.summary);
             renderResponseDistribution(distribution.body, state.summary);
             renderActivity(activity.body, state.summary);
@@ -340,6 +378,7 @@
             clearSectionError(groups.body);
             state.groups = groupsResult.value.data.items;
             state.generatedAt = groupsResult.value.generated_at || state.generatedAt;
+            applyDeadlineClassification(null, state.groups, rsvpConfig);
             renderGroups(groups.body, state.groups);
           } catch (error) {
             console.error("Statistics groups render:", error);

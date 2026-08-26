@@ -4,6 +4,8 @@
   const LIST_RPC = "admin_listar_confirmaciones";
   const DETAIL_RPC = "admin_obtener_confirmacion";
   const CORRECT_RPC = "admin_corregir_confirmacion";
+  const RSVP_CONFIG_RPC = "admin_obtener_configuracion_rsvp";
+  const RSVP_DEADLINE_RPC = "admin_actualizar_fecha_limite_rsvp";
 
   const GROUPS = Object.freeze([
     "Familia Marcos",
@@ -11,7 +13,7 @@
     "Amigos Marcos",
     "Amigos Jess",
   ]);
-  const STATES = Object.freeze(["confirmado", "no_asistira"]);
+  const STATES = Object.freeze(["confirmado", "no_asistira", "pendiente", "vencido"]);
   const PAGE_SIZES = Object.freeze([10, 20, 50]);
 
   class ConfirmationsContractError extends Error {
@@ -33,6 +35,7 @@
     return typeof value === "string" && value.trim() !== "" && Number.isFinite(Date.parse(value));
   }
   function date(value) { if (!validDate(value)) invalidContract(); return value; }
+  function nullableDate(value) { if (value !== null && !validDate(value)) invalidContract(); return value; }
 
   function client() {
     const instance = window.AdminSupabaseClient?.getClient?.();
@@ -60,7 +63,7 @@
     const pageSize = Number(value.pageSize ?? 20);
     const search = String(value.search ?? "").trim();
     const group = value.group || null;
-    const state = value.state || null;
+    const state = value.status ?? value.state ?? null;
     const active = typeof value.active === "boolean" ? value.active : null;
 
     if (!Number.isInteger(page) || page < 1) invalidContract();
@@ -87,12 +90,13 @@
     const confirmation = object(item.confirmacion);
     string(confirmation.estado);
     if (!STATES.includes(confirmation.estado)) invalidContract();
+    bool(confirmation.respondida);
     ["adultos", "ninos", "total"].forEach((field) => integer(confirmation[field]));
     if (confirmation.total !== confirmation.adultos + confirmation.ninos) invalidContract();
     bool(confirmation.tiene_mensaje);
     bool(confirmation.tiene_actualizaciones);
-    date(confirmation.fecha_confirmacion);
-    date(confirmation.fecha_actualizacion);
+    nullableDate(confirmation.fecha_confirmacion);
+    nullableDate(confirmation.fecha_actualizacion);
   }
 
   function validateListEnvelope(response, expected) {
@@ -103,6 +107,9 @@
     const data = object(envelope.data);
     if (!Array.isArray(data.items)) invalidContract();
     data.items.forEach(validateConfirmationItem);
+
+    const summary = object(data.summary);
+    ["respondidas", "pendientes", "vencidas"].forEach((field) => integer(summary[field]));
 
     const pagination = object(data.pagination);
     ["page", "page_size", "total_items", "total_pages"].forEach((field) => integer(pagination[field]));
@@ -198,6 +205,45 @@
     return data;
   }
 
+
+
+  function validateRsvpConfigEnvelope(response) {
+    const envelope = object(response);
+    if (envelope.schema_version !== "1.0") invalidContract();
+    date(envelope.generated_at);
+    const data = object(envelope.data);
+    nullableString(data.fecha_limite_rsvp);
+    bool(data.rsvp_activo);
+    bool(data.permitir_modificaciones);
+    if (data.fecha_limite_rsvp !== null && data.fecha_limite_rsvp !== "" && !validDate(data.fecha_limite_rsvp)) invalidContract();
+    return data;
+  }
+
+  async function getRsvpConfiguration() {
+    const { data, error } = await client().rpc(RSVP_CONFIG_RPC);
+    if (error) handleError(error);
+    return validateRsvpConfigEnvelope(data);
+  }
+
+  async function updateRsvpDeadline({ dateValue, reason }) {
+    const dateText = String(dateValue || "").trim();
+    const motive = String(reason || "").trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateText)) invalidContract();
+    if (motive.length < 3 || motive.length > 500) invalidContract();
+    const { data, error } = await client().rpc(RSVP_DEADLINE_RPC, {
+      p_fecha: dateText,
+      p_motivo: motive,
+    });
+    if (error) handleError(error);
+    const envelope = object(data);
+    if (envelope.schema_version !== "1.0") invalidContract();
+    date(envelope.generated_at);
+    const payload = object(envelope.data);
+    if (payload.updated !== true) invalidContract();
+    date(payload.fecha_limite_rsvp);
+    return payload;
+  }
+
   async function listConfirmations(criteria) {
     const normalized = normalizeCriteria(criteria);
     const { data, error } = await client().rpc(LIST_RPC, {
@@ -237,5 +283,7 @@
     listConfirmations,
     getConfirmation,
     correctConfirmation,
+    getRsvpConfiguration,
+    updateRsvpDeadline,
   });
 })();

@@ -52,12 +52,33 @@
         cancelada: "Cancelada",
       }[item.status] || item.status || "Pendiente";
     }
-    return {
-      pendiente: "Pendiente",
-      pagado: "Pagado",
-      cancelado: "Cancelado",
-      vencido: "Vencido",
-    }[item.displayStatus || item.status] || item.displayStatus || item.status || "Pendiente";
+    if (item.kind === "payment") {
+      return {
+        pendiente: "Pendiente",
+        pagado: "Pagado",
+        cancelado: "Cancelado",
+        vencido: "Vencido",
+      }[item.displayStatus || item.status] || item.displayStatus || item.status || "Pendiente";
+    }
+    if (item.kind === "godparent") {
+      return {
+        por_definir: "Por definir",
+        confirmado: "Confirmado",
+        pendiente: "Pendiente",
+        en_proceso: "En proceso",
+        entregado: "Entregado / listo",
+      }[item.status] || item.status || "Pendiente";
+    }
+    if (item.kind === "contract") {
+      return {
+        sin_contrato: "Sin contrato",
+        en_revision: "En revisión",
+        por_firmar: "Por firmar",
+        firmado: "Firmado",
+        servicio: "Servicio",
+      }[item.status] || item.status || "Contrato";
+    }
+    return item.status || "Evento";
   }
 
   function normalizeTask(task) {
@@ -91,6 +112,69 @@
     };
   }
 
+  function normalizeGodparentTarget(item) {
+    const confirmed = item.estado === "confirmado";
+    return {
+      id: `godparent-target-${item.id}`,
+      sourceId: item.id,
+      kind: "godparent",
+      date: item.fecha_objetivo,
+      title: confirmed ? `Padrinos definidos: ${item.tipo}` : `Definir / invitar padrinos: ${item.tipo}`,
+      subtitle: item.nombres_padrinos || item.invitacion_nombre || "Sin padrinos definidos",
+      status: confirmed ? "confirmado" : "por_definir",
+      completed: confirmed,
+      route: "#/padrinos",
+      amount: null,
+    };
+  }
+
+  function normalizeGodparentCommitment(item) {
+    const fulfillment = item.cumplimiento_estado || "pendiente";
+    return {
+      id: `godparent-commitment-${item.id}`,
+      sourceId: item.id,
+      kind: "godparent",
+      date: item.fecha_compromiso,
+      title: `Compromiso de padrinos: ${item.tipo}`,
+      subtitle: item.nombres_padrinos || item.invitacion_nombre || "Padrinos confirmados",
+      status: fulfillment,
+      completed: fulfillment === "entregado",
+      route: "#/padrinos",
+      amount: null,
+    };
+  }
+
+  function normalizeContractSignature(item) {
+    const signed = item.status === "firmado";
+    return {
+      id: `contract-signature-${item.vendorId}`,
+      sourceId: item.vendorId,
+      kind: "contract",
+      date: item.signatureDueDate,
+      title: signed ? `Contrato firmado: ${item.vendorName}` : `Firma de contrato: ${item.vendorName}`,
+      subtitle: item.category || "Proveedor",
+      status: signed ? "firmado" : item.status,
+      completed: signed,
+      route: "#/contratos",
+      amount: null,
+    };
+  }
+
+  function normalizeContractService(item) {
+    return {
+      id: `contract-service-${item.vendorId}`,
+      sourceId: item.vendorId,
+      kind: "contract",
+      date: item.validUntil,
+      title: `Servicio: ${item.vendorName}`,
+      subtitle: item.category || "Proveedor",
+      status: "servicio",
+      completed: false,
+      route: "#/contratos",
+      amount: null,
+    };
+  }
+
   function weddingMilestone() {
     return {
       id: "wedding-day",
@@ -103,6 +187,35 @@
       route: "#/dashboard",
       amount: null,
     };
+  }
+
+  function isTerminalCompleted(item, events) {
+    if (!item?.completed) return false;
+
+    // Tareas y pagos son cierres terminales por sí mismos.
+    if (["task","payment"].includes(item.kind)) return true;
+
+    // En padrinos, si ya existe un compromiso entregado/listo para el mismo registro,
+    // la confirmación previa queda como hito histórico, pero no se cuenta dos veces.
+    if (item.kind === "godparent") {
+      if (item.id.startsWith("godparent-commitment-")) return item.status === "entregado";
+      if (item.id.startsWith("godparent-target-")) {
+        const hasDeliveredCommitment = events.some((candidate) =>
+          candidate.kind === "godparent" &&
+          candidate.sourceId === item.sourceId &&
+          candidate.id.startsWith("godparent-commitment-") &&
+          candidate.status === "entregado"
+        );
+        return !hasDeliveredCommitment && item.status === "confirmado";
+      }
+    }
+
+    // La firma formaliza el contrato y cuenta una sola vez como cierre contractual.
+    if (item.kind === "contract") {
+      return item.id.startsWith("contract-signature-") && item.status === "firmado";
+    }
+
+    return false;
   }
 
   function buildEventCard(item) {
@@ -122,9 +235,14 @@
 
     const copy = el("div", "timeline-event-copy");
     const top = el("div", "timeline-event-top");
-    top.append(
-      el("span", `timeline-kind timeline-kind-${item.kind}`, item.kind === "task" ? "Tarea" : item.kind === "payment" ? "Pago" : "Evento")
-    );
+    const kindLabel = {
+      task: "Tarea",
+      payment: "Pago",
+      godparent: "Padrino",
+      contract: "Contrato",
+      wedding: "Evento",
+    }[item.kind] || "Evento";
+    top.append(el("span", `timeline-kind timeline-kind-${item.kind}`, kindLabel));
     const status = el("span", `timeline-status timeline-status-${String(item.displayStatus || item.status || "").replace(/_/g, "-")}`, statusLabel(item));
     top.append(status);
     copy.append(top, el("h4", "", item.title));
@@ -137,7 +255,14 @@
 
     const action = el("a", "timeline-event-action", "→");
     action.href = item.route;
-    action.setAttribute("aria-label", `Abrir ${item.kind === "task" ? "Planeación" : item.kind === "payment" ? "Presupuesto" : "Dashboard"}`);
+    const actionLabel = {
+      task: "Planeación",
+      payment: "Presupuesto",
+      godparent: "Padrinos",
+      contract: "Contratos",
+      wedding: "Dashboard",
+    }[item.kind] || "detalle";
+    action.setAttribute("aria-label", `Abrir ${actionLabel}`);
 
     card.append(date, copy, action);
     return card;
@@ -147,7 +272,8 @@
     let filtered = events;
     if (filter === "tasks") filtered = events.filter((item) => item.kind === "task");
     if (filter === "payments") filtered = events.filter((item) => item.kind === "payment");
-    if (filter === "completed") filtered = events.filter((item) => item.completed);
+    if (filter === "commitments") filtered = events.filter((item) => ["godparent","contract"].includes(item.kind));
+    if (filter === "completed") filtered = events.filter((item) => isTerminalCompleted(item, events));
 
     filtered = filtered
       .filter((item) => item.date)
@@ -210,6 +336,7 @@
       ["all", "Todo"],
       ["tasks", "Tareas"],
       ["payments", "Pagos"],
+      ["commitments", "Compromisos"],
       ["completed", "Completados"],
     ];
 
@@ -232,27 +359,63 @@
       status.textContent = "Cargando timeline…";
       timeline.replaceChildren();
       try {
-        const [planner, finance] = await Promise.all([
+        const [planner, finance, godparents, contracts] = await Promise.all([
           window.AdminPlannerService.getSummary(),
           window.AdminFinanceService.getSummary(),
+          window.AdminGodparentsService.getSummary(),
+          window.AdminContractsService.getSummary(),
         ]);
 
         const tasks = planner.tasks.filter((task) => task.dueDate).map(normalizeTask);
         const payments = finance.payments.filter((payment) => payment.dueDate).map(normalizePayment);
-        allEvents = [...tasks, ...payments, weddingMilestone()];
+
+        const godparentTargets = (godparents.items || [])
+          .filter((item) => item.fecha_objetivo)
+          .map(normalizeGodparentTarget);
+        const godparentCommitments = (godparents.items || [])
+          .filter((item) => item.estado === "confirmado" && item.fecha_compromiso)
+          .map(normalizeGodparentCommitment);
+
+        const contractSignatures = (contracts.contracts || [])
+          .filter((item) => item.signatureDueDate && ["en_revision","por_firmar","firmado"].includes(item.status))
+          .map(normalizeContractSignature);
+        const contractServices = (contracts.contracts || [])
+          .filter((item) => item.validUntil)
+          .map(normalizeContractService);
+
+        const commitments = [
+          ...godparentTargets,
+          ...godparentCommitments,
+          ...contractSignatures,
+          ...contractServices,
+        ];
+
+        allEvents = [...tasks, ...payments, ...commitments, weddingMilestone()];
 
         const openTasks = tasks.filter((item) => !item.completed && item.status !== "cancelada").length;
         const openPayments = payments.filter((item) => !item.completed && item.status !== "cancelado").length;
-        const completed = [...tasks, ...payments].filter((item) => item.completed).length;
+
+        const todayKey = new Date();
+        todayKey.setHours(0, 0, 0, 0);
+        const upcomingCommitments = commitments.filter((item) => {
+          if (item.completed || !item.date) return false;
+          const date = dateOnly(item.date);
+          return date && date.getTime() >= todayKey.getTime();
+        }).length;
+
+        const completed = [...tasks, ...payments, ...commitments]
+          .filter((item) => isTerminalCompleted(item, [...tasks, ...payments, ...commitments]))
+          .length;
         const wedding = dateOnly(WEDDING_DATE);
         const today = new Date(); today.setHours(0, 0, 0, 0);
         const days = wedding ? Math.max(0, Math.ceil((wedding.getTime() - today.getTime()) / 86400000)) : 0;
 
         metrics.replaceChildren(
           metric("Faltan", days, "días para la boda"),
-          metric("Tareas abiertas", openTasks, "por completar"),
-          metric("Pagos abiertos", openPayments, "por liquidar"),
-          metric("Completados", completed, "tareas y pagos")
+          metric("Tareas pendientes", openTasks, "por completar"),
+          metric("Pagos pendientes", openPayments, "por liquidar"),
+          metric("Próximos compromisos", upcomingCommitments, "padrinos y contratos"),
+          metric("Completados", completed, "hitos completados")
         );
         status.hidden = true;
         renderTimeline(timeline, allEvents, currentFilter);

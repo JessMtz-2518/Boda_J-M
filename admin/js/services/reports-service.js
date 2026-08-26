@@ -67,19 +67,22 @@
   }
 
   function buildGuestSummary(guests) {
+    const activeGuests = guests.filter((item) => item.activo);
+
     const invitation = {
       total: guests.length,
-      active: guests.filter((item) => item.activo).length,
+      active: activeGuests.length,
       inactive: guests.filter((item) => !item.activo).length,
     };
 
+    // Las bajas administrativas no participan en pendientes ni estadísticas de asistencia.
     const confirmation = {
-      attending: guests.filter((item) => item.estado_confirmacion === "asistira").length,
-      notAttending: guests.filter((item) => item.estado_confirmacion === "no_asistira").length,
-      pending: guests.filter((item) => item.estado_confirmacion === "pendiente").length,
+      attending: activeGuests.filter((item) => item.estado_confirmacion === "asistira").length,
+      notAttending: activeGuests.filter((item) => item.estado_confirmacion === "no_asistira").length,
+      pending: activeGuests.filter((item) => item.estado_confirmacion === "pendiente").length,
     };
 
-    const attendingGuests = guests.filter((item) => item.estado_confirmacion === "asistira");
+    const attendingGuests = activeGuests.filter((item) => item.estado_confirmacion === "asistira");
     const people = attendingGuests.reduce((acc, item) => {
       acc.adults += item.adultos_confirmados;
       acc.children += item.ninos_confirmados;
@@ -91,10 +94,41 @@
   }
 
   async function getReportsData() {
-    const [byTable, guests] = await Promise.all([
+    const [
+      byTable,
+      guests,
+      planner,
+      essentials,
+      godparents,
+      finance,
+      contracts,
+    ] = await Promise.all([
       getTableReport(),
       listAllGuests(),
+      window.AdminPlannerService?.getSummary?.() || Promise.resolve(null),
+      window.AdminEssentialsService?.getSummary?.() || Promise.resolve(null),
+      window.AdminGodparentsService?.getSummary?.() || Promise.resolve(null),
+      window.AdminFinanceService?.getSummary?.() || Promise.resolve(null),
+      window.AdminContractsService?.getSummary?.() || Promise.resolve(null),
     ]);
+
+    const guestSummary = buildGuestSummary(guests);
+    const totalCapacity = byTable.reduce((sum, table) => sum + Number(table.capacity || 0), 0);
+    const assigned = byTable.reduce((sum, table) => sum + Number(table.occupied || 0), 0);
+
+    const tableSummary = {
+      tables: byTable.length,
+      capacity: totalCapacity,
+      assigned,
+      unassigned: Math.max(0, Number(guestSummary.people.total || 0) - assigned),
+      available: Math.max(0, totalCapacity - assigned),
+    };
+
+    const essentialsSummary = essentials?.resumen || {};
+    const godparentSummary = godparents?.summary || {};
+    const plannerSummary = planner?.summary || {};
+    const financeSummary = finance?.summary || {};
+    const contractsSummary = contracts?.summary || {};
 
     return {
       generatedAt: new Date(),
@@ -102,7 +136,42 @@
       guests: guests
         .slice()
         .sort((a, b) => normalizeName(a.nombre).localeCompare(normalizeName(b.nombre), "es", { sensitivity: "base" })),
-      guestSummary: buildGuestSummary(guests),
+      guestSummary,
+      tableSummary,
+      organizationSummary: {
+        planner: {
+          total: Number(plannerSummary.total || 0),
+          completed: Number(plannerSummary.completed || 0),
+          pending: Number(plannerSummary.pending || 0),
+          inProgress: Number(plannerSummary.inProgress || 0),
+          overdue: Number(plannerSummary.overdue || 0),
+          progress: Number(plannerSummary.progress || 0),
+        },
+        essentials: {
+          total: Number(essentialsSummary.total || 0),
+          defined: Number(essentialsSummary.listos || 0) + Number(essentialsSummary.contratados || 0),
+          prospects: Number(essentialsSummary.en_decision || 0),
+          pending: Number(essentialsSummary.por_definir || 0),
+        },
+        godparents: {
+          total: Number(godparentSummary.total || 0),
+          confirmed: Number(godparentSummary.confirmados || 0),
+          pending: Number(godparentSummary.por_definir || 0),
+        },
+      },
+      financeSummary: {
+        budget: Number(financeSummary.budget || 0),
+        contracted: Number(financeSummary.contracted || 0),
+        paid: Number(financeSummary.paid || 0),
+        pendingPayment: Number(financeSummary.pendingPayment || 0),
+        available: Number(financeSummary.available || 0),
+        contracts: {
+          signed: Number(contractsSummary.signed || 0),
+          awaitingSignature: Number(contractsSummary.awaitingSignature || 0),
+          reviewing: Number(contractsSummary.reviewing || 0),
+          withoutContract: Number(contractsSummary.withoutContract || 0),
+        },
+      },
     };
   }
 

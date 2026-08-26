@@ -114,23 +114,27 @@
     const meta = el("span", "tables-counter-max", `Máx. ${max}`);
 
     let current = Math.max(0, Math.min(Number(initial) || 0, Number(max) || 0));
+    const changeListeners = new Set();
 
-    function sync() {
+    function sync(notify = false) {
       value.textContent = String(current);
       minus.disabled = current <= 0;
       plus.disabled = current >= max;
+      if (notify) {
+        changeListeners.forEach((listener) => listener(current));
+      }
     }
 
     minus.addEventListener("click", () => {
       if (current <= 0) return;
       current -= 1;
-      sync();
+      sync(true);
     });
 
     plus.addEventListener("click", () => {
       if (current >= max) return;
       current += 1;
-      sync();
+      sync(true);
     });
 
     controls.append(minus, value, plus);
@@ -142,7 +146,11 @@
       getValue: () => current,
       setValue: (next) => {
         current = Math.max(0, Math.min(Number(next) || 0, Number(max) || 0));
-        sync();
+        sync(true);
+      },
+      onChange: (listener) => {
+        if (typeof listener === "function") changeListeners.add(listener);
+        return () => changeListeners.delete(listener);
       },
     };
   }
@@ -3213,18 +3221,46 @@
     );
 
     const tableSelect = document.createElement("select");
-    tableSelect.append(new Option("Selecciona una mesa", ""));
-    tables.forEach((table) => {
-      const option = new Option(
-        `${table.nombre || `Mesa ${table.numero}`} · ${table.disponibles} disponibles`,
-        String(table.id)
-      );
-      option.disabled = table.disponibles <= 0;
-      tableSelect.append(option);
-    });
-
     const adults = counter("Adultos", guest.pendientes.adultos, guest.pendientes.adultos);
     const children = counter("Niños", guest.pendientes.ninos, guest.pendientes.ninos);
+
+    function assignmentTotal() {
+      return adults.getValue() + children.getValue();
+    }
+
+    function refreshTableOptions() {
+      const needed = assignmentTotal();
+      const currentValue = tableSelect.value;
+
+      tableSelect.replaceChildren(new Option("Selecciona una mesa", ""));
+
+      tables.forEach((table) => {
+        const available = Number(table.disponibles || 0);
+        const insufficient = needed > 0 && available < needed;
+        const complete = available <= 0;
+        const suffix = complete
+          ? " · completa"
+          : insufficient
+            ? " · capacidad insuficiente"
+            : "";
+
+        const option = new Option(
+          `${table.nombre || `Mesa ${table.numero}`} · ${available} ${available === 1 ? "disponible" : "disponibles"}${suffix}`,
+          String(table.id)
+        );
+        option.disabled = complete || insufficient;
+        tableSelect.append(option);
+      });
+
+      const previous = Array.from(tableSelect.options).find(
+        (option) => option.value === currentValue && !option.disabled
+      );
+      tableSelect.value = previous ? currentValue : "";
+    }
+
+    adults.onChange(refreshTableOptions);
+    children.onChange(refreshTableOptions);
+    refreshTableOptions();
 
     const reason = document.createElement("textarea");
     reason.rows = 3;

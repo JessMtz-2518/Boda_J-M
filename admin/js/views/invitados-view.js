@@ -34,6 +34,14 @@
     return button;
   }
 
+  function overviewMetric(label, value = "—", detail = "Cargando…") {
+    const card = element("article", "tables-metric");
+    const valueNode = element("strong", "tables-metric-value", value);
+    const detailNode = element("span", "tables-metric-detail", detail);
+    card.append(element("span", "tables-metric-label", label), valueNode, detailNode);
+    return { card, valueNode, detailNode };
+  }
+
   function textField(labelText, input) {
     const label = element("label", "guest-editor-field");
     label.append(element("span", "", labelText), input);
@@ -821,6 +829,14 @@
     newGuest.classList.add("guest-new-button");
     header.append(headerCopy, newGuest);
 
+    const overview = element("section", "tables-summary-grid admin-overview-grid");
+    overview.setAttribute("aria-label", "Resumen de invitaciones");
+    const activeMetric = overviewMetric("Invitaciones activas");
+    const capacityMetric = overviewMetric("Cupo total");
+    const childrenMetric = overviewMetric("Con niños");
+    const inactiveMetric = overviewMetric("Dadas de baja");
+    overview.append(activeMetric.card, capacityMetric.card, childrenMetric.card, inactiveMetric.card);
+
     const controls = element("section", "guest-directory-controls");
     controls.setAttribute("aria-label", "Búsqueda y filtros de invitaciones");
     const searchField = element("label", "guest-search-field");
@@ -860,8 +876,8 @@
     const sizeField = selectField("Por página", [["10", "10"], ["20", "20"], ["50", "50"]], "guest-page-size");
     sizeField.select.value = "20";
     pagination.append(previous, pageLabel, next, sizeField.field);
-    root.append(header, controls, summary, feedback, list, pagination);
-    return { root, newGuest, search, group: group.select, state: state.select, active: active.select, children: children.select, order: order.select, clear, count, updateState, feedback, list, pagination, previous, next, pageLabel, pageSize: sizeField.select };
+    root.append(header, overview, controls, summary, feedback, list, pagination);
+    return { root, newGuest, overviewMetrics: { activeMetric, capacityMetric, childrenMetric, inactiveMetric }, search, group: group.select, state: state.select, active: active.select, children: children.select, order: order.select, clear, count, updateState, feedback, list, pagination, previous, next, pageLabel, pageSize: sizeField.select };
   }
 
   window.AdminViews = window.AdminViews || {};
@@ -930,6 +946,36 @@
       }
     }
 
+    async function loadOverview() {
+      const metrics = ui.overviewMetrics;
+      try {
+        const base = { search: "", group: null, state: null, active: true, withChildren: null, withoutPhone: null, withNotes: null, page: 1, pageSize: 50, order: "grupo", direction: "asc" };
+        const first = await window.AdminGuestsService.listGuests(base);
+        const totalActive = first.data.paginacion.total_registros;
+        let items = [...first.data.items];
+        for (let page = 2; page <= first.data.paginacion.total_paginas; page += 1) {
+          const response = await window.AdminGuestsService.listGuests({ ...base, page });
+          items.push(...response.data.items);
+        }
+        const [withChildren, inactive] = await Promise.all([
+          window.AdminGuestsService.listGuests({ ...base, withChildren: true }),
+          window.AdminGuestsService.listGuests({ ...base, active: false }),
+        ]);
+        const adults = items.reduce((sum, item) => sum + Number(item.adultos_asignados || 0), 0);
+        const children = items.reduce((sum, item) => sum + Number(item.ninos_asignados || 0), 0);
+        metrics.activeMetric.valueNode.textContent = String(totalActive);
+        metrics.activeMetric.detailNode.textContent = "invitaciones disponibles";
+        metrics.capacityMetric.valueNode.textContent = String(adults + children);
+        metrics.capacityMetric.detailNode.textContent = `${adults} adultos · ${children} niños`;
+        metrics.childrenMetric.valueNode.textContent = String(withChildren.data.paginacion.total_registros);
+        metrics.childrenMetric.detailNode.textContent = "invitaciones con niños";
+        metrics.inactiveMetric.valueNode.textContent = String(inactive.data.paginacion.total_registros);
+        metrics.inactiveMetric.detailNode.textContent = "invitaciones inactivas";
+      } catch (error) {
+        Object.values(metrics).forEach(({ valueNode, detailNode }) => { valueNode.textContent = "—"; detailNode.textContent = "No disponible"; });
+      }
+    }
+
     async function load({ initial = false } = {}) {
       if (!ui.root.isConnected) return;
       const currentRequest = ++requestId;
@@ -945,6 +991,7 @@
         if (currentRequest !== requestId || !ui.root.isConnected) return;
         render(envelope);
         initialized = true;
+        loadOverview();
       } catch (error) {
         if (currentRequest !== requestId || !ui.root.isConnected) return;
         console.error("Admin guests list:", error);

@@ -351,3 +351,45 @@
 .rsvp .rsvp-field select option[value=""] {
   color: #74786f;
 }
+
+
+/* Fase 12.1 · Respuesta RSVP positiva / negativa */
+.rsvp-response-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.rsvp-response-actions .btn {
+  width: 100%;
+  min-height: 48px;
+}
+
+.rsvp-decline-button {
+  background: rgba(255,255,255,.72);
+  border: 1px solid rgba(73, 86, 62, .28);
+  color: #3f4b39;
+}
+
+.rsvp-decline-button:hover {
+  background: rgba(255,255,255,.9);
+}
+
+.rsvp-deadline-note {
+  margin: 14px 0 0;
+  text-align: center;
+  font-size: .86rem;
+  line-height: 1.45;
+  color: rgba(255,255,255,.92);
+}
+
+@media (max-width: 640px) {
+  .rsvp-response-actions { grid-template-columns: 1fr; }
+}
+
+
+/* FASE 12.2 · RSVP cerrado por fecha límite */
+.rsvp-deadline-note.rsvp-deadline-closed{padding:12px 14px;border:1px solid rgba(255,255,255,.34);border-radius:14px;background:rgba(31,45,29,.22);font-weight:600}
+.rsvp-is-closed .rsvp-response-actions{opacity:.66}
+.rsvp-is-closed .rsvp-counter-button:disabled,.rsvp-is-closed .rsvp-response-actions button:disabled{cursor:not-allowed;filter:saturate(.55)}

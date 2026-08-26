@@ -3427,7 +3427,7 @@ body.finance-modal-open{overflow:hidden}
 .timeline-view{display:grid;gap:20px}
 .timeline-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
 .timeline-heading h2{margin:4px 0 6px;font-family:"Cormorant Garamond",serif;font-size:clamp(2.5rem,5vw,4.4rem);font-weight:500;line-height:.95;color:var(--admin-olive-dark)}
-.timeline-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.timeline-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
 .timeline-metric{display:grid;gap:8px;padding:18px 20px;border:1px solid var(--admin-line);border-radius:16px;background:rgba(255,250,241,.78)}
 .timeline-metric>span{font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--admin-olive);font-weight:600}
 .timeline-metric>strong{font-family:"Cormorant Garamond",serif;font-size:2.35rem;font-weight:600;line-height:1;color:var(--admin-olive-dark)}
@@ -3447,6 +3447,8 @@ body.finance-modal-open{overflow:hidden}
 .timeline-event-list{display:grid;gap:10px}
 .timeline-event{display:grid;grid-template-columns:72px minmax(0,1fr) 34px;align-items:center;gap:14px;padding:15px 16px;border:1px solid var(--admin-line);border-left:4px solid rgba(174,150,102,.55);border-radius:15px;background:rgba(255,255,255,.46)}
 .timeline-event-payment{border-left-color:rgba(86,101,74,.55)}
+.timeline-event-godparent{border-left-color:rgba(174,150,102,.8)}
+.timeline-event-contract{border-left-color:rgba(114,126,151,.72)}
 .timeline-event-wedding{border-left-color:var(--admin-olive);background:linear-gradient(135deg,rgba(86,101,74,.12),rgba(255,250,241,.9))}
 .timeline-event.is-completed{opacity:.62}
 .timeline-event-date{display:grid;justify-items:center;padding-right:12px;border-right:1px solid var(--admin-line)}
@@ -3457,12 +3459,17 @@ body.finance-modal-open{overflow:hidden}
 .timeline-kind,.timeline-status{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:.61rem;font-weight:600;letter-spacing:.04em}
 .timeline-kind{background:rgba(174,150,102,.13);color:#705e36}
 .timeline-kind-payment{background:rgba(86,101,74,.12);color:var(--admin-olive-dark)}
+.timeline-kind-godparent{background:rgba(174,150,102,.14);color:#705e36}
+.timeline-kind-contract{background:rgba(114,126,151,.14);color:#505d76}
 .timeline-kind-wedding{background:var(--admin-olive);color:#fff}
 .timeline-status{background:#efede5;color:#665f4e}
 .timeline-status-completada,.timeline-status-pagado{background:#e4eddc;color:#405238}
 .timeline-status-en-proceso,.timeline-status-pendiente{background:#f0ecdf;color:#6e5f31}
 .timeline-status-vencido{background:#f3dddd;color:#7f3434}
 .timeline-status-cancelada,.timeline-status-cancelado{background:#ecebea;color:#72706c}
+.timeline-status-confirmado,.timeline-status-entregado,.timeline-status-firmado{background:#e4eddc;color:#405238}
+.timeline-status-por-definir,.timeline-status-por-firmar,.timeline-status-servicio{background:#f0ecdf;color:#6e5f31}
+.timeline-status-en-revision{background:#e6e9ef;color:#505d76}
 .timeline-status-wedding{background:rgba(86,101,74,.12);color:var(--admin-olive-dark)}
 .timeline-event h4{margin:0;color:var(--admin-ink);font-size:.9rem}
 .timeline-event-meta{margin:4px 0 0;color:var(--admin-muted);font-size:.72rem}
@@ -5372,4 +5379,200 @@ body.godparents-modal-open{overflow:hidden}
 .godparents-fulfillment-entregado{
   border-left:0 !important;
   background:transparent !important;
+}
+
+
+/* =========================================================
+   FASE 11.0 · Centro de Reportes
+   ========================================================= */
+.reports-tabs-main{display:flex;flex-wrap:wrap;gap:10px}
+.reports-overview-executive{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.reports-overview-blocks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.reports-overview-card{padding:20px;border:1px solid var(--admin-line);border-radius:18px;background:rgba(255,250,241,.78)}
+.reports-overview-card-wide{grid-column:1/-1}
+.reports-overview-card h3{margin:0 0 14px;font-family:"Cormorant Garamond",serif;font-size:1.55rem;font-weight:500;color:var(--admin-ink)}
+.reports-mini-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.reports-mini-grid-five{grid-template-columns:repeat(5,minmax(0,1fr))}
+.reports-summary-grid-five{grid-template-columns:repeat(5,minmax(0,1fr))}
+.reports-table-guests-cell{min-width:260px;white-space:normal;line-height:1.4}
+.reports-tables-summary td,.reports-tables-summary th{vertical-align:top}
+.reports-section-overview,.reports-section-organization,.reports-section-finance{display:grid;gap:16px}
+@media(max-width:1100px){
+  .reports-overview-executive{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .reports-mini-grid-five,.reports-summary-grid-five{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:800px){
+  .reports-overview-blocks{grid-template-columns:1fr}
+  .reports-overview-executive,.reports-mini-grid,.reports-mini-grid-five,.reports-summary-grid-five{grid-template-columns:1fr 1fr}
+}
+@media(max-width:520px){
+  .reports-overview-executive,.reports-mini-grid,.reports-mini-grid-five,.reports-summary-grid-five{grid-template-columns:1fr}
+}
+
+
+/* FASE 11.1 · Reportes: paginación y acabado visual */
+.reports-summary-grid{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-bottom:18px;
+}
+.reports-summary-grid.reports-summary-grid-five,
+.reports-section-finance > .reports-summary-grid{
+  grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+}
+.reports-table-wrap{
+  overflow:auto;
+  border:1px solid var(--admin-line);
+  border-radius:18px;
+  background:rgba(255,250,241,.82);
+}
+.reports-data-table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:960px;
+}
+.reports-data-table thead th{
+  padding:14px 16px;
+  text-align:left;
+  font-size:.72rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--admin-muted);
+  background:rgba(238,236,225,.72);
+  border-bottom:1px solid var(--admin-line);
+}
+.reports-data-table tbody td{
+  padding:14px 16px;
+  border-bottom:1px solid rgba(90,96,79,.12);
+}
+.reports-data-table tbody tr:last-child td{border-bottom:0}
+.reports-data-table tbody tr:hover{background:rgba(86,101,74,.035)}
+.reports-table-guests-cell{min-width:280px;color:var(--admin-muted);white-space:normal}
+.reports-pagination{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:14px 2px 0;
+}
+.reports-pagination-info{font-size:.82rem;color:var(--admin-muted)}
+.reports-pagination-controls{display:flex;gap:8px}
+.reports-pagination .admin-button{min-height:40px;padding:0 16px}
+.reports-pagination .admin-button:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:1150px){
+  .reports-summary-grid.reports-summary-grid-five,
+  .reports-section-finance > .reports-summary-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  }
+}
+@media(max-width:760px){
+  .reports-summary-grid,
+  .reports-summary-grid.reports-summary-grid-five,
+  .reports-section-finance > .reports-summary-grid{
+    grid-template-columns:1fr 1fr !important;
+  }
+}
+@media(max-width:520px){
+  .reports-summary-grid,
+  .reports-summary-grid.reports-summary-grid-five,
+  .reports-section-finance > .reports-summary-grid{
+    grid-template-columns:1fr !important;
+  }
+  .reports-pagination{align-items:flex-start;flex-direction:column}
+}
+
+
+/* FASE 12.2 · Configuración de fecha límite RSVP */
+.confirmation-deadline-panel{
+  display:grid;grid-template-columns:minmax(0,1.25fr) minmax(240px,.75fr);gap:18px;
+  padding:22px 24px;border:1px solid var(--admin-line);border-radius:22px;
+  background:rgba(255,250,241,.9);box-shadow:0 16px 38px rgba(38,46,33,.06)
+}
+.confirmation-deadline-copy{display:grid;gap:6px}.confirmation-deadline-copy h3{margin:0;font-family:"Cormorant Garamond",Georgia,serif;font-size:1.55rem;font-weight:500}
+.confirmation-deadline-copy .confirmation-help{max-width:760px}
+.confirmation-deadline-current{align-self:end;margin:0;color:var(--admin-olive-dark);font-size:.8rem;font-weight:600}
+.confirmation-deadline-controls{grid-column:1/-1;display:grid;grid-template-columns:minmax(190px,.5fr) minmax(260px,1fr) auto;gap:10px}
+.confirmation-deadline-input,.confirmation-deadline-reason{width:100%;min-height:50px;padding:11px 13px;border:1px solid var(--admin-line);border-radius:12px;background:rgba(255,255,255,.72);color:var(--admin-ink);font:inherit;outline:none}
+.confirmation-deadline-input:focus,.confirmation-deadline-reason:focus{border-color:var(--admin-olive);box-shadow:0 0 0 3px rgba(86,101,74,.13)}
+.confirmation-deadline-status{grid-column:1/-1;min-height:18px;margin:0;color:var(--admin-muted);font-size:.75rem}
+.confirmation-deadline-success{color:var(--admin-olive-dark)}
+@media(max-width:760px){.confirmation-deadline-panel{grid-template-columns:1fr}.confirmation-deadline-controls{grid-template-columns:1fr}.confirmation-deadline-current{align-self:auto}.confirmation-deadline-input,.confirmation-deadline-reason{font-size:16px}}
+
+/* FASE 12.3 · Confirmaciones completas + editor compacto de fecha límite */
+.confirmation-deadline-actions{align-self:end;display:flex;align-items:center;justify-content:flex-end;gap:14px;flex-wrap:wrap}
+.confirmation-deadline-actions .confirmation-deadline-current{align-self:auto}
+.confirmation-deadline-controls[hidden]{display:none!important}
+.confirmation-deadline-controls{align-items:center}
+.confirmation-deadline-buttons{display:flex;gap:10px;justify-content:flex-end}
+.confirmation-chip-pending{background:#f4efdf;color:#7a6328}
+.confirmation-chip-expired{background:#eceae4;color:#68655e}
+.confirmation-no-response-action{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 16px;border:1px solid var(--admin-line);border-radius:11px;background:rgba(255,255,255,.42);color:var(--admin-muted);font-size:.72rem;text-align:center;white-space:nowrap}
+@media(max-width:760px){.confirmation-deadline-actions{justify-content:flex-start}.confirmation-deadline-buttons{display:grid;grid-template-columns:1fr 1fr;width:100%}.confirmation-no-response-action{width:100%}}
+
+/* FASE 12.4 · Fecha límite RSVP en modal */
+.confirmation-deadline-actions > .admin-button{background:var(--admin-olive);color:#fff;border-color:var(--admin-olive)}
+.confirmation-deadline-modal{width:min(680px,100%)}
+.confirmation-deadline-modal-body{display:block}
+.confirmation-deadline-modal-form{display:grid;gap:18px;width:100%}
+.confirmation-deadline-modal-form .confirmation-field{display:grid;gap:8px}
+.confirmation-deadline-modal-form .confirmation-field > span{font-size:.78rem;font-weight:600;color:var(--admin-olive-dark)}
+.confirmation-deadline-reason-textarea{min-height:120px;padding:14px;resize:vertical}
+.confirmation-deadline-modal-status{min-height:18px;margin:0;font-size:.76rem;color:var(--admin-muted)}
+.confirmation-deadline-modal-buttons{display:flex;justify-content:flex-end;gap:10px;padding-top:2px}
+@media(max-width:700px){.confirmation-deadline-modal-buttons{display:grid;grid-template-columns:1fr 1fr}.confirmation-deadline-modal-buttons .admin-button{width:100%}}
+
+/* FASE 12.4.1 · Modal fecha límite — controles idénticos a Finanzas / Nuevo pago */
+.confirmation-deadline-modal-form .confirmation-field{
+  display:grid;
+  gap:8px;
+  min-width:0;
+  color:inherit;
+  font-size:inherit;
+  font-weight:inherit;
+}
+.confirmation-deadline-modal-form .confirmation-field > span{
+  font-size:.75rem;
+  font-weight:600;
+  color:var(--admin-ink);
+}
+.confirmation-deadline-modal-form .confirmation-field input,
+.confirmation-deadline-modal-form .confirmation-field select,
+.confirmation-deadline-modal-form .confirmation-field textarea{
+  width:100%;
+  min-height:50px;
+  padding:11px 13px;
+  border:1px solid var(--admin-line);
+  border-radius:12px;
+  background:rgba(255,255,255,.72);
+  color:var(--admin-ink);
+  font:inherit;
+  font-weight:400;
+  outline:none;
+}
+.confirmation-deadline-modal-form .confirmation-field textarea{
+  min-height:100px;
+  padding:11px 13px;
+  resize:vertical;
+}
+.confirmation-deadline-modal-form .confirmation-field input:focus,
+.confirmation-deadline-modal-form .confirmation-field select:focus,
+.confirmation-deadline-modal-form .confirmation-field textarea:focus{
+  border-color:var(--admin-olive);
+  box-shadow:0 0 0 3px rgba(86,101,74,.13);
+}
+
+
+/* Resúmenes consistentes para Invitaciones y Confirmaciones */
+.admin-overview-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin:0 0 18px;
+}
+@media (max-width:980px){
+  .admin-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media (max-width:620px){
+  .admin-overview-grid{grid-template-columns:1fr;}
 }
