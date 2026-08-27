@@ -12,8 +12,12 @@
     modal: "#bankDetailsModal",
     dialog: ".gift-modal__dialog",
     closeControls: "[data-close-bank-modal]",
-    copyButton: "#copyBankClabe",
+    copyControls: "[data-copy-bank]",
+    bank: "#bankBank",
+    holder: "#bankHolder",
     clabe: "#bankClabe",
+    account: "#bankAccount",
+    card: "#bankCard",
     message: "#giftCopyMessage"
   });
 
@@ -34,8 +38,10 @@
   let openButton = null;
   let modal = null;
   let dialog = null;
-  let copyButton = null;
+  let copyControls = [];
   let clabeElement = null;
+  let accountElement = null;
+  let cardElement = null;
   let messageElement = null;
   let closeControls = [];
   let previousFocus = null;
@@ -154,62 +160,61 @@
     return String(value || "").replace(/\s+/g, "").trim();
   }
 
-  async function copyClabe() {
-    if (!clabeElement) return;
+  function normalizeBankValue(value) {
+    return String(value || "").replace(/\s+/g, "").trim();
+  }
 
-    const clabe = normalizeClabe(clabeElement.textContent);
-
-    if (!clabe) {
-      setMessage("No se encontró una CLABE para copiar.");
+  async function writeClipboard(value) {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function" && window.isSecureContext) {
+      await navigator.clipboard.writeText(value);
       return;
     }
+    const textarea = document.createElement("textarea");
+    textarea.value = value; textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed"; textarea.style.opacity = "0"; textarea.style.pointerEvents = "none";
+    document.body.appendChild(textarea); textarea.select(); textarea.setSelectionRange(0, textarea.value.length);
+    const copied = document.execCommand("copy"); textarea.remove();
+    if (!copied) throw new Error("El navegador no permitió copiar el texto.");
+  }
 
+  async function trackBankCopy(tipo) {
+    const token = (new URLSearchParams(window.location.search).get("inv") || "").trim();
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(token)) return;
     try {
-      if (
-        navigator.clipboard &&
-        typeof navigator.clipboard.writeText === "function" &&
-        window.isSecureContext
-      ) {
-        await navigator.clipboard.writeText(clabe);
-      } else {
-        const textarea = document.createElement("textarea");
-        textarea.value = clabe;
-        textarea.setAttribute("readonly", "");
-        textarea.style.position = "fixed";
-        textarea.style.opacity = "0";
-        textarea.style.pointerEvents = "none";
-
-        document.body.appendChild(textarea);
-        textarea.select();
-        textarea.setSelectionRange(0, textarea.value.length);
-
-        const copied = document.execCommand("copy");
-        textarea.remove();
-
-        if (!copied) {
-          throw new Error("El navegador no permitió copiar el texto.");
-        }
+      const client = window.SupabaseClient?.getClient?.();
+      if (client) {
+        const { error } = await client.rpc("registrar_copia_dato_transferencia", { p_token: token, p_tipo: tipo });
+        if (error) console.warn("Gift Experience: no fue posible registrar la copia.", error);
       }
+    } catch (error) { console.warn("Gift Experience: seguimiento no disponible.", error); }
+  }
 
-      setMessage("CLABE copiada correctamente.");
-
-      // Señal de intención: copiar la CLABE no equivale a una transferencia confirmada.
-      const token = (new URLSearchParams(window.location.search).get("inv") || "").trim();
-      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(token)) {
-        try {
-          const client = window.SupabaseClient?.getClient?.();
-          if (client) {
-            const { error: trackingError } = await client.rpc("registrar_copia_clabe", { p_token: token });
-            if (trackingError) console.warn("Gift Experience: no fue posible registrar la copia de CLABE.", trackingError);
-          }
-        } catch (trackingError) {
-          console.warn("Gift Experience: seguimiento de CLABE no disponible.", trackingError);
-        }
-      }
+  async function copyBankData(tipo) {
+    const map = { clabe: clabeElement, cuenta: accountElement, tarjeta: cardElement };
+    const labels = { clabe: "CLABE", cuenta: "Cuenta", tarjeta: "Tarjeta" };
+    const value = normalizeBankValue(map[tipo]?.textContent);
+    if (!value) { setMessage(`No se encontró ${labels[tipo] || "el dato"} para copiar.`); return; }
+    try {
+      await writeClipboard(value);
+      setMessage(`${labels[tipo]} copiada correctamente.`);
+      await trackBankCopy(tipo);
     } catch (error) {
-      console.error("Gift Experience: no fue posible copiar la CLABE.", error);
-      setMessage("No fue posible copiarla automáticamente. Puedes seleccionarla manualmente.");
+      console.error("Gift Experience: no fue posible copiar el dato.", error);
+      setMessage("No fue posible copiarlo automáticamente. Puedes seleccionarlo manualmente.");
     }
+  }
+
+  async function loadBankData() {
+    try {
+      const client = window.SupabaseClient?.getClient?.();
+      if (!client) return;
+      const { data, error } = await client.rpc("obtener_datos_bancarios_regalos");
+      if (error || !data?.data) { if (error) console.warn("Gift Experience: datos bancarios no disponibles.", error); return; }
+      const d=data.data;
+      const set=(sel,value)=>{const node=document.querySelector(sel);if(node)node.textContent=value||"";};
+      set(SELECTORS.bank,d.banco); set(SELECTORS.holder,d.titular); set(SELECTORS.clabe,d.clabe); set(SELECTORS.account,d.cuenta); set(SELECTORS.card,d.tarjeta);
+      [["#bankClabeRow",d.clabe],["#bankAccountRow",d.cuenta],["#bankCardRow",d.tarjeta]].forEach(([sel,value])=>{const row=document.querySelector(sel);if(row)row.hidden=!value;});
+    } catch (error) { console.warn("Gift Experience: no fue posible cargar datos bancarios.", error); }
   }
 
   function handleDocumentKeydown(event) {
@@ -236,8 +241,10 @@
     openButton = document.querySelector(SELECTORS.openButton);
     modal = document.querySelector(SELECTORS.modal);
     dialog = modal?.querySelector(SELECTORS.dialog) || null;
-    copyButton = document.querySelector(SELECTORS.copyButton);
+    copyControls = Array.from(document.querySelectorAll(SELECTORS.copyControls));
     clabeElement = document.querySelector(SELECTORS.clabe);
+    accountElement = document.querySelector(SELECTORS.account);
+    cardElement = document.querySelector(SELECTORS.card);
     messageElement = document.querySelector(SELECTORS.message);
     closeControls = modal
       ? Array.from(modal.querySelectorAll(SELECTORS.closeControls))
@@ -261,7 +268,8 @@
       control.setAttribute("type", control.getAttribute("type") || "button");
     });
 
-    copyButton?.addEventListener("click", copyClabe);
+    copyControls.forEach((control) => control.addEventListener("click", () => copyBankData(control.dataset.copyBank)));
+    loadBankData();
 
     console.info("Gift Experience inicializado correctamente.");
   }

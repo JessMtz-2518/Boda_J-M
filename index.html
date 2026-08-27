@@ -779,25 +779,40 @@
       </p>
 
       <dl class="gift-bank-data">
-        <div>
+        <div id="bankBankRow">
           <dt>Banco</dt>
-          <dd>Nombre del banco</dd>
+          <dd id="bankBank">Nombre del banco</dd>
         </div>
 
-        <div>
+        <div id="bankHolderRow">
           <dt>Titular</dt>
-          <dd>Nombre del titular</dd>
+          <dd id="bankHolder">Nombre del titular</dd>
         </div>
 
-        <div>
-          <dt>CLABE</dt>
-          <dd id="bankClabe">000000000000000000</dd>
+        <div class="gift-bank-copy-row" id="bankClabeRow" hidden>
+          <div>
+            <dt>CLABE</dt>
+            <dd id="bankClabe">000000000000000000</dd>
+          </div>
+          <button class="gift-copy-data" type="button" data-copy-bank="clabe">Copiar</button>
+        </div>
+
+        <div class="gift-bank-copy-row" id="bankAccountRow" hidden>
+          <div>
+            <dt>Cuenta</dt>
+            <dd id="bankAccount"></dd>
+          </div>
+          <button class="gift-copy-data" type="button" data-copy-bank="cuenta">Copiar</button>
+        </div>
+
+        <div class="gift-bank-copy-row" id="bankCardRow" hidden>
+          <div>
+            <dt>Tarjeta</dt>
+            <dd id="bankCard"></dd>
+          </div>
+          <button class="gift-copy-data" type="button" data-copy-bank="tarjeta">Copiar</button>
         </div>
       </dl>
-
-      <button class="btn primary" id="copyBankClabe" type="button">
-        Copiar CLABE
-      </button>
 
       <p class="gift-copy-message" id="giftCopyMessage" aria-live="polite">
       </p>
