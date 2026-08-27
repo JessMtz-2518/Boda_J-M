@@ -300,7 +300,7 @@
 
 .gift-modal__close:focus-visible,
 .gift-bank-button:focus-visible,
-#copyBankClabe:focus-visible {
+.gift-copy-data:focus-visible {
   outline: 0.18rem solid rgba(86, 101, 74, 0.34);
   outline-offset: 0.2rem;
 }
@@ -347,8 +347,33 @@
   letter-spacing: 0.06em;
 }
 
-#copyBankClabe {
-  width: 100%;
+.gift-bank-copy-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+.gift-bank-copy-row[hidden] {
+  display: none !important;
+}
+.gift-bank-copy-row > div { min-width: 0; }
+.gift-copy-data {
+  flex: 0 0 auto;
+  border: 1px solid rgba(86, 101, 74, 0.24);
+  border-radius: 999px;
+  background: rgba(255,255,255,.72);
+  color: var(--color-olive, #56654a);
+  padding: .55rem .85rem;
+  font: 600 .72rem/1 var(--font-body, "Montserrat", Arial, sans-serif);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.gift-copy-data:hover { background: rgba(86,101,74,.08); }
+#bankClabe,#bankAccount,#bankCard {
+  font-family: var(--font-numerals, "EB Garamond", Georgia, serif);
+  font-size: 1.08rem;
+  letter-spacing: 0.04em;
 }
 
 .gift-copy-message {
