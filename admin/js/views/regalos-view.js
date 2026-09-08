@@ -129,16 +129,18 @@ window.AdminViews.regalos=function(){
         if(Number(item.copias_cuenta||0))detail.push(`Cuenta ${item.copias_cuenta}`);
         if(Number(item.copias_tarjeta||0))detail.push(`Tarjeta ${item.copias_tarjeta}`);
 
-        row.append(
-          el("td","",item.invitado),
-          el("td","",item.codigo),
-          el("td","",date.format(new Date(item.ultima_copia))),
-          el("td","",detail.join(" · ")||String(item.veces_copiada||0)),
-          el("td",item.estado==="confirmada"?"gift-admin-status confirmed":"gift-admin-status pending",item.estado==="confirmada"?"Confirmada":"Por verificar"),
-          el("td","",item.estado==="confirmada"?money.format(Number(item.monto_confirmado||0)):"—")
-        );
+        const cells=[
+          ["Invitado",el("td","",item.invitado)],
+          ["Código",el("td","",item.codigo)],
+          ["Última copia",el("td","",date.format(new Date(item.ultima_copia)))],
+          ["Detalle de copias",el("td","",detail.join(" · ")||String(item.veces_copiada||0))],
+          ["Estado",el("td",item.estado==="confirmada"?"gift-admin-status confirmed":"gift-admin-status pending",item.estado==="confirmada"?"Confirmada":"Por verificar")],
+          ["Monto",el("td","",item.estado==="confirmada"?money.format(Number(item.monto_confirmado||0)):"—")]
+        ];
+        cells.forEach(([label,cell])=>{cell.dataset.label=label;row.append(cell);});
 
         const action=document.createElement("td");
+        action.dataset.label="Acción";
         const btn=el("button",item.estado==="confirmada"?"admin-button admin-button-secondary":"admin-button",item.estado==="confirmada"?"Reabrir":"Confirmar");
         btn.type="button";
 

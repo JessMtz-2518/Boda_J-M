@@ -5579,3 +5579,221 @@ body.godparents-modal-open{overflow:hidden}
 
 /* Mesa de regalos · Finanzas */
 .gift-admin-view{display:grid;gap:20px}.gift-admin-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.gift-admin-metric,.gift-admin-panel{border:1px solid rgba(255,255,255,.74);background:rgba(255,250,241,.91);box-shadow:0 16px 38px rgba(38,46,33,.08)}.gift-admin-metric{display:flex;min-height:142px;flex-direction:column;padding:18px;border-radius:16px}.gift-admin-metric-label{margin:0;color:var(--admin-muted);font-size:.7rem;font-weight:600;text-transform:uppercase}.gift-admin-metric-value{margin:auto 0 6px;color:var(--admin-olive-dark);font-family:"Cormorant Garamond",Georgia,serif;font-size:clamp(2rem,3vw,2.65rem);line-height:1}.gift-admin-metric-detail,.gift-admin-feedback{color:var(--admin-muted);font-size:.72rem}.gift-admin-feedback{margin:0}.gift-admin-panel{padding:22px;border-radius:22px}.gift-admin-table-wrap{overflow-x:auto}.gift-admin-table{width:100%;border-collapse:collapse;font-size:.75rem}.gift-admin-table th,.gift-admin-table td{padding:13px 10px;border-bottom:1px solid var(--admin-line);text-align:left;white-space:nowrap}.gift-admin-table th{color:var(--admin-muted);font-size:.65rem;text-transform:uppercase}.gift-admin-status{font-weight:600}.gift-admin-status.confirmed{color:var(--admin-olive-dark)}.gift-admin-status.pending{color:#7a6447}.gift-admin-empty{margin:0;color:var(--admin-muted)}.gift-admin-modal-info{margin:0 0 6px;color:var(--admin-muted);font-size:.78rem}@media(max-width:900px){.gift-admin-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.gift-admin-metrics{grid-template-columns:1fr}}
+
+
+/* =========================================================
+   FASE 14 · ESTABILIZACIÓN RESPONSIVE GLOBAL DEL ADMIN
+   iPhone / formularios / fechas / Mesa de regalos / Contratos
+   ========================================================= */
+
+/* Evita que controles nativos puedan ensanchar modales o grids. */
+.admin-route-view input,
+.admin-route-view select,
+.admin-route-view textarea,
+.finance-form input,
+.finance-form select,
+.finance-form textarea,
+.godparents-form input,
+.godparents-form select,
+.godparents-form textarea,
+.contracts-form input,
+.contracts-form select,
+.contracts-form textarea{
+  box-sizing:border-box;
+  min-width:0;
+  max-width:100%;
+}
+
+/* Fechas: conserva el selector nativo, pero obliga al control a respetar el contenedor. */
+input[type="date"]{
+  min-width:0;
+  max-width:100%;
+}
+.godparents-form input[type="date"],
+.contracts-form input[type="date"],
+.finance-form input[type="date"]{
+  display:block;
+  width:100%;
+  color-scheme:light;
+}
+
+/* Encabezado de Contratos con dos acciones claras. */
+.contracts-heading-actions{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:10px;
+}
+.contracts-new-picker{width:min(620px,100%)}
+.contracts-new-picker-body{padding:20px 22px 24px}
+.contracts-new-picker-list{display:grid;gap:10px}
+.contracts-new-picker-option{
+  display:grid;
+  gap:3px;
+  width:100%;
+  padding:14px 15px;
+  border:1px solid var(--admin-line);
+  border-radius:13px;
+  background:rgba(255,255,255,.52);
+  color:var(--admin-ink);
+  text-align:left;
+  cursor:pointer;
+}
+.contracts-new-picker-option:hover{border-color:rgba(86,101,74,.35);background:rgba(86,101,74,.06)}
+.contracts-new-picker-option strong{font-family:"Cormorant Garamond",Georgia,serif;font-size:1.16rem}
+.contracts-new-picker-option span{color:var(--admin-muted);font-size:.72rem}
+
+/* Mesa de regalos: KPIs más compactos desde tablet. */
+@media(max-width:900px){
+  .gift-admin-metric{
+    min-height:108px;
+    padding:14px 16px;
+  }
+  .gift-admin-metric-value{
+    margin:10px 0 4px;
+    font-size:2rem;
+  }
+}
+
+/* Corrección transversal de zoom de Safari + distribución móvil. */
+@media(max-width:760px){
+  /* iOS no hace auto-zoom si los campos editables tienen al menos 16px. */
+  .admin-route-view input,
+  .admin-route-view select,
+  .admin-route-view textarea,
+  .finance-field input,
+  .finance-field select,
+  .finance-field textarea,
+  .godparents-form input,
+  .godparents-form select,
+  .godparents-form textarea,
+  .contracts-field input,
+  .contracts-field select,
+  .contracts-field textarea{
+    font-size:16px !important;
+    line-height:1.35;
+  }
+
+  /* Modales siempre dentro del viewport. */
+  .finance-modal,
+  .godparents-modal,
+  .contracts-modal{
+    width:100%;
+    max-width:100%;
+    max-height:calc(100dvh - 16px);
+    overflow-x:hidden;
+  }
+  .finance-form-grid,
+  .godparents-form-grid,
+  .contracts-form-grid,
+  .finance-field,
+  .godparents-field,
+  .contracts-field{
+    min-width:0;
+  }
+
+  /* Padrinos: espaciado más natural y fechas sin desbordamiento. */
+  .godparents-form{gap:18px;padding:18px 16px 22px}
+  .godparents-form-grid{gap:16px}
+  .godparents-field{min-width:0;gap:7px}
+  .godparents-field>span{font-size:.76rem;line-height:1.35}
+  .godparents-form input,
+  .godparents-form select{min-height:48px}
+  .godparents-form input[type="date"]{
+    width:100%;
+    min-width:0;
+    max-width:100%;
+  }
+
+  /* Acciones de formularios: un botón a cada lado, sin apilarlos. */
+  .finance-form-actions,
+  .contracts-form-actions,
+  .godparents-form-actions{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .finance-form-actions .admin-button,
+  .contracts-form-actions .admin-button,
+  .godparents-form-actions .admin-button{
+    width:auto;
+    min-width:0;
+    flex:0 1 auto;
+  }
+
+  /* Nuevo proveedor / formularios financieros: botones equilibrados. */
+  .finance-form-actions .admin-button:first-child{margin-right:auto}
+  .finance-form-actions .admin-button:last-child{margin-left:auto}
+
+  /* Contratos: Nuevo contrato y Actualizar permanecen accesibles. */
+  .contracts-heading-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    width:100%;
+  }
+  .contracts-heading-actions .admin-button{width:100%}
+
+  /* Mesa de regalos: cuatro indicadores compactos en 2x2. */
+  .gift-admin-metrics{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px;
+  }
+  .gift-admin-metric{
+    min-height:100px;
+    padding:13px 14px;
+  }
+  .gift-admin-metric-label{font-size:.64rem}
+  .gift-admin-metric-value{margin:8px 0 3px;font-size:1.75rem}
+  .gift-admin-metric-detail{font-size:.68rem}
+
+  /* La tabla de Mesa de regalos se transforma en tarjetas móviles. */
+  .gift-admin-panel{padding:14px}
+  .gift-admin-table-wrap{overflow:visible}
+  .gift-admin-table,
+  .gift-admin-table tbody,
+  .gift-admin-table tr,
+  .gift-admin-table td{
+    display:block;
+    width:100%;
+  }
+  .gift-admin-table thead{display:none}
+  .gift-admin-table tbody{
+    display:grid;
+    gap:12px;
+  }
+  .gift-admin-table tr{
+    padding:14px;
+    border:1px solid var(--admin-line);
+    border-radius:14px;
+    background:rgba(255,255,255,.42);
+  }
+  .gift-admin-table td{
+    display:grid;
+    grid-template-columns:minmax(108px,38%) minmax(0,1fr);
+    gap:10px;
+    align-items:center;
+    padding:8px 0;
+    border-bottom:1px solid rgba(86,101,74,.11);
+    white-space:normal;
+    overflow-wrap:anywhere;
+  }
+  .gift-admin-table td::before{
+    content:attr(data-label);
+    color:var(--admin-muted);
+    font-size:.64rem;
+    font-weight:600;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+  }
+  .gift-admin-table td:last-child{border-bottom:0;padding-bottom:0}
+  .gift-admin-table td:last-child .admin-button{justify-self:end}
+}
+
+@media(max-width:430px){
+  .gift-admin-metrics{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+  .gift-admin-metric{min-height:94px;padding:12px}
+  .gift-admin-metric-value{font-size:1.6rem}
+  .gift-admin-table td{grid-template-columns:100px minmax(0,1fr)}
+  .contracts-new-picker-body{padding:16px}
+}

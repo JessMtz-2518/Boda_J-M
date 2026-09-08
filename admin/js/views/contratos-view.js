@@ -212,6 +212,60 @@
     });
   }
 
+
+  function openNewContractPicker(items, onPick) {
+    const previousFocus = document.activeElement;
+    const overlay = el("div", "contracts-modal-overlay");
+    const dialog = el("section", "contracts-modal contracts-new-picker");
+    dialog.setAttribute("role", "dialog");
+    dialog.setAttribute("aria-modal", "true");
+
+    const head = el("header", "contracts-modal-head");
+    const copy = el("div");
+    copy.append(
+      el("p", "admin-eyebrow", "Control contractual"),
+      el("h2", "", "Nuevo contrato"),
+      el("p", "admin-view-copy", "Selecciona el proveedor al que deseas configurar su contrato.")
+    );
+    const close = button("Cerrar");
+    head.append(copy, close);
+
+    const body = el("div", "contracts-new-picker-body");
+    const list = el("div", "contracts-new-picker-list");
+
+    items.forEach((item) => {
+      const option = document.createElement("button");
+      option.type = "button";
+      option.className = "contracts-new-picker-option";
+      option.append(
+        el("strong", "", item.vendorName),
+        el("span", "", item.category || "Sin categoría")
+      );
+      option.addEventListener("click", () => {
+        dismiss();
+        onPick(item);
+      });
+      list.append(option);
+    });
+
+    body.append(list);
+    dialog.append(head, body);
+    overlay.append(dialog);
+    document.body.append(overlay);
+    document.body.classList.add("contracts-modal-open");
+
+    function dismiss() {
+      overlay.remove();
+      document.body.classList.remove("contracts-modal-open");
+      if (previousFocus instanceof HTMLElement && document.body.contains(previousFocus)) {
+        previousFocus.focus({ preventScroll: true });
+      }
+    }
+
+    close.addEventListener("click", dismiss);
+    overlay.addEventListener("click", (event) => { if (event.target === overlay) dismiss(); });
+  }
+
   function metric(label, value, detail) {
     const card = el("article", "contracts-metric");
     card.append(el("span", "", label), el("strong", "", String(value)), el("small", "", detail));
@@ -291,8 +345,12 @@
       el("h2", "", "Contratos"),
       el("p", "admin-view-copy", "Controla contratos, acuerdos, condiciones y compromisos financieros de tus proveedores desde un solo lugar.")
     );
+    const headingActions = el("div", "contracts-heading-actions");
+    const newContract = button("Nuevo contrato", true);
     const refresh = button("Actualizar");
-    heading.append(copy, refresh);
+    newContract.disabled = true;
+    headingActions.append(newContract, refresh);
+    heading.append(copy, headingActions);
 
     const metrics = el("div", "contracts-metrics");
     const toolbar = el("div", "contracts-toolbar");
@@ -331,6 +389,7 @@
       status.hidden = false;
       status.textContent = "Cargando contratos…";
       refresh.disabled = true;
+      newContract.disabled = true;
       try {
         data = await window.AdminContractsService.getSummary();
         const s = data.summary;
@@ -348,8 +407,23 @@
         status.textContent = error?.message || "No fue posible cargar los contratos.";
       } finally {
         refresh.disabled = false;
+        newContract.disabled = !data;
       }
     }
+
+    newContract.addEventListener("click", () => {
+      if (!data) return;
+      const available = data.contracts.filter((item) => !item.contractId && item.status !== "no_requiere");
+      if (!available.length) {
+        window.alert("Todos los proveedores disponibles ya tienen un contrato configurado.");
+        return;
+      }
+      if (available.length === 1) {
+        openContractModal(available[0], load);
+        return;
+      }
+      openNewContractPicker(available, (selected) => openContractModal(selected, load));
+    });
 
     refresh.addEventListener("click", load);
     search.addEventListener("input", renderList);
