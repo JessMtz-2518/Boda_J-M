@@ -1015,6 +1015,15 @@ App.modules.countdown = {
 
     this.target = new Date(App.config.event.dateISO);
 
+    window.addEventListener("invitation:event-config-ready", (event) => {
+      const dateISO = event.detail?.dateISO;
+      if (!dateISO) return;
+      const nextTarget = new Date(dateISO);
+      if (Number.isNaN(nextTarget.getTime())) return;
+      this.target = nextTarget;
+      this.tick();
+    });
+
     this.tick();
     this.timer = setInterval(() => this.tick(),1000);
   },
@@ -1108,8 +1117,9 @@ App.modules.navigation = {
    HOOK DE INICIALIZACIÓN
 ============================================================ */
 
-App.registerHook("afterInit",()=>{
+App.registerHook("afterInit",async()=>{
 
+  await window.InvitationEventConfig?.load?.();
   App.modules.hero.initialize();
   App.modules.motion.initialize();
   App.modules.countdown.initialize();
