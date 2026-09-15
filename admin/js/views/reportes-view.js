@@ -231,6 +231,248 @@
     );
   }
 
+
+  function exportReceptionPdf(data) {
+    const jsPDF = window.jspdf?.jsPDF;
+    if (!jsPDF) throw new Error("No fue posible cargar el generador de PDF.");
+    if (typeof jsPDF.API.autoTable !== "function") throw new Error("No fue posible cargar el generador de tablas PDF.");
+
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "letter" });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const marginX = 12;
+    const olive = [89, 107, 76];
+    const oliveDark = [58, 72, 50];
+    const ivory = [250, 247, 239];
+    const silver = [177, 179, 174];
+    const ink = [43, 48, 41];
+    const muted = [102, 105, 98];
+    const line = [218, 217, 207];
+    const guests = Array.isArray(data.receptionGuests) ? data.receptionGuests : [];
+    const tables = Array.isArray(data.byTable) ? data.byTable : [];
+    const event = data.eventConfig?.evento || {};
+    const eventDate = event.fecha_evento
+      ? new Intl.DateTimeFormat("es-MX", { day:"2-digit", month:"long", year:"numeric" })
+          .format(new Date(`${event.fecha_evento}T12:00:00`)).toUpperCase()
+      : "01 MAYO 2027";
+    const venue = String(event.lugar_nombre || "Jardín Jade").toUpperCase();
+
+    const totalPeople = guests.reduce((sum, item) => sum + Number(item.total || 0), 0);
+    const assignedPeople = guests.filter((item) => item.tableNumber != null).reduce((sum, item) => sum + Number(item.total || 0), 0);
+    const activeTables = tables.length;
+    const available = Number(data.tableSummary?.available || 0);
+
+    function header(first = false) {
+      doc.setTextColor(...oliveDark);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(first ? 17 : 11);
+      doc.text("JESSICA & MARCOS", pageW / 2, first ? 14 : 10, { align:"center" });
+      if (first) {
+        doc.setFontSize(15);
+        doc.text("RECEPCIÓN DE INVITADOS", pageW / 2, 24, { align:"center" });
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8.5);
+        doc.setTextColor(...muted);
+        doc.text("Control de acceso y asignación de mesas", pageW / 2, 30, { align:"center" });
+        doc.setFontSize(7.5);
+        doc.text(`${eventDate}   |   ${venue}`, pageW / 2, 36, { align:"center" });
+        doc.setDrawColor(...silver);
+        doc.setLineWidth(.35);
+        doc.line(marginX, 40, pageW - marginX, 40);
+      } else {
+        doc.setDrawColor(...line);
+        doc.setLineWidth(.25);
+        doc.line(marginX, 13, pageW - marginX, 13);
+      }
+    }
+
+    function footer(pageNumber, totalPages) {
+      doc.setDrawColor(...line);
+      doc.setLineWidth(.25);
+      doc.line(marginX, pageH - 10, pageW - marginX, pageH - 10);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6.8);
+      doc.setTextColor(...muted);
+      doc.text("RECEPCIÓN · JESSICA & MARCOS", marginX, pageH - 5.8);
+      doc.text(`PÁGINA ${pageNumber} DE ${totalPages}`, pageW - marginX, pageH - 5.8, { align:"right" });
+    }
+
+    header(true);
+
+    const kpis = [
+      ["PERSONAS ESPERADAS", totalPeople],
+      ["INVITACIONES CONFIRMADAS", guests.length],
+      ["MESAS", activeTables],
+      ["LUGARES DISPONIBLES", available],
+    ];
+    const kpiW = (pageW - marginX * 2) / 4;
+    kpis.forEach(([label, value], index) => {
+      const x = marginX + index * kpiW;
+      if (index) {
+        doc.setDrawColor(...line);
+        doc.line(x, 45, x, 60);
+      }
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(15);
+      doc.setTextColor(...oliveDark);
+      doc.text(String(value), x + kpiW / 2, 51, { align:"center" });
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6.5);
+      doc.setTextColor(...muted);
+      doc.text(label, x + kpiW / 2, 57, { align:"center" });
+    });
+
+    doc.setDrawColor(...silver);
+    doc.line(marginX, 63, pageW - marginX, 63);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(...oliveDark);
+    doc.text("LISTADO ALFABÉTICO", marginX, 70);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7);
+    doc.setTextColor(...muted);
+    doc.text("Localiza al invitado, confirma su llegada e indícale su mesa.", marginX, 75);
+
+    const rows = guests.map((item) => [
+      item.name,
+      String(item.adults),
+      String(item.children),
+      String(item.total),
+      item.tableNumber == null ? "SIN ASIGNAR" : `MESA ${String(item.tableNumber).padStart(2,"0")}`,
+      item.status || "Confirmada",
+      ""
+    ]);
+
+    doc.autoTable({
+      startY: 79,
+      margin: { left:marginX, right:marginX, top:18, bottom:15 },
+      head: [["INVITADO / FAMILIA","ADULTOS","NIÑOS","TOTAL","MESA","CONFIRMACIÓN","LLEGÓ"]],
+      body: rows,
+      theme: "grid",
+      styles: {
+        font:"helvetica", fontSize:7.2, textColor:ink, cellPadding:2.3,
+        lineColor:line, lineWidth:.2, valign:"middle", overflow:"linebreak",
+        minCellHeight:7.5
+      },
+      headStyles: { fillColor:olive, textColor:[255,250,241], fontStyle:"bold", halign:"center", fontSize:6.8, minCellHeight:8 },
+      alternateRowStyles: { fillColor:ivory },
+      columnStyles: {
+        0:{ cellWidth:76, halign:"left" },
+        1:{ cellWidth:20, halign:"center" },
+        2:{ cellWidth:18, halign:"center" },
+        3:{ cellWidth:18, halign:"center", fontStyle:"bold" },
+        4:{ cellWidth:28, halign:"center", fontStyle:"bold", textColor:oliveDark },
+        5:{ cellWidth:30, halign:"center" },
+        6:{ cellWidth:18, halign:"center", fontSize:11 }
+      },
+      didDrawCell: (hook) => {
+        if (hook.section === "body" && hook.column.index === 6) {
+          const size = 3.8;
+          const x = hook.cell.x + (hook.cell.width - size) / 2;
+          const y = hook.cell.y + (hook.cell.height - size) / 2;
+          doc.setDrawColor(...oliveDark);
+          doc.setLineWidth(.35);
+          doc.rect(x, y, size, size);
+        }
+      },
+      didDrawPage: (hook) => {
+        if (hook.pageNumber > 1) header(false);
+      }
+    });
+
+    // Segunda sección: siempre comienza en página nueva para evitar montajes.
+    doc.addPage("letter", "landscape");
+    header(false);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.setTextColor(...oliveDark);
+    doc.text("DISTRIBUCIÓN POR MESAS", pageW / 2, 23, { align:"center" });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(...muted);
+    doc.text("Consulta rápida para el equipo de recepción", pageW / 2, 29, { align:"center" });
+    doc.setDrawColor(...silver);
+    doc.line(marginX, 34, pageW - marginX, 34);
+
+    const tableRows = [];
+    tables.forEach((table) => {
+      const people = table.assignments.reduce((sum, item) => sum + Number(item.total || 0), 0);
+      const free = Math.max(0, Number(table.capacity || 0) - people);
+      if (!table.assignments.length) {
+        tableRows.push([`MESA ${String(table.number).padStart(2,"0")}`, "Sin invitados asignados", "0", `${people}/${table.capacity}`, `${free} libres`]);
+        return;
+      }
+      table.assignments.forEach((item, index) => {
+        tableRows.push([
+          index === 0 ? `MESA ${String(table.number).padStart(2,"0")}` : "",
+          item.nombre,
+          String(Number(item.total || 0)),
+          index === 0 ? `${people}/${table.capacity}` : "",
+          index === 0 ? (free ? `${free} libres` : "COMPLETA") : ""
+        ]);
+      });
+    });
+
+    doc.autoTable({
+      startY:39,
+      margin:{ left:marginX, right:marginX, top:18, bottom:15 },
+      head:[["MESA","INVITADO / FAMILIA","PERSONAS","OCUPACIÓN","DISPONIBILIDAD"]],
+      body:tableRows,
+      theme:"grid",
+      styles:{ font:"helvetica", fontSize:7.2, textColor:ink, cellPadding:2.2, lineColor:line, lineWidth:.2, valign:"middle", overflow:"linebreak", minCellHeight:7.2 },
+      headStyles:{ fillColor:olive, textColor:[255,250,241], fontStyle:"bold", halign:"center", fontSize:6.8 },
+      alternateRowStyles:{ fillColor:ivory },
+      columnStyles:{
+        0:{cellWidth:30,halign:"center",fontStyle:"bold",textColor:oliveDark},
+        1:{cellWidth:105},
+        2:{cellWidth:25,halign:"center"},
+        3:{cellWidth:35,halign:"center",fontStyle:"bold"},
+        4:{cellWidth:40,halign:"center"}
+      },
+      didDrawPage:()=>header(false)
+    });
+
+    const totalPages = doc.getNumberOfPages();
+    for (let page = 1; page <= totalPages; page += 1) {
+      doc.setPage(page);
+      footer(page, totalPages);
+    }
+
+    doc.save("Jessica-Marcos-Recepcion-Invitados.pdf");
+  }
+
+  function buildReceptionReport(data) {
+    const section = el("section", "reports-section reports-section-reception");
+    section.dataset.reportPanel = "recepcion";
+    const guests = data.receptionGuests || [];
+    const people = guests.reduce((sum,item)=>sum+Number(item.total||0),0);
+    const assigned = guests.filter((item)=>item.tableNumber!=null).reduce((sum,item)=>sum+Number(item.total||0),0);
+    const unassigned = Math.max(0, people-assigned);
+
+    const summary = el("div","reports-summary-grid");
+    summary.append(
+      metric("Personas esperadas",people,"personas registradas en invitaciones","success"),
+      metric("Invitaciones",guests.length,"familias / invitaciones registradas"),
+      metric("Mesas",data.tableSummary?.tables||0,"mesas activas"),
+      metric("Sin mesa",unassigned,"personas pendientes de asignar",unassigned?"warning":"success")
+    );
+
+    const card = el("article","reports-overview-card reports-reception-card");
+    card.append(
+      el("p","admin-eyebrow","Reporte operativo"),
+      el("h3","","Recepción de invitados"),
+      el("p","admin-view-copy","PDF horizontal listo para imprimir. Incluye listado alfabético con adultos, niños, total, mesa, confirmación y casilla de llegada; después agrega la distribución por mesas. El código de invitación no aparece.")
+    );
+    const exportPdf = button("Exportar PDF",true);
+    exportPdf.addEventListener("click",()=>{
+      try{exportReceptionPdf(data)}
+      catch(error){console.error("Reporte recepción PDF:",error);window.alert(error?.message||"No fue posible generar el PDF.");}
+    });
+    card.append(exportPdf);
+    section.append(summary,card);
+    return section;
+  }
+
   function metric(label, value, detail = "", tone = "") {
     const card = el("article", `reports-metric${tone ? ` reports-metric-${tone}` : ""}`);
     card.append(
@@ -595,6 +837,7 @@
       ["resumen", "Resumen"],
       ["invitados", "Invitados"],
       ["mesas", "Mesas"],
+      ["recepcion", "Recepción"],
       ["organizacion", "Organización"],
       ["finanzas", "Finanzas"],
     ];
@@ -616,6 +859,7 @@
       buildOverviewReport(data),
       buildGuestsReport(data),
       buildTableReport(data),
+      buildReceptionReport(data),
       buildOrganizationReport(data),
       buildFinanceReport(data)
     );

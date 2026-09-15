@@ -102,6 +102,7 @@
       godparents,
       finance,
       contracts,
+      eventConfig,
     ] = await Promise.all([
       getTableReport(),
       listAllGuests(),
@@ -110,6 +111,7 @@
       window.AdminGodparentsService?.getSummary?.() || Promise.resolve(null),
       window.AdminFinanceService?.getSummary?.() || Promise.resolve(null),
       window.AdminContractsService?.getSummary?.() || Promise.resolve(null),
+      window.AdminEventService?.get?.() || Promise.resolve(null),
     ]);
 
     const guestSummary = buildGuestSummary(guests);
@@ -130,8 +132,54 @@
     const financeSummary = finance?.summary || {};
     const contractsSummary = contracts?.summary || {};
 
+
+    const tableByGuest = new Map();
+    byTable.forEach((table) => {
+      table.assignments.forEach((assignment) => {
+        tableByGuest.set(Number(assignment.invitado_id), {
+          tableNumber: table.number,
+          tableName: table.name,
+          assignedAdults: Number(assignment.adultos || 0),
+          assignedChildren: Number(assignment.ninos || 0),
+          assignedTotal: Number(assignment.total || 0),
+        });
+      });
+    });
+
+    const receptionGuests = guests
+      .filter((item) => item.activo)
+      .map((item) => {
+        const table = tableByGuest.get(Number(item.invitado_id)) || null;
+        const confirmed = item.estado_confirmacion === "asistira";
+        const adults = confirmed
+          ? Number(item.adultos_confirmados || 0)
+          : Number(item.adultos_invitados || 0);
+        const children = confirmed
+          ? Number(item.ninos_confirmados || 0)
+          : Number(item.ninos_invitados || 0);
+        const statusLabels = {
+          asistira: "Confirmada",
+          no_asistira: "No asistirá",
+          pendiente: "Pendiente",
+          vencida: "Sin respuesta",
+        };
+        return {
+          guestId: Number(item.invitado_id),
+          name: normalizeName(item.nombre),
+          adults,
+          children,
+          total: adults + children,
+          tableNumber: table?.tableNumber ?? null,
+          tableName: table?.tableName || "",
+          status: statusLabels[item.estado_confirmacion] || "Sin respuesta",
+        };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+
     return {
       generatedAt: new Date(),
+      eventConfig,
+      receptionGuests,
       byTable,
       guests: guests
         .slice()

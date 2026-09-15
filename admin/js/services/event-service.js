@@ -1,0 +1,9 @@
+(() => {
+  "use strict";
+  function client(){const c=window.AdminSupabaseClient?.getClient?.();if(!c)throw new Error("El cliente administrativo no está disponible.");return c;}
+  function normalize(data){let value=data;if(typeof value==="string"){try{value=JSON.parse(value)}catch(_){}}if(!value||value.schema_version!=="1.0"||!value.data)throw new Error("La configuración del evento no tiene el formato esperado.");return value.data;}
+  function friendly(error){const raw=[error?.message,error?.details,error?.hint,error?.code].filter(Boolean).join(" · ");if(/42501|no autorizado/i.test(raw))return"Tu sesión no tiene permiso para guardar esta configuración. Vuelve a iniciar sesión.";if(/FECHA_EVENTO_INVALIDA/i.test(raw))return"La fecha de la boda no es válida.";if(/HORA_EVENTO_INVALIDA/i.test(raw))return"La hora principal no es válida.";if(/HORA_ITINERARIO_INVALIDA/i.test(raw))return"Revisa las horas del itinerario.";if(/ITEM_ITINERARIO_INVALIDO/i.test(raw))return"Hay un momento del itinerario con datos incompletos o inválidos.";if(/ITINERARIO_/i.test(raw))return"El itinerario no tiene un formato válido.";return raw||"No fue posible guardar la configuración del evento.";}
+  async function get(){const {data,error}=await client().rpc("admin_obtener_evento_itinerario");if(error)throw new Error(friendly(error));return normalize(data);}
+  async function save(evento,itinerario){const {data,error}=await client().rpc("admin_guardar_evento_itinerario",{p_evento:evento,p_itinerario:itinerario});if(error)throw new Error(friendly(error));return normalize(data);}
+  window.AdminEventService=Object.freeze({get,save});
+})();

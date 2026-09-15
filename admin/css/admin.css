@@ -5797,3 +5797,27 @@ input[type="date"]{
   .gift-admin-table td{grid-template-columns:100px minmax(0,1fr)}
   .contracts-new-picker-body{padding:16px}
 }
+
+/* =========================================================
+   FASE 15 · EVENTO E ITINERARIO EDITABLE
+   ========================================================= */
+.event-admin-view{display:grid;gap:18px}.event-admin-form{display:grid;gap:18px}.event-admin-panel{padding:22px;border:1px solid rgba(255,255,255,.74);border-radius:20px;background:rgba(255,250,241,.91);box-shadow:0 16px 38px rgba(38,46,33,.08)}.event-admin-panel>h3,.event-admin-panel-head h3{margin-bottom:14px}.event-admin-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}.event-admin-help{margin:4px 0 14px;color:var(--admin-muted);font-size:.74rem;line-height:1.5}.event-admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.event-admin-field{display:grid;min-width:0;gap:7px}.event-admin-field-wide{grid-column:1/-1}.event-admin-field>span{font-size:.72rem;font-weight:600}.event-admin-field>small{color:var(--admin-muted);font-size:.68rem}.event-admin-field input,.event-admin-field select,.event-admin-field textarea{box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:48px;padding:11px 13px;border:1px solid var(--admin-line);border-radius:12px;background:rgba(255,255,255,.76);color:var(--admin-ink);font:inherit;outline:none}.event-admin-field input[type=checkbox]{width:24px;min-height:24px;justify-self:start}.event-admin-field textarea{resize:vertical}.event-admin-field input:focus,.event-admin-field select:focus,.event-admin-field textarea:focus{border-color:var(--admin-olive);box-shadow:0 0 0 3px rgba(86,101,74,.13)}.event-admin-itinerary{display:grid;gap:12px}.event-admin-itinerary-card{display:grid;gap:14px;padding:16px;border:1px solid var(--admin-line);border-radius:16px;background:rgba(255,255,255,.4)}.event-admin-itinerary-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.event-admin-itinerary-number{font-family:"Cormorant Garamond",serif;font-size:1.35rem;color:var(--admin-olive-dark)}.event-admin-itinerary-move{display:flex;gap:7px}.event-admin-itinerary-move .admin-button{min-width:44px;padding:0 12px}.event-admin-status{min-height:20px;margin:0;color:var(--admin-muted);font-size:.76rem}.event-admin-actions{display:flex;justify-content:flex-end}.event-admin-actions .admin-button{min-width:180px}
+@media(max-width:760px){.event-admin-panel{padding:16px}.event-admin-panel-head{align-items:stretch;flex-direction:column}.event-admin-panel-head>.admin-button{width:100%}.event-admin-grid{grid-template-columns:1fr;gap:16px}.event-admin-field-wide{grid-column:auto}.event-admin-field input,.event-admin-field select,.event-admin-field textarea{font-size:16px!important;line-height:1.35}.event-admin-itinerary-top{align-items:flex-start}.event-admin-itinerary-move{flex-wrap:wrap;justify-content:flex-end}.event-admin-actions .admin-button{width:100%}}
+
+
+/* FASE 15.1 · feedback de guardado evento */
+.event-admin-actions{display:flex;align-items:center;justify-content:flex-end;gap:14px;flex-wrap:wrap}
+.event-admin-save-feedback{min-height:20px;color:var(--admin-muted);font-size:.76rem;font-weight:600}
+.event-admin-save-feedback.is-success{color:var(--admin-olive-dark)}
+.event-admin-save-feedback.is-error{color:var(--admin-danger)}
+.event-admin-field small{color:var(--admin-muted);font-size:.68rem;line-height:1.4}
+@media(max-width:760px){.event-admin-actions{justify-content:space-between}.event-admin-save-feedback{flex:1 1 100%;font-size:.82rem}}
+
+
+/* =========================================================
+   FASE 16 · Reporte de recepción
+   ========================================================= */
+.reports-reception-card{display:grid;gap:12px;max-width:780px}
+.reports-reception-card .admin-view-copy{margin:0;max-width:680px}
+.reports-reception-card>.admin-button{width:max-content}
+@media(max-width:620px){.reports-reception-card>.admin-button{width:100%}}

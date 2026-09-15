@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=EB+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/admin.css?v=12.2.0">
+  <link rel="stylesheet" href="css/admin.css?v=15.0.0">
 </head>
 <body class="admin-loading">
   <main class="admin-page">
@@ -45,6 +45,7 @@
           <details class="admin-nav-group" data-nav-group="organizacion">
             <summary>Organización <span aria-hidden="true">⌄</span></summary>
             <div class="admin-nav-group-links">
+              <a href="#/evento" data-admin-route="evento">Evento e itinerario</a>
               <a href="#/timeline" data-admin-route="timeline">Timeline</a>
               <a href="#/planeacion" data-admin-route="planeacion">Planeación</a>
               <a href="#/esenciales" data-admin-route="esenciales">Esenciales</a>
@@ -108,13 +109,14 @@
   <script src="js/services/guests-service.js" defer></script>
   <script src="js/services/confirmations-service.js?v=12.2.0" defer></script>
   <script src="js/services/tables-service.js" defer></script>
-  <script src="js/services/reports-service.js?v=11.0.0" defer></script>
+  <script src="js/services/reports-service.js?v=11.4.0" defer></script>
   <script src="js/services/planner-service.js?v=7.1.1" defer></script>
   <script src="js/services/finance-service.js?v=7.2.0" defer></script>
   <script src="js/services/contracts-service.js?v=7.7.3" defer></script>
   <script src="js/services/gifts-service.js?v=1.0.0" defer></script>
   <script src="js/services/essentials-service.js?v=10.3.2" defer></script>
   <script src="js/services/godparents-service.js?v=10.10.0" defer></script>
+  <script src="js/services/event-service.js?v=15.0.0" defer></script>
   <script src="js/utils/dashboard-formatters.js" defer></script>
   <script src="js/utils/invitation-url.js" defer></script>
   <script src="js/utils/whatsapp.js?v=10.14.3" defer></script>
@@ -131,9 +133,12 @@
   <script src="js/views/estadisticas-view.js" defer></script>
   <script src="js/views/mesas-view.js?v=12.0.0" defer></script>
   <script src="js/libs/xlsx.bundle.js?v=1.2.0" defer></script>
-  <script src="js/views/reportes-view.js?v=11.3.0" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js" defer></script>
+  <script src="js/views/reportes-view.js?v=11.4.0" defer></script>
   <script src="js/views/planeacion-view.js?v=10.12.3" defer></script>
   <script src="js/views/presupuesto-view.js?v=10.13.0" defer></script>
+  <script src="js/views/evento-view.js?v=15.0.0" defer></script>
   <script src="js/views/timeline-view.js?v=10.20.0" defer></script>
   <script src="js/views/contratos-view.js?v=7.7.3" defer></script>
   <script src="js/views/regalos-view.js?v=1.0.0" defer></script>
