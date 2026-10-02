@@ -18,3 +18,16 @@ footer{text-align:center;margin-top:55px;font:400 .67rem Montserrat,sans-serif;l
 .spark{position:fixed;width:4px;height:4px;background:#fff;border-radius:50%;box-shadow:0 0 10px #fff;opacity:0;animation:twinkle 4s infinite;pointer-events:none}.s1{top:17%;left:12%;animation-delay:.5s}.s2{top:34%;right:14%;animation-delay:2s}.s3{bottom:18%;left:20%;animation-delay:3s}
 @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes twinkle{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:.85;transform:scale(1.7)}}
 @media(max-width:600px){.wrap{padding-top:40px}.letter{padding:34px 25px;border-radius:23px}.letter p{font-size:1.17rem}.player-card{padding:29px 21px}.record{width:125px;height:125px}}
+.save-wrap{
+  max-height:0; opacity:0; overflow:hidden; transform:translateY(-8px);
+  transition:max-height .65s ease,opacity .65s ease,transform .65s ease;
+}
+.save-wrap.visible{max-height:150px;opacity:1;transform:none;margin-top:25px}
+.save-song{
+  display:inline-block;text-decoration:none;background:transparent;color:var(--dark);
+  border:1px solid rgba(109,118,82,.55);border-radius:999px;padding:13px 23px;
+  font:500 .76rem Montserrat,sans-serif;letter-spacing:.06em;
+  transition:background .25s ease,color .25s ease,transform .25s ease;
+}
+.save-song:hover,.save-song:focus{background:var(--olive);color:#fff;transform:translateY(-1px)}
+.save-wrap p{margin:10px 0 0;font:italic .95rem "Cormorant Garamond",serif;color:#777b6b}

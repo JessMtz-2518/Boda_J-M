@@ -6,3 +6,12 @@ a.addEventListener("play",()=>{b.textContent="❚❚";card.classList.add("playin
 a.addEventListener("pause",()=>{b.textContent="▶";card.classList.remove("playing")});
 a.addEventListener("timeupdate",()=>{c.textContent=f(a.currentTime);s.value=a.duration?a.currentTime/a.duration*100:0});
 s.addEventListener("input",()=>{if(a.duration)a.currentTime=s.value/100*a.duration});
+const saveWrap=document.getElementById("saveWrap");
+let revealed=false;
+a.addEventListener("play",()=>{
+  if(!revealed){
+    revealed=true;
+    saveWrap.classList.add("visible");
+    saveWrap.setAttribute("aria-hidden","false");
+  }
+});
