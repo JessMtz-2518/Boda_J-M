@@ -1,75 +1,20 @@
-:root{
-  --olive:#6d7652; --olive-dark:#414832; --olive-soft:#92997b;
-  --ivory:#f7f3e8; --silver:#c8c9c5; --ink:#292b26;
-}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{
-  margin:0; min-height:100vh; overflow-x:hidden; color:var(--ink);
-  font-family:Montserrat,Arial,sans-serif;
-  background:
-    radial-gradient(circle at 15% 5%,rgba(255,255,255,.95),transparent 30%),
-    linear-gradient(145deg,#ece7da 0%,#faf7ef 48%,#e3e4de 100%);
-}
-.glow{position:fixed;border-radius:50%;pointer-events:none;filter:blur(4px);opacity:.13}
-.glow-a{width:430px;height:430px;background:var(--olive);right:-170px;top:-180px}
-.glow-b{width:350px;height:350px;border:2px solid var(--olive);left:-160px;bottom:-180px}
-.wrap{width:min(900px,92vw);margin:auto;padding:58px 0 72px}
-.hero{text-align:center;animation:rise 1s ease both}
-.monogram{font-family:"Cormorant Garamond",serif;letter-spacing:.32em;font-size:.86rem;color:var(--olive)}
-.monogram span{color:#a9aaa5}
-.eyebrow{text-transform:uppercase;letter-spacing:.25em;font-size:.64rem;margin:27px 0 13px;color:#7b7f70}
-h1{font-family:Allura,cursive;font-weight:400;font-size:clamp(4.1rem,11vw,7rem);line-height:.86;margin:0;color:var(--olive-dark)}
-.artist{font-family:"Cormorant Garamond",serif;letter-spacing:.3em;text-transform:uppercase;font-size:1rem;margin-top:15px}
-.rule{width:82px;height:1px;background:linear-gradient(90deg,transparent,var(--olive),transparent);margin:26px auto}
-.dedication{font-family:"Cormorant Garamond",serif;font-size:clamp(1.2rem,3vw,1.55rem);font-style:italic;line-height:1.62;max-width:650px;margin:auto;color:#505447}
-.player-card{
-  margin:45px auto 0;max-width:710px;padding:36px;
-  border:1px solid rgba(109,118,82,.22);background:rgba(255,255,255,.6);
-  backdrop-filter:blur(13px);border-radius:30px;box-shadow:0 24px 75px rgba(55,59,43,.11);
-  text-align:center;
-}
-.record{
-  width:155px;height:155px;border-radius:50%;margin:0 auto 25px;position:relative;
-  display:grid;place-items:center;background:
-  repeating-radial-gradient(circle at center,#596044 0 2px,#646c4d 3px 5px);
-  box-shadow:0 15px 35px rgba(65,72,50,.25);
-}
-.record-ring{position:absolute;inset:16px;border:1px solid rgba(255,255,255,.22);border-radius:50%}
-.record-label{width:62px;height:62px;border-radius:50%;background:var(--ivory);display:grid;place-items:center;
-  font-family:"Cormorant Garamond",serif;color:var(--olive-dark);font-size:1.1rem;z-index:1}
-.player-card.playing .record{animation:spin 8s linear infinite}
-.track-name{font-family:"Cormorant Garamond",serif;font-size:1.8rem;margin:0}
-.track-caption{font-size:.67rem;letter-spacing:.18em;text-transform:uppercase;color:#777b6b;margin:7px 0 25px}
-.controls{display:flex;align-items:center;gap:18px}
-.play{width:52px;height:52px;flex:0 0 52px;border:0;border-radius:50%;background:var(--olive);color:white;font-size:1rem;cursor:pointer;box-shadow:0 8px 20px rgba(65,72,50,.22)}
-.play:hover{transform:scale(1.04)}
-.timeline{width:100%}
-input[type=range]{width:100%;accent-color:var(--olive);cursor:pointer}
-.times{display:flex;justify-content:space-between;font-size:.65rem;color:#777;margin-top:3px}
-.story{max-width:680px;margin:62px auto 0;text-align:center}
-.script-title{font-family:Allura,cursive!important;font-size:3.2rem!important;color:var(--olive-dark);margin:0 0 13px!important}
-.story p{font-family:"Cormorant Garamond",serif;font-size:1.27rem;line-height:1.75;margin:0}
-blockquote{
-  max-width:720px;margin:52px auto 0;padding:31px 18px;
-  border-top:1px solid rgba(109,118,82,.23);border-bottom:1px solid rgba(109,118,82,.23);
-  font-family:"Cormorant Garamond",serif;font-size:clamp(1.4rem,4vw,2rem);font-style:italic;
-  line-height:1.45;text-align:center;color:var(--olive-dark)
-}
-.promise{text-align:center;max-width:650px;margin:58px auto 0}
-.heart{font-family:"Cormorant Garamond",serif;font-size:2.5rem;color:var(--olive)}
-.promise p{font-family:Allura,cursive;font-size:3rem;color:var(--olive-dark);margin:3px 0}
-.promise span{font-family:"Cormorant Garamond",serif;font-size:1.12rem;line-height:1.5;color:#5e6157}
-footer{text-align:center;margin-top:65px}
-.final{font-family:Allura,cursive;font-size:3.5rem;color:var(--olive-dark);margin:0}
-.sign{font-family:"Cormorant Garamond",serif;font-style:italic;font-size:1.1rem;margin:2px 0 26px}
-.jm{font-size:.62rem;letter-spacing:.22em;color:#7e8176}
-.spark{position:fixed;width:4px;height:4px;background:#fff;border-radius:50%;box-shadow:0 0 10px #fff;opacity:0;animation:twinkle 4s infinite;pointer-events:none}
-.s1{top:17%;left:12%;animation-delay:.5s}.s2{top:34%;right:14%;animation-delay:2s}.s3{bottom:18%;left:20%;animation-delay:3s}
-@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
-@keyframes twinkle{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:.85;transform:scale(1.7)}}
-@keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:600px){
-  .wrap{padding-top:42px}.player-card{padding:28px 21px;border-radius:24px}
-  .record{width:132px;height:132px}.controls{gap:12px}.play{width:48px;height:48px;flex-basis:48px}
-}
+ :root{--olive:#6d7652;--dark:#414832;--ivory:#f8f5ec;--silver:#c8c9c5;--ink:#30322d}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:Montserrat,sans-serif;background:radial-gradient(circle at 15% 5%,#fff,transparent 30%),linear-gradient(145deg,#ece7da,#faf7ef 48%,#e3e4de);overflow-x:hidden}
+.wrap{width:min(820px,91vw);margin:auto;padding:55px 0 70px}
+header{text-align:center;animation:rise 1s ease both}.monogram{font-family:"Cormorant Garamond",serif;letter-spacing:.32em;color:var(--olive);font-size:.85rem}.monogram span{color:#aaa}
+.eyebrow{text-transform:uppercase;letter-spacing:.24em;font-size:.62rem;color:#777b6b;margin:27px 0 10px}
+h1{font:400 clamp(4rem,11vw,6.5rem)/.95 Allura,cursive;color:var(--dark);margin:0}.rule{width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--olive),transparent);margin:27px auto}
+.letter{max-width:690px;margin:35px auto 0;padding:45px 48px;background:rgba(255,255,255,.57);border:1px solid rgba(109,118,82,.2);border-radius:28px;box-shadow:0 22px 70px rgba(55,59,43,.09);backdrop-filter:blur(12px)}
+.letter p{font:400 1.23rem/1.75 "Cormorant Garamond",serif;margin:0 0 22px}.letter p:first-child:first-letter{font:400 3.7rem/ .8 Allura,cursive;color:var(--olive);float:left;margin:7px 8px 0 0}
+.instruction{text-align:center;margin:38px -5px 0;padding:27px 10px;border-top:1px solid rgba(109,118,82,.2);border-bottom:1px solid rgba(109,118,82,.2);font:italic 1.25rem/1.55 "Cormorant Garamond",serif;color:var(--dark)}
+.signature{text-align:right;margin-top:30px;font:italic 1rem "Cormorant Garamond",serif}.signature span{font:400 2.8rem Allura,cursive;color:var(--dark)}
+.player-card{max-width:650px;margin:55px auto 0;padding:34px;text-align:center;background:rgba(255,255,255,.58);border:1px solid rgba(109,118,82,.2);border-radius:28px;box-shadow:0 20px 60px rgba(55,59,43,.1)}
+.record{width:140px;height:140px;border-radius:50%;margin:auto;display:grid;place-items:center;position:relative;background:repeating-radial-gradient(circle,#596044 0 2px,#646c4d 3px 5px);box-shadow:0 14px 32px rgba(65,72,50,.24)}
+.record-ring{position:absolute;inset:15px;border:1px solid rgba(255,255,255,.2);border-radius:50%}.record-label{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:var(--ivory);font-family:"Cormorant Garamond",serif;color:var(--dark);z-index:1}
+.playing .record{animation:spin 8s linear infinite}.track-name{font:500 1.8rem "Cormorant Garamond",serif;margin:23px 0 4px}.track-caption,.listen{font-size:.64rem;letter-spacing:.17em;text-transform:uppercase;color:#7b7e72}.track-caption{margin:0 0 23px}.listen{margin:18px 0 0}
+.controls{display:flex;gap:17px;align-items:center}.play{width:52px;height:52px;flex:0 0 52px;border:0;border-radius:50%;background:var(--olive);color:#fff;cursor:pointer;font-size:1rem}.timeline{width:100%}input[type=range]{width:100%;accent-color:var(--olive)}.times{display:flex;justify-content:space-between;font-size:.62rem;color:#777}
+footer{text-align:center;margin-top:55px;font:400 .67rem Montserrat,sans-serif;letter-spacing:.23em;color:#777}footer span{color:#aaa}
+.spark{position:fixed;width:4px;height:4px;background:#fff;border-radius:50%;box-shadow:0 0 10px #fff;opacity:0;animation:twinkle 4s infinite;pointer-events:none}.s1{top:17%;left:12%;animation-delay:.5s}.s2{top:34%;right:14%;animation-delay:2s}.s3{bottom:18%;left:20%;animation-delay:3s}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes twinkle{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:.85;transform:scale(1.7)}}
+@media(max-width:600px){.wrap{padding-top:40px}.letter{padding:34px 25px;border-radius:23px}.letter p{font-size:1.17rem}.player-card{padding:29px 21px}.record{width:125px;height:125px}}
