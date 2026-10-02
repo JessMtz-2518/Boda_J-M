@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6d7652">
+  <title>El Momento Exacto · JessMtz</title>
+  <meta name="description" content="Para Marcos. Nuestra historia convertida en canción.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Allura&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="glow glow-a"></div>
+  <div class="glow glow-b"></div>
+  <i class="spark s1"></i><i class="spark s2"></i><i class="spark s3"></i>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="monogram">J <span>|</span> M</div>
+      <p class="eyebrow">Una canción para ti</p>
+      <h1>El Momento Exacto</h1>
+      <div class="artist">JessMtz</div>
+      <div class="rule"></div>
+      <p class="dedication">
+        Para Marcos ❤️<br>
+        Una historia que empezó detrás de un balón, dio la vuelta por kilómetros y años…
+        y llegó justo cuando tenía que llegar.
+      </p>
+    </section>
+
+    <section class="player-card">
+      <div class="record">
+        <div class="record-ring"></div>
+        <div class="record-label">J | M</div>
+      </div>
+
+      <div class="track-info">
+        <p class="track-name">El Momento Exacto</p>
+        <p class="track-caption">Nuestra historia convertida en canción</p>
+      </div>
+
+      <audio id="song" preload="metadata">
+        <source src="../Audio/el-momento-exacto.mp3" type="audio/mpeg">
+      </audio>
+
+      <div class="controls">
+        <button id="playBtn" class="play" type="button" aria-label="Reproducir canción">▶</button>
+        <div class="timeline">
+          <input id="seek" type="range" min="0" max="100" value="0" aria-label="Progreso de la canción">
+          <div class="times"><span id="current">0:00</span><span id="duration">--:--</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="story">
+      <p class="script-title">Nuestra historia</p>
+      <p>
+        No te estaba buscando y, sin saberlo, llevabas años encontrándome.
+        Entre la prepa, aquel beso que nadie sabe explicar, mensajes, Mérida,
+        un aeropuerto, Iron Man, cartas escritas a mano y tantos “todavía no”,
+        la vida nos volvió a poner frente a frente.
+      </p>
+    </section>
+
+    <blockquote>
+      “Y si fue el destino quien volvió a encontrarnos,<br>
+      que sepa que de aquí en adelante es decisión.”
+    </blockquote>
+
+    <section class="story">
+      <p>
+        Contigo aprendí que existe el amor bonito. Que puedo ser yo misma,
+        bajar la guardia y descansar. Que no necesito hacerlo todo sola.
+        Y que los cuentos de hadas sí pueden hacerse realidad,
+        aunque no comiencen como los imaginábamos.
+      </p>
+    </section>
+
+    <section class="promise">
+      <div class="heart">♡</div>
+      <p>Voy a elegirte todos los días.</p>
+      <span>En los buenos, en los malos y en todos los momentos que todavía nos faltan por vivir.</span>
+    </section>
+
+    <footer>
+      <p class="final">Siempre fuiste tú.</p>
+      <p class="sign">Con amor, Jess</p>
+      <div class="jm">J | M · 01.05.2027</div>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
