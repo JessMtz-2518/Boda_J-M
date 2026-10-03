@@ -179,7 +179,7 @@
     const invitationId = Number(value.invitadoId);
     const adults = Number(value.adultos);
     const children = Number(value.ninos);
-    const reason = String(value.motivo ?? "").trim();
+    const reason = String(value.motivo ?? "").trim() || "Sin comentario";
     const version = String(value.version ?? "").trim();
 
     if (!Number.isInteger(invitationId) || invitationId < 1) invalidContract();
@@ -227,7 +227,7 @@
 
   async function updateRsvpDeadline({ dateValue, reason }) {
     const dateText = String(dateValue || "").trim();
-    const motive = String(reason || "").trim();
+    const motive = String(reason || "").trim() || "Sin comentario";
     if (!/^\d{4}-\d{2}-\d{2}$/.test(dateText)) invalidContract();
     if (motive.length < 3 || motive.length > 500) invalidContract();
     const { data, error } = await client().rpc(RSVP_DEADLINE_RPC, {

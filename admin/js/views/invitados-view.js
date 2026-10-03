@@ -203,7 +203,7 @@
       confirmation.append(element("p", "", "Sin confirmación registrada."));
     }
 
-    const reasonField = textField("Motivo del cambio *", reason);
+    const reasonField = textField("Comentario del cambio (opcional)", reason);
     reasonField.classList.add("guest-editor-reason");
     const status = element("div", "guest-editor-status");
     status.setAttribute("role", "status");
@@ -243,7 +243,7 @@
       status.textContent = "";
 
       const trimmedName = name.value.trim();
-      const trimmedReason = reason.value.trim();
+      const trimmedReason = reason.value.trim() || "Sin comentario";
       if (!trimmedName) {
         status.className = "guest-editor-status guest-editor-status-error";
         status.textContent = "El nombre es obligatorio.";
@@ -383,7 +383,7 @@
       ? "Ej. Ya no asistirá a la boda / invitación cancelada"
       : "Ej. Invitación reactivada por solicitud de los novios";
 
-    const reasonField = textField(isDeactivation ? "Motivo de la baja *" : "Motivo de la reactivación *", reason);
+    const reasonField = textField(isDeactivation ? "Comentario de la baja (opcional)" : "Comentario de la reactivación (opcional)", reason);
     reasonField.classList.add("guest-editor-reason");
 
     const status = element("div", "guest-editor-status");
@@ -423,7 +423,7 @@
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
 
-      const trimmedReason = reason.value.trim();
+      const trimmedReason = reason.value.trim() || "Sin comentario";
       status.className = "guest-editor-status";
       status.textContent = "";
 
@@ -551,7 +551,7 @@
       element("small", "", "El código y el token no se capturan manualmente y no se reutilizan.")
     );
 
-    const reasonField = textField("Motivo del alta *", reason);
+    const reasonField = textField("Comentario del alta (opcional)", reason);
     reasonField.classList.add("guest-editor-reason");
     const status = element("div", "guest-editor-status");
     status.setAttribute("role", "status");
@@ -648,7 +648,7 @@
       status.textContent = "";
 
       const trimmedName = name.value.trim();
-      const trimmedReason = reason.value.trim();
+      const trimmedReason = reason.value.trim() || "Sin comentario";
       const total = adults.getValue() + children.getValue();
       if (!trimmedName) {
         status.className = "guest-editor-status guest-editor-status-error";

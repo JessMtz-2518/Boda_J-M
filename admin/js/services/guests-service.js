@@ -174,7 +174,7 @@
     const children = Number(payload.ninosAsignados);
     const phone = String(payload.telefono ?? "").trim();
     const notes = String(payload.notas ?? "").trim();
-    const reason = String(payload.motivo ?? "").trim();
+    const reason = String(payload.motivo ?? "").trim() || "Sin comentario";
     const version = String(payload.version ?? "").trim();
 
     if (!name || name.length > 150) invalidContract();
@@ -202,7 +202,7 @@
     const id = normalizeInvitationId(payload.invitadoId);
     if (typeof payload.activo !== "boolean") invalidContract();
 
-    const reason = String(payload.motivo ?? "").trim();
+    const reason = String(payload.motivo ?? "").trim() || "Sin comentario";
     const version = String(payload.version ?? "").trim();
 
     if (!reason || reason.length > 1000 || !isValidDate(version)) invalidContract();
@@ -233,7 +233,7 @@
     const children = Number(payload.ninos);
     const phone = String(payload.telefono ?? "").trim();
     const notes = String(payload.notas ?? "").trim();
-    const reason = String(payload.motivo ?? "").trim();
+    const reason = String(payload.motivo ?? "").trim() || "Sin comentario";
 
     if (!name || name.length > 150) invalidContract();
     if (!GROUPS.includes(group)) invalidContract();

@@ -179,8 +179,8 @@
     const reason = document.createElement("textarea");
     reason.rows = 3;
     reason.maxLength = 1000;
-    reason.placeholder = "Motivo obligatorio de la corrección";
-    const reasonField = field("Motivo de la corrección *", reason);
+    reason.placeholder = "Comentario opcional";
+    const reasonField = field("Comentario de la corrección (opcional)", reason);
 
     const correctionStatus = el("p", "confirmation-operation-status");
     correctionStatus.setAttribute("role", "status");
@@ -205,7 +205,7 @@
     }, { once: true });
 
     save.addEventListener("click", async () => {
-      const motive = reason.value.trim();
+      const motive = reason.value.trim() || "Sin comentario";
       correctionStatus.className = "confirmation-operation-status";
       correctionStatus.textContent = "";
 
@@ -485,7 +485,7 @@
       const reason = document.createElement("textarea");
       reason.className = "confirmation-deadline-reason confirmation-deadline-reason-textarea";
       reason.maxLength = 500;
-      reason.placeholder = "Motivo obligatorio para actualizar la fecha";
+      reason.placeholder = "Comentario opcional";
 
       const error = el("p", "confirmation-deadline-modal-status");
       error.setAttribute("role", "status");
@@ -496,7 +496,7 @@
       const save = button("Guardar cambio", true);
       actions.append(cancel, save);
 
-      form.append(field("Nueva fecha límite *", dateInput), field("Motivo del cambio *", reason), error, actions);
+      form.append(field("Nueva fecha límite *", dateInput), field("Comentario del cambio (opcional)", reason), error, actions);
       body.append(form);
       dialog.append(head, body);
       overlay.append(dialog);

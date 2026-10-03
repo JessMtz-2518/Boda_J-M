@@ -300,7 +300,7 @@
     const reason = document.createElement("textarea");
     reason.rows = 3;
     reason.maxLength = 1000;
-    reason.placeholder = "Motivo obligatorio · Ej. Ajuste final de distribución";
+    reason.placeholder = "Comentario opcional";
 
     const status = el("p", "tables-operation-status");
     const actions = el("div", "tables-modal-actions");
@@ -310,7 +310,7 @@
 
     const body = el("div", "tables-modal-body");
     body.append(
-      field("Motivo del cambio *", reason),
+      field("Comentario del cambio (opcional)", reason),
       status,
       actions
     );
@@ -325,7 +325,7 @@
     cancel.addEventListener("click", dismiss);
 
     save.addEventListener("click", async () => {
-      const motive = reason.value.trim();
+      const motive = reason.value.trim() || "Sin comentario";
       if (!motive) {
         status.textContent = "Escribe el motivo de la distribución.";
         reason.focus();
@@ -2329,7 +2329,7 @@
     const reason = document.createElement("textarea");
     reason.rows = 3;
     reason.maxLength = 1000;
-    reason.placeholder = "Motivo obligatorio del cambio";
+    reason.placeholder = "Comentario opcional";
 
     const capacityHelp = el(
       "small",
@@ -2363,7 +2363,7 @@
     body.append(
       grid,
       field("Notas", notes),
-      field("Motivo del cambio *", reason),
+      field("Comentario del cambio (opcional)", reason),
       status,
       actions
     );
@@ -2382,7 +2382,7 @@
 
     save.addEventListener("click", async () => {
       const seats = Number(capacity.value);
-      const motive = reason.value.trim();
+      const motive = reason.value.trim() || "Sin comentario";
 
       status.textContent = "";
 
@@ -2556,7 +2556,7 @@
     const reason = document.createElement("textarea");
     reason.rows = 3;
     reason.maxLength = 1000;
-    reason.placeholder = "Motivo obligatorio de la reasignación";
+    reason.placeholder = "Comentario opcional";
 
     const status = el("p", "tables-operation-status");
     const actions = el("div", "tables-modal-actions");
@@ -2572,7 +2572,7 @@
         `Se moverán ${item.adultos} adultos y ${item.ninos} niños. La operación conservará el historial.`
       ),
       field("Mesa destino *", tableSelect),
-      field("Motivo *", reason),
+      field("Comentario (opcional)", reason),
       status,
       actions
     );
@@ -2588,7 +2588,7 @@
 
     move.addEventListener("click", async () => {
       const target = Number(tableSelect.value);
-      const motive = reason.value.trim();
+      const motive = reason.value.trim() || "Sin comentario";
       status.textContent = "";
 
       if (!target) {
@@ -2764,7 +2764,7 @@
     const reason = document.createElement("textarea");
     reason.rows = 3;
     reason.maxLength = 1000;
-    reason.placeholder = "Motivo obligatorio del retiro";
+    reason.placeholder = "Comentario opcional";
 
     const status = el("p", "tables-operation-status");
     const actions = el("div", "tables-modal-actions");
@@ -2776,7 +2776,7 @@
     const body = el("div", "tables-modal-body");
     body.append(
       statusBox("warning", "La asignación se retirará", "El registro conservará su historial y las personas volverán a aparecer como pendientes de asignar."),
-      field("Motivo del retiro *", reason),
+      field("Comentario del retiro (opcional)", reason),
       status,
       actions
     );
@@ -2791,7 +2791,7 @@
     cancel.addEventListener("click", dismiss);
 
     remove.addEventListener("click", async () => {
-      const motive = reason.value.trim();
+      const motive = reason.value.trim() || "Sin comentario";
       if (!motive) {
         status.textContent = "Escribe el motivo del retiro.";
         reason.focus();
@@ -2865,7 +2865,7 @@
     const reason = document.createElement("textarea");
     reason.rows = 3;
     reason.maxLength = 1000;
-    reason.placeholder = "Motivo obligatorio para agregar la mesa";
+    reason.placeholder = "Comentario opcional";
 
     const status = el("p", "tables-operation-status");
     const actions = el("div", "tables-modal-actions");
@@ -2884,7 +2884,7 @@
     body.append(
       grid,
       field("Notas", notes),
-      field("Motivo del alta *", reason),
+      field("Comentario del alta (opcional)", reason),
       status,
       actions
     );
@@ -2903,7 +2903,7 @@
 
     save.addEventListener("click", async () => {
       const seats = Number(capacity.value);
-      const motive = reason.value.trim();
+      const motive = reason.value.trim() || "Sin comentario";
       status.textContent = "";
 
       if (!Number.isInteger(seats) || seats < 1 || seats > 50) {
@@ -2985,7 +2985,7 @@
     const reason = document.createElement("textarea");
     reason.rows = 3;
     reason.maxLength = 1000;
-    reason.placeholder = "Motivo obligatorio para eliminar la mesa";
+    reason.placeholder = "Comentario opcional";
 
     const status = el("p", "tables-operation-status");
     const info = el("div", "tables-capacity-slot");
@@ -3029,7 +3029,7 @@
     body.append(
       field("Mesa *", tableSelect),
       info,
-      field("Motivo de la baja *", reason),
+      field("Comentario de la baja (opcional)", reason),
       status,
       actions
     );
@@ -3050,7 +3050,7 @@
     remove.addEventListener("click", async () => {
       const tableId = Number(tableSelect.value);
       const selected = tables.find((table) => table.id === tableId);
-      const motive = reason.value.trim();
+      const motive = reason.value.trim() || "Sin comentario";
       status.textContent = "";
 
       if (!selected) {
@@ -3127,7 +3127,7 @@
     const reason = document.createElement("textarea");
     reason.rows = 4;
     reason.maxLength = 1000;
-    reason.placeholder = "Motivo obligatorio para liberar todas las mesas";
+    reason.placeholder = "Comentario opcional";
 
     const status = el("p", "tables-operation-status");
 
@@ -3143,7 +3143,7 @@
         "Se eliminarán todas las asignaciones activas",
         `${adults} adultos y ${children} niños volverán a quedar pendientes de asignar. No se borrará ningún registro y el historial se conservará.`
       ),
-      field("Motivo *", reason),
+      field("Comentario (opcional)", reason),
       status,
       actions
     );
@@ -3164,7 +3164,7 @@
     });
 
     release.addEventListener("click", async () => {
-      const motive = reason.value.trim();
+      const motive = reason.value.trim() || "Sin comentario";
       status.textContent = "";
 
       if (!motive) {
@@ -3280,7 +3280,7 @@
       summary,
       field("Mesa *", tableSelect),
       counters,
-      field("Motivo de la asignación *", reason),
+      field("Comentario de la asignación (opcional)", reason),
       status,
       actions
     );
@@ -3299,7 +3299,7 @@
 
     save.addEventListener("click", async () => {
       const tableId = Number(tableSelect.value);
-      const motive = reason.value.trim();
+      const motive = reason.value.trim() || "Sin comentario";
       const adultCount = adults.getValue();
       const childCount = children.getValue();
 
@@ -3432,7 +3432,7 @@
       save.disabled = true;
       actions.append(save);
 
-      panel.append(title, formGrid, metrics, status, field("Motivo de la configuración *", reason), actions);
+      panel.append(title, formGrid, metrics, status, field("Comentario de la configuración (opcional)", reason), actions);
       content.replaceChildren(panel);
 
       function calculate() {
@@ -3876,7 +3876,7 @@
       const reason = document.createElement("textarea");
       reason.rows = 3;
       reason.maxLength = 1000;
-      reason.placeholder = "Motivo obligatorio de la reconfiguración";
+      reason.placeholder = "Comentario opcional";
 
       const formGrid = el("div", "tables-config-grid");
       formGrid.append(
@@ -3889,7 +3889,7 @@
       const save = button("Guardar cambios", true);
       actions.append(cancel, save);
 
-      panel.append(title, formGrid, field("Motivo del cambio *", reason), actions);
+      panel.append(title, formGrid, field("Comentario del cambio (opcional)", reason), actions);
       content.replaceChildren(panel);
 
       function calculate() {

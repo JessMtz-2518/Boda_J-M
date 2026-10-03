@@ -312,7 +312,7 @@
     const guest = Number(guestId);
     const adultCount = Number(adults);
     const childCount = Number(children);
-    const motive = String(reason || "").trim();
+    const motive = String(reason || "").trim() || "Sin comentario";
 
     if (!Number.isInteger(table) || table < 1) throw new Error("MESA_INVALIDA");
     if (!Number.isInteger(guest) || guest < 1) throw new Error("INVITADO_INVALIDO");
@@ -335,7 +335,7 @@
 
   async function removeAssignment({ assignmentId, reason, version }) {
     const id = Number(assignmentId);
-    const motive = String(reason || "").trim();
+    const motive = String(reason || "").trim() || "Sin comentario";
 
     if (!Number.isInteger(id) || id < 1) throw new Error("ASIGNACION_INVALIDA");
     if (!motive || motive.length > 1000) throw new Error("MOTIVO_INVALIDO");
@@ -363,7 +363,7 @@
   }) {
     const id = Number(tableId);
     const seats = Number(capacity);
-    const motive = String(reason || "").trim();
+    const motive = String(reason || "").trim() || "Sin comentario";
 
     if (!Number.isInteger(id) || id < 1) throw new Error("MESA_INVALIDA");
     if (!Number.isInteger(seats) || seats < 1 || seats > 50) {
@@ -445,7 +445,7 @@
   }) {
     const canvasWidth = Number(width);
     const canvasHeight = Number(height);
-    const motive = String(reason || "").trim();
+    const motive = String(reason || "").trim() || "Sin comentario";
 
     if (!Number.isFinite(canvasWidth) || canvasWidth < 60 || canvasWidth > 600
         || !Number.isFinite(canvasHeight) || canvasHeight < 60 || canvasHeight > 600) {
@@ -553,7 +553,7 @@
       }
     });
 
-    const motive = String(reason || "").trim();
+    const motive = String(reason || "").trim() || "Sin comentario";
     if (!motive || motive.length > 1000) {
       throw new Error("MOTIVO_INVALIDO");
     }
@@ -592,7 +592,7 @@
       };
     });
 
-    const motive = String(reason || "").trim();
+    const motive = String(reason || "").trim() || "Sin comentario";
     if (!motive || motive.length > 1000) {
       throw new Error("MOTIVO_INVALIDO");
     }
@@ -614,7 +614,7 @@
     reason,
   }) {
     const seats = Number(capacity);
-    const motive = String(reason || "").trim();
+    const motive = String(reason || "").trim() || "Sin comentario";
 
     if (!Number.isInteger(seats) || seats < 1 || seats > 50) {
       throw new Error("CAPACIDAD_MESA_INVALIDA");
@@ -635,7 +635,7 @@
 
   async function deleteTable({ tableId, reason, version }) {
     const id = Number(tableId);
-    const motive = String(reason || "").trim();
+    const motive = String(reason || "").trim() || "Sin comentario";
 
     if (!Number.isInteger(id) || id < 1) throw new Error("MESA_INVALIDA");
     if (!motive || motive.length > 1000) throw new Error("MOTIVO_INVALIDO");
@@ -652,7 +652,7 @@
   }
 
   async function releaseAll({ reason }) {
-    const motive = String(reason || "").trim();
+    const motive = String(reason || "").trim() || "Sin comentario";
     if (!motive || motive.length > 1000) throw new Error("MOTIVO_INVALIDO");
 
     const { data, error } = await getClient().rpc(RPC.releaseAll, {
@@ -666,7 +666,7 @@
   async function moveAssignment({ assignmentId, targetTableId, reason, version }) {
     const assignment = Number(assignmentId);
     const target = Number(targetTableId);
-    const motive = String(reason || "").trim();
+    const motive = String(reason || "").trim() || "Sin comentario";
 
     if (!Number.isInteger(assignment) || assignment < 1) throw new Error("ASIGNACION_INVALIDA");
     if (!Number.isInteger(target) || target < 1) throw new Error("MESA_INVALIDA");
